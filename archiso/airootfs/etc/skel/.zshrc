@@ -11,7 +11,7 @@ setopt SHARE_HISTORY
 autoload -Uz compinit
 compinit
 
-# --- Prompt (starship style, kitty palette) ---
+# --- Prompt (starship style) ---
 setopt PROMPT_SUBST EXTENDED_GLOB
 
 autoload -Uz vcs_info add-zsh-hook
