@@ -95,7 +95,7 @@
     "tooltip-format-discharging": "{power:>1.0f}W↓ {capacity}%",
     "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%",
     "interval": 5,
-    "on-click": "wlogout",
+    "on-click": "churros-popup battery",
     "states": {
       "warning": 20,
       "critical": 10
@@ -107,11 +107,11 @@
     "format-connected": "󰂱",
     "format-no-controller": "",
     "tooltip-format": "Devices connected: {num_connections}",
-    "on-click": "blueman-manager"
+    "on-click": "churros-popup bluetooth"
   },
   "pulseaudio": {
     "format": "{icon} ",
-    "on-click": "foot wiremix",
+    "on-click": "churros-popup audio",
     "on-click-right": "pamixer -t",
     "tooltip-format": "Playing at {volume}%",
     "scroll-step": 5,

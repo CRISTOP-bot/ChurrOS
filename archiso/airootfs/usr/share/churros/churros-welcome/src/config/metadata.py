@@ -1,6 +1,6 @@
 APP_NAME = "ChurrOS"
 
-VERSION = "Alpha 0.1"
+VERSION = "0.2.0"
 
 AUTHOR = "Hoyuse"
 

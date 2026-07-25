@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+VERSION_FILE="$(cd "$(dirname "$0")/../.." && pwd)/VERSION"
+
 echo "ChurrOS CLI"
 echo
-echo "Version : 0.1.0 Alpha"
+echo "Version : $(cat "$VERSION_FILE")"
 echo "Shell   : Bash"
 echo

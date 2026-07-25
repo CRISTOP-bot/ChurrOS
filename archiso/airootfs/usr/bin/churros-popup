@@ -4,7 +4,7 @@
 set -eu
 
 if [ "$#" -ne 1 ]; then
-    printf '%s\n' "Usage: /usr/bin/churros-popup {network|audio|bluetooth|power|brightness}" >&2
+    printf '%s\n' "Usage: /usr/bin/churros-popup {network|audio|bluetooth|power|brightness|battery}" >&2
     exit 64
 fi
 
@@ -12,13 +12,24 @@ case "$1" in
     network)
         exec /usr/bin/python3 /usr/share/churros/popups/network/main.py
         ;;
-    audio|bluetooth|power|brightness)
-        printf '%s\n' "churros-popup: '$1' is not implemented yet" >&2
-        exit 69
+    audio)
+        exec /usr/bin/python3 /usr/share/churros/popups/audio/main.py
+        ;;
+    bluetooth)
+        exec /usr/bin/python3 /usr/share/churros/popups/bluetooth/main.py
+        ;;
+    power)
+        exec /usr/bin/python3 /usr/share/churros/popups/power/main.py
+        ;;
+    brightness)
+        exec /usr/bin/python3 /usr/share/churros/popups/brightness/main.py
+        ;;
+    battery)
+        exec /usr/bin/python3 /usr/share/churros/popups/battery/main.py
         ;;
     *)
         printf '%s\n' "churros-popup: unknown popup '$1'" >&2
-        printf '%s\n' "Usage: /usr/bin/churros-popup {network|audio|bluetooth|power|brightness}" >&2
+        printf '%s\n' "Usage: /usr/bin/churros-popup {network|audio|bluetooth|power|brightness|battery}" >&2
         exit 64
         ;;
 esac

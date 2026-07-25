@@ -14,7 +14,7 @@ def launch_application(command: str):
 
 def open_terminal():
 
-    launch_application("kitty")
+    launch_application("foot")
 
 
 def open_browser():

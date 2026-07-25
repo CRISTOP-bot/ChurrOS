@@ -13,7 +13,7 @@ cat > /etc/greetd/config.toml << EOF
 vt = 1
 
 [default_session]
-command = "niri-session"
+command = "/usr/bin/niri"
 user = "$USERNAME"
 EOF
 
