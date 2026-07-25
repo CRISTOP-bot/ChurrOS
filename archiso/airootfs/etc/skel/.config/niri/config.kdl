@@ -99,6 +99,8 @@ binds {
     Mod+Shift+F { fullscreen-window; }
     Mod+Space { spawn "fuzzel"; }
     Mod+C { spawn "python" "/usr/share/churros/control-center/main.py"; }
+    Mod+V { spawn "python" "/usr/share/churros/preferences/main.py"; }
+    
 
     // Overlay & overview
     Mod+Shift+Slash { show-hotkey-overlay; }
@@ -162,3 +164,4 @@ binds {
 spawn-at-startup "swaybg" "-i" "/usr/share/churros/wallpapers/default.jpeg" "-m" "fill"
 spawn-at-startup "waybar"
 spawn-at-startup "mako"
+spawn-at-startup "awww-daemon"

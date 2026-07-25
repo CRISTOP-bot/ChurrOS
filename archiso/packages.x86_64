@@ -179,7 +179,8 @@ python-gobject
 gtk4
 libadwaita
 gobject-introspection
-
+awww
+ddcutil
 ttf-jetbrains-mono-nerd
 otf-font-awesome
 firefox
@@ -197,11 +198,13 @@ upower
 bluez
 bluez-utils
 brightnessctl
-
+gsettings-desktop-schemas
 ufw
-
+xdg-desktop-portal
+xdg-desktop-portal-gtk
 plymouth
-
+papirus-icon-theme
+adwaita-icon-theme
 fastfetch
 
 # Calamares installer dependencies
