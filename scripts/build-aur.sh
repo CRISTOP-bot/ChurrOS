@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+WORK_DIR="$PROJECT_DIR/work/aur-build"
+PACKAGE_DIR="$PROJECT_DIR/archiso/packages"
+
+echo "======================================"
+echo "  Building AUR extras for ChurrOS"
+echo "======================================"
+
+mkdir -p "$PACKAGE_DIR" "$WORK_DIR"
+
+build_aur() {
+    local name="$1"
+    local package_dir="$WORK_DIR/$name"
+
+    if ls "$PACKAGE_DIR"/"$name"-*.pkg.tar.zst 1>/dev/null 2>&1; then
+        echo "[skip] $name already built"
+        return
+    fi
+
+    echo "[build] $name from AUR..."
+    rm -rf "$package_dir"
+    git clone "https://aur.archlinux.org/${name}.git" "$package_dir"
+    (
+        cd "$package_dir"
+        makepkg -sf --noconfirm
+    )
+    cp "$package_dir"/*.pkg.tar.zst "$PACKAGE_DIR/"
+    rm -f "$PACKAGE_DIR"/"$name"-debug-*.pkg.tar.zst 2>/dev/null || true
+    echo "[done] $name built"
+}
+
+build_aur python-pywal
+build_aur waypaper
+
+echo
+echo "Updating churros local repo..."
+(
+    cd "$PACKAGE_DIR"
+    repo-add churros.db.tar.gz *.pkg.tar.zst
+)
+
+rm -rf "$WORK_DIR"
+
+echo
+echo "======================================"
+echo "  AUR extras built."
+echo "======================================"
+ls -la "$PACKAGE_DIR"/python-pywal-*.pkg.tar.zst 2>/dev/null || echo "(pywal not built)"
+ls -la "$PACKAGE_DIR"/waypaper-*.pkg.tar.zst 2>/dev/null || echo "(waypaper not built)"
+echo
+echo "  Run: ./churros build"

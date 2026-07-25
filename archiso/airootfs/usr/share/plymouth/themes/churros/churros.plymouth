@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=ChurrOS
+Description=ChurrOS Boot Splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/churros
+ScriptFile=churros.script

@@ -20,12 +20,13 @@ SCRIPTS_DIR="$CLI_DIR/scripts/cli"
 
 run_script() {
     local name="$1"
+    shift
     local script="$SCRIPTS_DIR/$name.sh"
     if [ ! -f "$script" ]; then
         echo "Error: script not found — $script" >&2
         exit 1
     fi
-    bash "$script"
+    bash "$script" "$@"
 }
 
 show_help() {
@@ -58,6 +59,7 @@ echo
 
 echo "  ./churros build"
 echo "  ./churros run"
+echo "  ./churros run --nokvm"
 echo "  ./churros doctor"
 echo
 }
