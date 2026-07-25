@@ -53,3 +53,8 @@ function _churros_prompt() {
     PROMPT="${left}%F{#cbc5c4}${dots}%f${right}"$'\n'"%F{${char_color}}❯%f "
 }
 add-zsh-hook precmd _churros_prompt
+
+if [ -z "$FASTFETCH_SHOWN" ] && command -v fastfetch >/dev/null 2>&1; then
+    fastfetch
+    export FASTFETCH_SHOWN=1
+fi

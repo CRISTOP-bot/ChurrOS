@@ -30,20 +30,34 @@ mkdir -p archiso/airootfs/root/branding
 cp -r branding/files \
     archiso/airootfs/root/branding/
 
+echo "[2/5] Checking packages..."
+
 CALAMARES_PKG=$(ls archiso/packages/calamares-[0-9]*.pkg.tar.zst 2>/dev/null | head -1 || true)
+PYWAL_PKG=$(ls archiso/packages/python-pywal-*.pkg.tar.zst 2>/dev/null | head -1 || true)
+WAYPAPER_PKG=$(ls archiso/packages/waypaper-*.pkg.tar.zst 2>/dev/null | head -1 || true)
+
+if [ -z "$CALAMARES_PKG" ]; then
+    echo "  Calamares not found — building..."
+    bash scripts/build-calamares.sh
+    CALAMARES_PKG=$(ls archiso/packages/calamares-[0-9]*.pkg.tar.zst 2>/dev/null | head -1 || true)
+fi
+
+if [ -z "$PYWAL_PKG" ] || [ -z "$WAYPAPER_PKG" ]; then
+    echo "  AUR extras not found — building..."
+    bash scripts/build-aur.sh
+fi
 
 if [ -n "$CALAMARES_PKG" ]; then
-    echo "[2/5] Integrating Calamares installer..."
+    echo "  Integrating Calamares installer..."
 
     bash installer/apply-calamares.sh
 
     mkdir -p archiso/airootfs/root/packages
-    cp archiso/packages/calamares-*.pkg.tar.zst archiso/airootfs/root/packages/
+    cp archiso/packages/*.pkg.tar.zst archiso/airootfs/root/packages/
     cp archiso/packages/churros.db* archiso/airootfs/root/packages/ 2>/dev/null || true
     cp archiso/packages/churros.files* archiso/airootfs/root/packages/ 2>/dev/null || true
 else
-    echo "[2/5] Calamares not found — building without installer."
-    echo "      Run ./scripts/build-calamares.sh first to include it."
+    echo "  Calamares not available — building without installer."
 fi
 
 echo "[3/5] Cleaning previous build..."

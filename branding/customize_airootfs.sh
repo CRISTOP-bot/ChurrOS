@@ -12,10 +12,12 @@ echo "======================================="
 echo "Applying ChurrOS branding..."
 
 cp /root/branding/files/os-release /etc/os-release
+cp /root/branding/files/os-release /usr/lib/os-release
 cp /root/branding/files/issue /etc/issue
 cp /root/branding/files/motd /etc/motd
 
 chmod 644 /etc/os-release
+chmod 644 /usr/lib/os-release
 chmod 644 /etc/issue
 chmod 644 /etc/motd
 
@@ -62,6 +64,17 @@ DESKTOP
     echo "✓ Calamares installed."
 else
     echo "  (not available — installer skipped)"
+fi
+
+if ls /root/packages/*.pkg.tar.zst 1>/dev/null 2>&1; then
+    echo "Configuring ChurrOS local repo..."
+    cat >> /etc/pacman.conf << 'REPO'
+
+[churros]
+SigLevel = Optional TrustAll
+Server = file:///root/packages
+REPO
+    echo "✓ Local repo configured."
 fi
 
 echo "Cleaning..."

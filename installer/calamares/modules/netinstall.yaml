@@ -40,3 +40,12 @@ groups:
       - name: neovim
         description: Editor de texto hiperextensible
         selected: false
+  - name: Apariencia
+    description: Temas dinámicos y fondos de pantalla
+    packages:
+      - name: python-pywal
+        description: Genera esquemas de color desde el wallpaper (pywal)
+        selected: false
+      - name: waypaper
+        description: Selector gráfico de wallpapers con previsualización
+        selected: false

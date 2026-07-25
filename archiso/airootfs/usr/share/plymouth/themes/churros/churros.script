@@ -1,0 +1,35 @@
+// ChurrOS Plymouth Theme — spinner + logo with fade
+
+Window.SetBackgroundTopColor(0.067, 0.094, 0.153); // #111827
+Window.SetBackgroundBottomColor(0.067, 0.094, 0.153);
+
+logo = Image("boot.png");
+logo.SetX(Window.GetWidth() / 2 - logo.GetWidth() / 2);
+logo.SetY(Window.GetHeight() / 2 - logo.GetHeight() / 2 - 30);
+
+spinner = Sprite();
+spinner.SetX(Window.GetWidth() / 2 - spinner.GetWidth() / 2);
+spinner.SetY(Window.GetHeight() / 2 - spinner.GetHeight() / 2 + 60);
+
+message = "Loading ChurrOS...";
+
+status = "";
+fun refresh_callback () {
+    logo.SetOpacity(1);
+}
+
+fun boot_progress_callback (duration, progress) {
+    logo.SetOpacity(1);
+}
+
+fun display_normal_callback () {
+    logo.SetOpacity(1);
+}
+
+fun display_message_callback (msg) {
+    status = msg;
+}
+
+fun quit_callback () {
+    logo.SetOpacity(0);
+}

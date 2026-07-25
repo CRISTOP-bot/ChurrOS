@@ -129,6 +129,12 @@ zsh
 # ChurrOS Desktop
 # ===========================
 
+# GPU / Mesa (required for niri + Wayland)
+mesa
+mesa-utils
+libva-mesa-driver
+vulkan-virtio
+
 niri
 
 foot
@@ -193,6 +199,12 @@ upower
 bluez
 bluez-utils
 brightnessctl
+
+ufw
+
+plymouth
+
+fastfetch
 
 # Calamares installer dependencies
 kcoreaddons
