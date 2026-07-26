@@ -5,11 +5,34 @@ import subprocess
 class BrightnessService:
 
     @staticmethod
+    def _run_sync(cmd):
+
+        try:
+
+            return subprocess.run(
+
+                cmd,
+
+                capture_output=True,
+
+                text=True,
+
+                timeout=3
+
+            ).stdout.strip()
+
+        except Exception:
+
+            return None
+
+    @staticmethod
     def available():
 
         try:
 
-            devices = os.listdir("/sys/class/backlight")
+            devices = os.listdir(
+                "/sys/class/backlight"
+            )
 
             return len(devices) > 0
 
@@ -27,24 +50,39 @@ class BrightnessService:
                 "brightness": 100
             }
 
+        current = BrightnessService._run_sync(
+
+            ["brightnessctl", "--class=backlight", "g"]
+
+        )
+
+        maximum = BrightnessService._run_sync(
+
+            ["brightnessctl", "--class=backlight", "m"]
+
+        )
+
+        if current is None or maximum is None:
+
+            return {
+                "available": False,
+                "brightness": 100
+            }
+
         try:
 
-            current = int(
-                subprocess.check_output(
-                    ["brightnessctl", "g"],
-                    text=True
-                ).strip()
-            )
+            current_i = int(current)
+            maximum_i = int(maximum)
 
-            maximum = int(
-                subprocess.check_output(
-                    ["brightnessctl", "m"],
-                    text=True
-                ).strip()
-            )
+            if maximum_i <= 0:
+
+                return {
+                    "available": False,
+                    "brightness": 100
+                }
 
             brightness = int(
-                current * 100 / maximum
+                current_i * 100 / maximum_i
             )
 
             return {
@@ -52,7 +90,7 @@ class BrightnessService:
                 "brightness": brightness
             }
 
-        except Exception:
+        except ValueError:
 
             return {
                 "available": False,
@@ -64,12 +102,26 @@ class BrightnessService:
 
         if not BrightnessService.available():
 
-            return
+            return False
 
-        subprocess.run(
-            [
-                "brightnessctl",
-                "set",
-                f"{value}%"
-            ]
-        )
+        try:
+
+            subprocess.run(
+
+                [
+                    "brightnessctl",
+                    "--class=backlight",
+                    "set",
+                    f"{int(value)}%"
+                ],
+
+                capture_output=True,
+                timeout=3
+
+            )
+
+            return True
+
+        except Exception:
+
+            return False

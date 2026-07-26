@@ -308,6 +308,12 @@ class NiriBackend(DisplayBackend):
 
         return monitor.transform
 
+    def supports_resolution(self):
+        return True
+
+    def supports_vrr(self):
+        return True
+
     def set_resolution(
         self,
         monitor,

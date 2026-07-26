@@ -242,6 +242,22 @@ class HyprlandBackend(DisplayBackend):
 
         )
 
+    def supports_resolution(self):
+
+        return False
+
+    def set_resolution(self, monitor, mode):
+
+        return False
+
+    def supports_vrr(self):
+
+        return False
+
+    def set_vrr(self, monitor, enabled):
+
+        return False
+
     def has_brightness(self):
 
         import os

@@ -98,8 +98,9 @@ binds {
     Mod+F { maximize-column; }
     Mod+Shift+F { fullscreen-window; }
     Mod+Space { spawn "fuzzel"; }
-    Mod+C { spawn "python" "/usr/share/churros/control-center/main.py"; }
-    Mod+V { spawn "python" "/usr/share/churros/preferences/main.py"; }
+    Mod+C { spawn "churros-control-center"; }
+    Mod+V { spawn "churros-settings"; }
+    Mod+Shift+E { spawn "churros-popup" "power"; }
     
 
     // Overlay & overview
@@ -165,3 +166,4 @@ spawn-at-startup "swaybg" "-i" "/usr/share/churros/wallpapers/default.jpeg" "-m"
 spawn-at-startup "waybar"
 spawn-at-startup "mako"
 spawn-at-startup "awww-daemon"
+spawn-at-startup "churros-welcome"

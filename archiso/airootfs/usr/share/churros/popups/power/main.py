@@ -21,7 +21,7 @@ class PowerApplication(Gtk.Application):
     def __init__(self):
 
         super().__init__(
-            application_id="com.churros.power"
+            application_id="org.churros.popup.power"
         )
 
     def do_activate(self):

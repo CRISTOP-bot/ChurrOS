@@ -1,35 +1,116 @@
-#!/bin/sh
-# Stable popup entry point for desktop integrations such as Waybar.
+#!/usr/bin/env bash
+#
+# churros-popup — Stable popup entry point for desktop integrations (Waybar, keybinds).
+#
+# Toggle / replace behavior:
+#   * If no popup is currently running -> launch the requested one.
+#   * If the SAME popup is already running -> kill it (toggle off).
+#   * If a DIFFERENT popup is running -> kill it, then launch the requested one.
+#
+# State is kept in /tmp/churros/popup.{pid,name}
 
 set -eu
 
+POPUP_NAME=""
+PIDDIR=/tmp/churros
+PIDFILE="$PIDDIR/popup.pid"
+NAMEFILE="$PIDDIR/popup.name"
+
+usage() {
+    printf '%s\n' "Usage: churros-popup {network|audio|bluetooth|power|brightness|battery}" >&2
+}
+
 if [ "$#" -ne 1 ]; then
-    printf '%s\n' "Usage: /usr/bin/churros-popup {network|audio|bluetooth|power|brightness|battery}" >&2
+    usage
     exit 64
 fi
 
-case "$1" in
-    network)
-        exec /usr/bin/python3 /usr/share/churros/popups/network/main.py
-        ;;
-    audio)
-        exec /usr/bin/python3 /usr/share/churros/popups/audio/main.py
-        ;;
-    bluetooth)
-        exec /usr/bin/python3 /usr/share/churros/popups/bluetooth/main.py
-        ;;
-    power)
-        exec /usr/bin/python3 /usr/share/churros/popups/power/main.py
-        ;;
-    brightness)
-        exec /usr/bin/python3 /usr/share/churros/popups/brightness/main.py
-        ;;
-    battery)
-        exec /usr/bin/python3 /usr/share/churros/popups/battery/main.py
-        ;;
+POPUP_NAME="$1"
+
+case "$POPUP_NAME" in
+    network|audio|bluetooth|power|brightness|battery) ;;
     *)
-        printf '%s\n' "churros-popup: unknown popup '$1'" >&2
-        printf '%s\n' "Usage: /usr/bin/churros-popup {network|audio|bluetooth|power|brightness|battery}" >&2
+        printf '%s\n' "churros-popup: unknown popup '$POPUP_NAME'" >&2
+        usage
         exit 64
         ;;
 esac
+
+POPUP_SCRIPT="/usr/share/churros/popups/$POPUP_NAME/main.py"
+
+if [ ! -f "$POPUP_SCRIPT" ]; then
+    printf '%s\n' "churros-popup: $POPUP_SCRIPT not found" >&2
+    exit 2
+fi
+
+mkdir -p "$PIDDIR"
+
+#
+# Helpers
+#
+
+running_pid() {
+    [ -f "$PIDFILE" ] || return 1
+    local pid
+    pid=$(cat "$PIDFILE" 2>/dev/null || true)
+    [ -n "$pid" ] || return 1
+    if kill -0 "$pid" 2>/dev/null; then
+        echo "$pid"
+        return 0
+    fi
+    rm -f "$PIDFILE" "$NAMEFILE"
+    return 1
+}
+
+current_name() {
+    [ -f "$NAMEFILE" ] || return 1
+    cat "$NAMEFILE" 2>/dev/null || return 1
+}
+
+kill_popup() {
+    local pid
+    if pid=$(running_pid); then
+        kill "$pid" 2>/dev/null || true
+        # Give it a moment before SIGKILL
+        for _ in 1 2 3 4 5 6 7 8 9 10; do
+            kill -0 "$pid" 2>/dev/null || break
+            sleep 0.05
+        done
+        kill -9 "$pid" 2>/dev/null || true
+    fi
+    rm -f "$PIDFILE" "$NAMEFILE"
+}
+
+#
+# Main: toggle / replace / launch
+#
+
+current=""
+if current=$(current_name); then
+    current="$current"
+fi
+
+if [ -n "$current" ] && [ "$current" = "$POPUP_NAME" ]; then
+    # Same popup -> toggle off
+    kill_popup
+    exit 0
+fi
+
+# Different popup (or stale state) -> kill before launching
+kill_popup
+
+# Launch in background and record pid
+/usr/bin/python3 "$POPUP_SCRIPT" >/dev/null 2>&1 &
+LAUNCH_PID=$!
+
+echo "$LAUNCH_PID" > "$PIDFILE"
+echo "$POPUP_NAME" > "$NAMEFILE"
+
+# Reap the python child if it dies immediately (e.g. display missing)
+sleep 0.1
+if ! kill -0 "$LAUNCH_PID" 2>/dev/null; then
+    rm -f "$PIDFILE" "$NAMEFILE"
+    exit 1
+fi
+
+exit 0

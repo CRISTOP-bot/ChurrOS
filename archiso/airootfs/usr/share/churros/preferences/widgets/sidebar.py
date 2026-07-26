@@ -188,9 +188,37 @@ class Sidebar(Gtk.Box):
 
             self.buttons[page] = item
 
+        self.search.connect(
+            "search",
+            self.on_search
+        )
+
         self.select(
             "system"
         )
+
+    def on_search(
+        self,
+        search,
+        query
+    ):
+
+        query = (query or "").lower()
+
+        for page_id, item in self.buttons.items():
+
+            title = ""
+
+            for pid, _, title in self.pages:
+
+                if pid == page_id:
+                    break
+
+            visible = query == "" or query in title.lower()
+
+            item.set_visible(
+                visible
+            )
 
     def on_clicked(
         self,

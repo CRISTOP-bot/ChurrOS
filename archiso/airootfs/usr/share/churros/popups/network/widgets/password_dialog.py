@@ -1,8 +1,19 @@
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[3]
+PREFERENCES = Path(__file__).resolve().parents[5] / "preferences"
+
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(PREFERENCES))
+
 import gi
 
 gi.require_version("Gtk", "4.0")
 
 from gi.repository import Gtk
+
+from i18n import _
 
 from services.wifi import WifiService
 
@@ -19,64 +30,36 @@ class PasswordDialog(Gtk.Box):
         self.network = network
         self.on_success = on_success
 
-        self.add_css_class(
-            "password-dialog"
-        )
+        self.add_css_class("password-dialog")
 
         title = Gtk.Label(
-            label=f"Connect to\n{network['ssid']}"
+            label=_("Connect to {ssid}").format(ssid=network["ssid"])
         )
-
-        title.add_css_class(
-            "section-title"
-        )
-
+        title.add_css_class("section-title")
         title.set_xalign(0)
 
         self.append(title)
 
         self.entry = Gtk.Entry()
-
-        self.entry.set_placeholder_text(
-            "Password"
-        )
-
+        self.entry.set_placeholder_text(_("Password"))
         self.entry.set_visibility(False)
+        self.entry.connect("activate", self.connect_network)
 
         self.append(self.entry)
 
         self.error = Gtk.Label()
-
-        self.error.add_css_class(
-            "network-error"
-        )
-
+        self.error.add_css_class("network-error")
         self.error.set_xalign(0)
 
         self.append(self.error)
 
-        buttons = Gtk.Box(
-            spacing=8
-        )
+        connect = Gtk.Button(label=_("Connect"))
+        connect.add_css_class("suggested-action")
+        connect.connect("clicked", self.connect_network)
 
-        connect = Gtk.Button(
-            label="Connect"
-        )
+        self.append(connect)
 
-        connect.add_css_class(
-            "suggested-action"
-        )
-
-        connect.connect(
-            "clicked",
-            self.connect_network
-        )
-
-        buttons.append(connect)
-
-        self.append(buttons)
-
-    def connect_network(self, button):
+    def connect_network(self, *args):
 
         success, message = WifiService.connect(
             self.network["ssid"],
@@ -84,11 +67,7 @@ class PasswordDialog(Gtk.Box):
         )
 
         if success:
-
             self.on_success()
-
             return
 
-        self.error.set_label(
-            message
-        )
+        self.error.set_label(message)

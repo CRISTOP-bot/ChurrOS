@@ -16,6 +16,14 @@ from widgets.mute import MuteWidget
 from widgets.device import DeviceWidget
 
 
+def _section_label(text):
+
+    label = Gtk.Label(label=text)
+    label.add_css_class("audio-section-label")
+    label.set_xalign(0)
+    return label
+
+
 class AudioWindow(PopupWindow):
 
     def __init__(self, app):
@@ -28,17 +36,17 @@ class AudioWindow(PopupWindow):
 
         self.load_audio_css()
 
-        self.add(
-            VolumeWidget()
-        )
+        self.add(_section_label("Output"))
+        self.add(VolumeWidget(source=False))
+        self.add(DeviceWidget(source=False))
+        self.add(MuteWidget(source=False))
 
-        self.add(
-            MuteWidget()
-        )
+        self.add(Gtk.Separator())
 
-        self.add(
-            DeviceWidget()
-        )
+        self.add(_section_label("Input"))
+        self.add(VolumeWidget(source=True))
+        self.add(DeviceWidget(source=True))
+        self.add(MuteWidget(source=True))
 
     def load_audio_css(self):
 

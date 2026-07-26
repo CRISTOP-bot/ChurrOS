@@ -1,27 +1,41 @@
+/* theme tokens — overridden by .light class when dark mode is off */
 window{
+    --bg-window:      rgba(28,28,28,.94);
+    --bg-sidebar:     rgba(42,42,42,.82);
+    --bg-sidebar-old: rgba(20,20,20,.92);
+    --text-primary:   white;
+    --text-secondary: rgba(255,255,255,.65);
+    --row-bg:         rgba(255,255,255,.05);
+    --row-bg-hover:   rgba(255,255,255,.10);
+    --border-soft:    rgba(255,255,255,.06);
+}
 
-    background:rgba(28,28,28,.94);
+window.light{
+    --bg-window:      rgba(245,245,245,.95);
+    --bg-sidebar:     rgba(255,255,255,.85);
+    --bg-sidebar-old: rgba(220,220,220,.90);
+    --text-primary:   #1d1d1d;
+    --text-secondary:  rgba(0,0,0,.55);
+    --row-bg:         rgba(0,0,0,.04);
+    --row-bg-hover:   rgba(0,0,0,.08);
+    --border-soft:    rgba(0,0,0,.08);
+}
 
+window{
+    background:var(--bg-window);
 }
 
 /* Sidebar */
 
 .sidebar{
-
-    background:rgba(42,42,42,.82);
-
+    background:var(--bg-sidebar);
     border-radius:22px;
-
     padding:14px;
-
     margin:18px;
-
 }
 
 .sidebar-title{
-
-    color:white;
-
+    color:var(--text-primary);
     font-size:24px;
 
     font-weight:700;
@@ -56,7 +70,7 @@ window{
 
 .sidebar-item.selected{
 
-    background:#ff8f00;
+    background:var(--churros-accent-strong);
 
 }
 
@@ -152,7 +166,7 @@ switch{
 
 switch:checked{
 
-    background:#ff8f00;
+    background:var(--churros-accent-strong);
 
 }
 
@@ -170,7 +184,7 @@ scale trough{
 
 scale highlight{
 
-    background:#ff8f00;
+    background:var(--churros-accent-strong);
 
     border-radius:20px;
 
@@ -303,7 +317,7 @@ scrollbar slider:hover{
 
 .sidebar-item.active{
 
-    background:#ff8c2a;
+    background:var(--churros-accent);
 
 }
 
@@ -328,7 +342,7 @@ searchentry{
 }
 .group-title{
 
-    color:#ff9f43;
+    color:var(--churros-accent-soft);
 
     font-size:13px;
 
@@ -377,7 +391,7 @@ searchentry{
 
 .preferences-search:focus{
 
-    border:1px solid #ff8c2a;
+    border:1px solid var(--churros-accent);
 
 }
 .row{
@@ -416,7 +430,7 @@ searchentry{
 
 .row-value{
 
-    color:#ff9f43;
+    color:var(--churros-accent-soft);
 
     font-weight:600;
 
@@ -439,7 +453,7 @@ scale trough{
 
 scale highlight{
 
-    background:#ff8c2a;
+    background:var(--churros-accent);
 
     border-radius:6px;
 
@@ -464,7 +478,7 @@ scale slider{
 
 .info-value{
 
-    color:#ff9f43;
+    color:var(--churros-accent-soft);
 
     font-weight:700;
 
@@ -493,7 +507,7 @@ scale slider{
 
 .about-version{
 
-    color:#ff8c2a;
+    color:var(--churros-accent);
 
     font-size:15px;
 
@@ -525,7 +539,7 @@ scale slider{
 }
 .wallpaper-button:hover{
 
-    border:2px solid #ff8c2a;
+    border:2px solid var(--churros-accent);
 
 }
 

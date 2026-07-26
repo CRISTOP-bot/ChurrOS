@@ -20,6 +20,27 @@ class AudioPage(Page):
             "Configura los dispositivos de sonido"
         )
 
+        if not AudioService.available():
+
+            group = Group("Audio")
+            group.add(
+                SliderRow(
+                    title="Audio",
+                    value=0,
+                    callback=lambda *args: None
+                )
+            )
+            err = Group("Estado")
+            err.add(
+                SwitchRow(
+                    title="WirePlumber no disponible",
+                    active=False,
+                    callback=lambda *args: None
+                )
+            )
+            self.add(group)
+            return
+
         #
         # Salida
         #
@@ -28,7 +49,13 @@ class AudioPage(Page):
             "Salida"
         )
 
-        self.outputs = AudioService.outputs()
+        try:
+
+            self.outputs = AudioService.outputs()
+
+        except Exception:
+
+            self.outputs = []
 
         current_output = None
 
@@ -83,7 +110,15 @@ class AudioPage(Page):
             "Micrófono"
         )
 
-        self.inputs = AudioService.inputs()
+        self.inputs = []
+
+        try:
+
+            self.inputs = AudioService.inputs()
+
+        except Exception:
+
+            pass
 
         current_input = None
 

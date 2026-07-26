@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+# churros-control-center — launcher for the ChurrOS Control Center
+#
+
+exec /usr/bin/python3 /usr/share/churros/control-center/main.py

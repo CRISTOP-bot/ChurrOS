@@ -103,21 +103,25 @@ class DisplayPage(Page):
 
                 break
 
-        self.resolution = ComboRow(
+        backend = DisplayService.backend()
 
-            title="Resolución",
+        if backend.supports_resolution() and self.monitor.modes:
 
-            values=resolutions,
+            self.resolution = ComboRow(
 
-            selected=current,
+                title="Resolución",
 
-            callback=self.on_resolution
+                values=resolutions,
 
-        )
+                selected=current,
 
-        config.add(
-            self.resolution
-        )
+                callback=self.on_resolution
+
+            )
+
+            config.add(
+                self.resolution
+            )
 
         #
         # Escala
@@ -190,24 +194,26 @@ class DisplayPage(Page):
         config.add(
             self.rotation
         )
-
         #
+
         # VRR
         #
 
-        self.vrr = SwitchRow(
+        if backend.supports_vrr():
 
-            title="Frecuencia variable (VRR)",
+            self.vrr = SwitchRow(
 
-            active=self.monitor.vrr,
+                title="Frecuencia variable (VRR)",
 
-            callback=self.on_vrr
+                active=self.monitor.vrr,
 
-        )
+                callback=self.on_vrr
 
-        config.add(
-            self.vrr
-        )
+            )
+
+            config.add(
+                self.vrr
+            )
 
         self.add(
             config
@@ -332,8 +338,6 @@ class DisplayPage(Page):
     def on_vrr(
 
         self,
-
-        switch,
 
         active
 

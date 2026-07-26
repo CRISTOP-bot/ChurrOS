@@ -15,7 +15,6 @@ from gi.repository import Gtk, Gdk
 
 from common.popup import PopupWindow
 
-from widgets.toggle import NetworkToggleWidget
 from widgets.network import NetworkWidget
 
 
@@ -30,10 +29,6 @@ class NetworkWindow(PopupWindow):
         )
 
         self.load_network_css()
-
-        self.add(
-            NetworkToggleWidget()
-        )
 
         self.add(
             NetworkWidget()

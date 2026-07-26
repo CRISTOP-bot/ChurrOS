@@ -1,10 +1,19 @@
 import os
+import sys
+from pathlib import Path
 
 import gi
 
 gi.require_version("Gtk", "4.0")
 
 from gi.repository import Gtk, GLib, Gdk
+
+# Locate the preferences dir for the i18n module
+_PREFS = Path(__file__).resolve().parents[2] / "preferences"
+if str(_PREFS) not in sys.path:
+    sys.path.insert(0, str(_PREFS))
+
+from i18n import _
 
 from widgets.network import NetworkCard
 from widgets.bluetooth import BluetoothCard
@@ -52,7 +61,7 @@ class ControlCenterWindow(Gtk.ApplicationWindow):
         self.refresh()
 
         GLib.timeout_add_seconds(
-            1,
+            2,
             self.refresh
         )
 
@@ -133,9 +142,30 @@ class ControlCenterWindow(Gtk.ApplicationWindow):
 
         header.append(logo)
         header.append(titles)
+
+        settings_btn = Gtk.Button.new_from_icon_name(
+            "preferences-system"
+        )
+        settings_btn.set_tooltip_text(_("Settings"))
+        settings_btn.add_css_class("settings-button")
+        settings_btn.connect("clicked", self.on_open_settings)
+
+        header.append(settings_btn)
         header.append(PowerButton())
 
         return header
+
+    def on_open_settings(self, *_):
+
+        import subprocess
+
+        subprocess.Popen(
+            ["churros-settings"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+
+        self.close()
 
     def refresh(self):
 
