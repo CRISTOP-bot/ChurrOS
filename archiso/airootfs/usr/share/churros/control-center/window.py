@@ -8,11 +8,6 @@ gi.require_version("Gtk", "4.0")
 
 from gi.repository import Gtk, GLib, Gdk
 
-# Locate the preferences dir for the i18n module
-_PREFS = Path(__file__).resolve().parents[2] / "preferences"
-if str(_PREFS) not in sys.path:
-    sys.path.insert(0, str(_PREFS))
-
 from i18n import _
 
 from widgets.network import NetworkCard

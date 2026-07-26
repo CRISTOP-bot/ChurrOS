@@ -123,3 +123,59 @@ class CursorService:
                     cursors.append(item)
 
         return sorted(set(cursors))
+
+    @classmethod
+    def size(cls):
+
+        try:
+
+            result = subprocess.run(
+
+                [
+                    "gsettings",
+                    "get",
+                    "org.gnome.desktop.interface",
+                    "cursor-size"
+                ],
+
+                capture_output=True,
+                text=True,
+                timeout=2
+
+            )
+
+            value = result.stdout.strip()
+
+            if value.startswith("uint32"):
+
+                value = value.replace("uint32", "").strip()
+
+            return int(value)
+
+        except Exception:
+
+            return 24
+
+    @classmethod
+    def set_size(cls, size):
+
+        try:
+
+            subprocess.run(
+
+                [
+                    "gsettings",
+                    "set",
+                    "org.gnome.desktop.interface",
+                    "cursor-size",
+                    str(int(size))
+                ],
+
+                capture_output=True,
+                timeout=2
+
+            )
+
+        except Exception:
+
+            pass

@@ -287,3 +287,71 @@ class PowerService:
         """
 
         return PowerService.power_profile() == "power-saver"
+
+    @staticmethod
+    def set_power_profile(profile):
+
+        """Cambia el perfil activo via powerprofilesctl."""
+
+        try:
+
+            subprocess.run(
+                ["powerprofilesctl", "set", profile],
+                capture_output=True,
+                timeout=2
+            )
+
+        except Exception:
+
+            pass
+
+    @staticmethod
+    def set_screen_timeout(seconds):
+
+        """Establece el tiempo de espera para apagar la pantalla."""
+
+        try:
+
+            subprocess.run(
+                ["gsettings", "set", "org.gnome.desktop.session", "idle-delay", str(int(seconds))],
+                capture_output=True,
+                timeout=2
+            )
+
+        except Exception:
+
+            pass
+
+    @staticmethod
+    def set_sleep_timeout(seconds):
+
+        """Establece el tiempo de espera para suspender."""
+
+        try:
+
+            subprocess.run(
+                ["gsettings", "set", "org.gnome.settings-daemon.plugins.power", "sleep-inactive-ac-timeout", str(int(seconds))],
+                capture_output=True,
+                timeout=2
+            )
+
+        except Exception:
+
+            pass
+
+    @staticmethod
+    def set_lid_close_action(action):
+
+        """Configura la accion al cerrar la tapa."""
+
+        try:
+
+            subprocess.run(
+                ["gsettings", "set", "org.gnome.settings-daemon.plugins.power", "lid-close-ac-action", action],
+                capture_output=True,
+                timeout=2
+            )
+
+        except Exception:
+
+            pass

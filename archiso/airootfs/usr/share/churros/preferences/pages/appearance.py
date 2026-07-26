@@ -3,6 +3,12 @@ from widgets.group import Group
 from widgets.switch_row import SwitchRow
 from widgets.navigation_row import NavigationRow
 
+import gi
+
+gi.require_version("Gtk", "4.0")
+
+from gi.repository import GLib
+
 from services.theme import ThemeService
 from services.settings import SettingsService
 
@@ -218,6 +224,18 @@ class AppearancePage(Page):
             active
 
         )
+
+        try:
+
+            window = self.get_root()
+
+            if hasattr(window, "refresh_theme"):
+
+                GLib.idle_add(window.refresh_theme)
+
+        except Exception:
+
+            pass
 
     def on_dynamic_changed(
 
