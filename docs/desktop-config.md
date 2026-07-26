@@ -72,30 +72,49 @@ layout {
 
 | Atajo | Acción |
 |-------|--------|
-| `SUPER + Return` | Abre Kitty (terminal) |
+| `SUPER + Return` | Abre foot (terminal) |
 | `SUPER + Q` | Cierra la ventana activa |
 | `SUPER + M` | Sale de Niri |
 | `SUPER + F` | Maximiza columna |
-| `SUPER + SPACE` | Abre el launcher (churros-launcher) |
+| `SUPER + SHIFT + F` | Pantalla completa |
+| `SUPER + SPACE` | Abre el launcher (fuzzel) |
 | `SUPER + C` | Abre el centro de control |
+| `SUPER + P` | Abre preferencias (churros-settings) |
+| `SUPER + W` | Abre churros-welcome |
+| `SUPER + V` | Toggle ventana flotante |
+| `SUPER + SHIFT + V` | Cambiar foco entre floating y tiling |
+| `SUPER + O` | Toggle overview |
+| `SUPER + R` | Cambiar preset de ancho de columna |
+| `SUPER + SHIFT + N` | Popup de red |
+| `SUPER + SHIFT + A` | Popup de audio |
+| `SUPER + SHIFT + B` | Popup de bluetooth |
+| `SUPER + SHIFT + L` | Popup de brillo |
+| `SUPER + SHIFT + T` | Popup de batería |
+| `SUPER + SHIFT + E` | Popup de energía |
+| `Print` | Screenshot interactivo |
+| `Ctrl + Print` | Screenshot de pantalla |
+| `Alt + Print` | Screenshot de ventana |
 | `SUPER + 1-9` | Cambia al workspace N (1-9) |
 | `SUPER + SHIFT + 1-9` | Mueve la ventana activa al workspace N |
 | `SUPER + ←/→` | Mueve el foco entre columnas |
 | `SUPER + ↑/↓` | Mueve el foco entre ventanas |
 | `SUPER + SHIFT + ←/→` | Mueve la columna |
 | `SUPER + SHIFT + ↑/↓` | Mueve la ventana |
+| `XF86AudioRaise/Lower/Mute` | Volumen (con `allow-when-locked`) |
+| `XF86AudioPlay/Next/Prev` | Control multimedia (con `allow-when-locked`) |
+| `XF86MonBrightnessUp/Down` | Brillo (con `allow-when-locked`) |
 
 ## Autostart
 
 ```kdl
-spawn-at-startup "awww-daemon"
-spawn-at-startup "awww" "img" "/usr/share/churros/wallpapers/default.jpeg" "--transition-type" "none"
-spawn-at-startup "waybar" "--config" "/home/churros/.config/waybar/config.jsonc"
+spawn-at-startup "swaybg" "-i" "/usr/share/churros/wallpapers/default.jpeg" "-m" "fill"
+spawn-at-startup "waybar"
 spawn-at-startup "mako"
+spawn-at-startup "awww-daemon"
 spawn-at-startup "churros-welcome"
 ```
 
-`awww-daemon` carga el wallpaper. `waybar` arranca la barra superior. `mako` es el daemon de notificaciones. `churros-welcome` muestra la pantalla de bienvenida.
+`swaybg` carga el wallpaper inicial. `waybar` arranca la barra superior. `mako` es el daemon de notificaciones. `awww-daemon` queda en background para futuros cambios de wallpaper vía preferences. `churros-welcome` muestra la pantalla de bienvenida.
 
 ---
 
@@ -124,21 +143,28 @@ Waybar es la barra superior de ChurrOS. Configurada con estilo dark y acento nar
 
 | Posición | Módulos |
 |----------|---------|
-| Izquierda | `image#logo`, `niri/workspaces` |
-| Centro | `niri/window` |
-| Derecha | `tray`, `network`, `custom/bluetooth`, `pulseaudio`, `custom/brightness`, `battery`, `clock`, `custom/power` |
+| Izquierda | `custom/launcher`, `custom/sep`, `niri/workspaces`, `custom/sep`, `mpris` |
+| Centro | (vacío) |
+| Derecha | `tray` (group), `custom/sep`, `memory`, `disk`, `cpu`, `battery`, `backlight`, `custom/sep`, `custom/screenrecording-indicator`, `idle_inhibitor`, `custom/dnd`, `custom/sep`, `bluetooth`, `network`, `pulseaudio`, `custom/sep`, `custom/control-center`, `custom/settings`, `custom/sep`, `clock` |
 
 ### Module Actions
 
 | Módulo | Acción |
 |--------|--------|
+| `custom/launcher` | Clic → fuzzel. Clic derecho → foot. |
+| `custom/control-center` | Clic → `churros-control-center`. Tooltip "Control Center". |
+| `custom/settings` | Clic → `churros-settings`. Tooltip "Settings". |
 | `network` | Clic → popup de red. Tooltip con info. |
-| `custom/bluetooth` | Clic → popup de bluetooth |
-| `pulseaudio` | Clic → popup de audio. Clic derecho → toggle mute. Scroll → ±5% volumen. |
-| `custom/brightness` | Clic → popup de brillo |
-| `battery` | Clic → popup de batería |
+| `bluetooth` | Clic → popup de bluetooth. Tooltip con nº devices. |
+| `pulseaudio` | Clic → popup de audio. Clic derecho → toggle mute. Scroll → ±5%. |
+| `backlight` | Clic → popup de brillo. Scroll → ±10% brillo. |
+| `battery` | Clic → popup de batería. |
+| `cpu` | Clic → `foot btop`. Clic derecho → foot. |
 | `clock` | Tooltip con calendario |
-| `custom/power` | Clic → popup de power |
+| `custom/dnd` | Clic → toggle "No molestar" (mako mode). |
+| `idle_inhibitor` | Inhibe el idle. |
+| `custom/screenrecording-indicator` | Indicador cuando wf-recorder está activo. |
+| `mpris` | Playerctl. Clic izq → prev, centro → play/pause, der → next. Scroll → ±5%. |
 
 Los iconos usados son glyphs Nerd Font (`󰈀 󰖩 󰖪 󰂯 󰕾 󰃠 󰁹` etc.).
 
@@ -290,6 +316,7 @@ En `config.jsonc`:
 # Future Work
 
 - Soporte multi-monitor: configuración de outputs pendiente.
-- Perfiles de energía: cambiar decoraciones automáticamente según si el equipo está en batería.
-- Configuración por usuario: hoy `/etc/skel/` aplica a todos. En el sistema instalado se deberá copiar a `~/.config/niri/` para permitir personalizaciones.
-- Integración con `wlogout`: el script de salida que se muestra desde el popup de power.
+- Perfiles de energía: cambiar decoraciones automáticamente según si el equipo está en batería. La infraestructura (PowerService + power-profile popup + battery subpágina) ya está lista.
+- Integración con `wlogout`: script de salida que se muestra desde el popup de power.
+- Migración de `foot` → `kitty`: docs mencionan Kitty pero el sistema instala foot. Añadir `kitty` a `packages.x86_64` y cambiar spawns de waybar/welcome/niri cuando se decida.
+- Traducciones reales (gettext): hoy `i18n._()` simplemente devuelve la string original (no carga PO files). Definir `po/churros.po` y compilar a `/usr/share/locale/es/LC_MESSAGES/churros.mo`.
