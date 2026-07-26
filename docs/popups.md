@@ -18,11 +18,6 @@ Estructura:
 
 ```text
 popups/
-├── popup_manager/        # Lanzador + gestión de procesos
-│   ├── main.py           # Entry point
-│   ├── manager.py        # PopupManager (lógica principal)
-│   ├── popup.py          # Popup (lanzador de procesos)
-│   └── process.py        # PopupProcess (estado en /tmp)
 ├── common/               # Código compartido
 │   ├── popup.py          # PopupWindow (clase base)
 │   ├── main.py           # App de prueba
@@ -51,89 +46,43 @@ Cada popup individual tiene esta forma:
 └── widgets/              # Widgets del popup
 ```
 
+El launcher está en `/usr/bin/churros-popup` (script bash) y su lógica de toggle/reemplazo vive en él, no en un módulo Python separado.
+
 ---
 
 # How It Works
 
 ## Architecture
 
-Cada popup es un proceso Python GTK4 independiente. El popup manager (`popups/popup_manager/main.py`) es el punto de entrada único desde Waybar o desde el teclado.
+Cada popup es un proceso Python GTK4 independiente. El launcher `/usr/bin/churros-popup` (script bash) es el punto de entrada único desde Waybar o desde el teclado.
 
 Flujo:
 
-1. Waybar ejecuta `python /usr/share/churros/popups/popup_manager/main.py <nombre>` cuando se hace clic en un módulo.
-2. `main.py` recibe el nombre y llama a `PopupManager.show(name)`.
-3. `PopupManager` consulta si ya hay un popup abierto (lee `/tmp/churros/popup.pid`).
-4. Si no hay popup, abre el solicitado. Si hay otro popup abierto, lo mata y abre el nuevo. Si es el mismo popup, lo cierra (toggle).
+1. Waybar o niri ejecuta `churros-popup <nombre>` cuando se hace clic en un módulo o se pulsa un atajo.
+2. El script revisa `/tmp/churros/popup.pid` y `/tmp/churros/popup.name` para saber qué popup está activo.
+3. Si no hay popup → lanza el solicitado (`python3 /usr/share/churros/popups/<name>/main.py`).
+4. Si el popup activo es el mismo → lo mata (toggle off).
+5. Si hay otro popup abierto → lo mata y abre el nuevo.
 
-## PopupManager
-
-`popups/popup_manager/manager.py`:
-
-```python
-from popup import Popup
-from process import PopupProcess
-
-
-class PopupManager:
-
-    @staticmethod
-    def show(name):
-
-        if not PopupProcess.running():
-            Popup.open(name)
-            return
-
-        if PopupProcess.name() == name:
-            PopupProcess.kill()
-            return
-
-        PopupProcess.kill()
-        Popup.open(name)
-```
-
-Reglas:
-
-- No hay popup → abre el solicitado
-- Mismo popup abierto → lo cierra (toggle)
-- Otro popup abierto → lo reemplaza
-
-## PopupProcess
-
-`popups/popup_manager/process.py` gestiona el estado del popup activo en disco:
+## Estado en disco
 
 ```text
-/tmp/churros/popup.pid     # PID del proceso del popup
+/tmp/churros/popup.pid     # PID del proceso del popup actual
 /tmp/churros/popup.name    # Nombre del popup activo
 ```
 
-El estado se crea al abrir un popup y se borra al cerrarlo. Esto permite que el manager consulte si hay un popup activo y cuál es, sin mantener estado en memoria.
+El script valida con `kill -0 $pid` que el proceso siga vivo; si murió pero los archivos quedaron, los limpia automáticamente antes de lanzar uno nuevo.
 
-`PopupProcess.running()` valida además que el PID siga vivo (haciendo `os.kill(pid, 0)`); si el proceso murió pero los archivos quedaron en `/tmp`, los limpia automáticamente.
+## churros-popup
 
-## Popup
+`/usr/bin/churros-popup` (bash, ~116 líneas):
 
-`popups/popup_manager/popup.py` es solo un wrapper que lanza el proceso:
-
-```python
-ROOT = Path(__file__).resolve().parent.parent
-
-
-class Popup:
-
-    @staticmethod
-    def open(name):
-
-        popup = ROOT / name / "main.py"
-
-        process = subprocess.Popen(
-            ["python3", str(popup)]
-        )
-
-        PopupProcess.save(process.pid, name)
-```
-
-El proceso se lanza detached. El manager no espera a que termine: el popup vive por su cuenta y cuando se cierra (al hacer clic fuera, presionar Escape, o matar el proceso), el archivo de estado se actualiza la próxima vez que se abra otro popup.
+- Acepta 6 nombres: `network`, `audio`, `bluetooth`, `power`, `brightness`, `battery`.
+- Otro nombre → exit 64 (usage).
+- Comprueba que `/usr/share/churros/popups/<name>/main.py` exista.
+- `set -eu` para fallar rápido.
+- Lanza el popup con stdout/stderr a `/dev/null` (los popups no deben imprimir).
+- Espera 100ms tras lanzar para detectar fallos inmediatos (display ausente, etc.) y limpiar el PIDFILE en ese caso.
 
 ---
 
@@ -189,20 +138,34 @@ Características comunes a todos los popups:
 
 # Integration with Waybar
 
-Waybar invoca el punto de entrada estable `/usr/bin/churros-popup`; no conoce las rutas ni la implementación de cada popup. Actualmente Network es el módulo implementado:
+Waybar invoca el launcher estable `/usr/bin/churros-popup` (script bash independizado del código Python). Ejemplos de `archiso/airootfs/etc/skel/.config/waybar/config.jsonc`:
 
 ```jsonc
-"network": {
-    "on-click": "churros-popup network"
-}
+"network":      { "on-click": "churros-popup network" }
+"battery":      { "on-click": "churros-popup battery" }
+"bluetooth":    { "on-click": "churros-popup bluetooth" }
+"backlight":    { "on-click": "churros-popup brightness" }
+"pulseaudio":   { "on-click": "churros-popup audio" }
 ```
 
-El launcher ya reserva los argumentos `audio`, `bluetooth`, `power` y `brightness`; se activarán cuando sus módulos estén integrados.
+Acciones secundarias:
 
-Algunos módulos también tienen acciones secundarias:
-
-- `pulseaudio` → `on-click-right` silencia (`wpctl set-mute toggle`)
+- `pulseaudio` → `on-click-right` silencia (`wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle`)
 - `pulseaudio` → `on-scroll-up/down` ajusta volumen en 5%
+- `backlight` → `on-scroll-up/down` ajusta brillo `brightnessctl`
+
+Atajos de teclado en niri config.kdl:
+
+```kdl
+Mod+Shift+N { spawn "churros-popup" "network"; }
+Mod+Shift+A { spawn "churros-popup" "audio"; }
+Mod+Shift+B { spawn "churros-popup" "bluetooth"; }
+Mod+Shift+L { spawn "churros-popup" "brightness"; }
+Mod+Shift+T { spawn "churros-popup" "battery"; }
+Mod+Shift+E { spawn "churros-popup" "power"; }
+```
+
+El Control Center (`/usr/bin/churros-control-center`) también lanza popups directamente vía `popup_launcher.py` (`subprocess.Popen([sys.executable, popup_main])`), sin pasar por el launcher de toggle — porque desde el control center cada clic abre una ventana nueva intencionalmente.
 
 ---
 
@@ -214,9 +177,18 @@ Algunos módulos también tienen acciones secundarias:
    popups/<nombre>/
    ```
 
-2. Implementa `main.py`:
+2. Implementa `main.py` (sigue el patrón de los popups existentes — añade `..` al `sys.path` para que `services.wifi`, `i18n` y otros módulos sean importables):
 
    ```python
+   from pathlib import Path
+   import sys
+
+   sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+   import gi
+   gi.require_version("Gtk", "4.0")
+   from gi.repository import Gtk
+
    from window import MyWindow
 
    class MyApp(Gtk.Application):
@@ -242,7 +214,11 @@ Algunos módulos también tienen acciones secundarias:
 
 4. Crea `style.css` con los estilos del popup.
 
-5. Añade la entrada en Waybar o en un keybind de Hyprland.
+5. Añade el nombre al case del launcher `/usr/bin/churros-popup`.
+
+6. Añade el módulo en Waybar (`on-click: "churros-popup <nombre>"`) o en un atajo de teclado de niri (`Mod+Shift+X { spawn "churros-popup" "<nombre>"; }`).
+
+Módulo i18n: el paquete `/usr/share/churros/i18n.py` está copiado en churros root y accessible con `from i18n import _` (gracias al `sys.path.insert(0, str(Path(__file__).resolve().parents[2]))` del `main.py`).
 
 ---
 

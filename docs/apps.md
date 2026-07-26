@@ -73,7 +73,7 @@ src/
 └── utils/
     ├── browser.py         # Abrir URLs
     ├── commands.py
-    ├── desktop.py         # Lanzar apps (kitty, firefox)
+    ├── desktop.py         # Lanzar apps (foot, firefox, calamares)
     └── system.py          # get_cpu, get_memory, etc.
 ```
 
@@ -94,18 +94,20 @@ La memoria RAM usa `psutil` si está disponible. Si no, lee `/proc/meminfo` dire
 
 ## Action Cards
 
-La pantalla principal muestra seis tarjetas de acción (más la `SystemCard`):
+La pantalla principal muestra la `SystemCard` más 6 tarjetas de acción:
 
 | Icono | Título | Callback |
 |-------|--------|----------|
-| documentation.svg | Documentación | Abre wiki en el navegador |
-| applications.svg | Aplicaciones | Abre terminal |
-| github.svg | GitHub | Abre el repositorio |
-| community.svg | Comunidad | (placeholder) |
-| customize.svg | Personalizar | (placeholder) |
-| update.svg | Actualizar | (placeholder) |
+| install.svg | Install ChurrOS | Lanza `calamares.desktop` vía `Gio.DesktopAppInfo.new("calamares.desktop").launch()`. Si no existe muestra un `Gtk.AlertDialog` informativo. |
+| github.svg | GitHub | Abre el repositorio en el navegador. |
+| community.svg | Discord | Abre la comunidad. |
+| documentation.svg | Documentation | Abre la wiki. |
+| terminal.svg | Terminal | Lanza `foot`. |
+| browser.svg | Browser | Lanza `firefox`. |
 
-Las tarjetas están organizadas en un `Gtk.FlowBox` con un máximo de 4 columnas. En pantallas estrechas se reorganizan automáticamente.
+La `SystemCard` no es clickable, solo informativa (CPU, RAM, kernel, SO, arquitectura, hostname). Se muestra la primera en el FlowBox.
+
+Las tarjetas están organizadas en un `Gtk.FlowBox` con un máximo de 4 columnas y mínimo de 1. En pantallas estrechas se reorganizan automáticamente.
 
 ## Desktop Entry
 
@@ -141,80 +143,65 @@ Centro de control con tarjetas para los componentes principales del sistema.
 
 | Fila | Columna 0 | Columna 1 |
 |------|-----------|-----------|
-| 0 | AudioCard | BatteryCard |
-| 1 | NetworkCard | BluetoothCard |
-| 2 | CalendarCard (ancho 2) | — |
+| 0 | NetworkCard | BluetoothCard |
+| 1 | BrightnessCard | BatteryCard |
+| 2 | AudioCard (ancho completo) | — |
+
+Cada card es un `Card` (Gtk.Button) que al hacer clic llama a `popup_launcher.open_<name>(window)`, que lanza el popup correspondiente en un proceso separado (vía `subprocess.Popen([sys.executable, popup_main])`).
+
+Header del control center tiene un botón de "Settings" (icon `preferences-system`) que lanza `churros-settings` y cierra el control center.
 
 ## Services
 
-Cada tarjeta consulta un servicio (ver `docs/services.md`):
+Cada tarjeta consulta un servicio compartido en `/usr/share/churros/services/`:
 
-- `services/audio.py` + `widgets/audio.py` → AudioCard
-- `services/battery.py` + `widgets/battery.py` → BatteryCard
-- `services/network.py` + `widgets/network.py` → NetworkCard
-- `services/bluetooth.py` + `widgets/bluetooth.py` → BluetoothCard
-- `widgets/calendar.py` → CalendarCard (sin servicio)
+- `services/wifi.py` + `services/ethernet.py` → `widgets/network.py` → NetworkCard
+- `services/bluetooth.py` → `widgets/bluetooth.py` → BluetoothCard
+- `services/audio.py` → `widgets/audio.py` → AudioCard
+- `services/brightness.py` → `widgets/brightness.py` → BrightnessCard
+- `services/battery.py` → `widgets/battery.py` → BatteryCard
+
+i18n: el control center importa `from i18n import _` desde `/usr/share/churros/i18n.py` (módulo central añadido para que popups + control center + preferences lo compartan).
 
 ## Style
 
-- Fondo raíz: `#1f1f1f`
-- Tarjetas: `#2b2b2b`, radio 16px
-- Hover: `#333333`
-- Acento: `#ff8c00` (sliders, switches activos, calendar selection)
-- Texto: blanco, secundario `#bdbdbd`
+- Fondo: variables CSS del `style.css` del propio control center.
+- Acento: `#DE8636` (ChurrOS naranja).
+- Polling: cada 2s hace refresh de todas las cards (vía `GLib.timeout_add_seconds(2, self.refresh)`).
 
 ---
 
-# churros-launcher
+# churros-settings
 
-**Path:** `archiso/airootfs/usr/share/churros/launcher/`
-**Wrapper:** `/usr/bin/churros-launcher`
+**Path:** `archiso/airootfs/usr/share/churros/preferences/`
+**Wrapper:** `/usr/bin/churros-settings` → `python3 /usr/share/churros/preferences/main.py`
+**Keybind:** `SUPER + P` (definido en `archiso/airootfs/etc/skel/.config/niri/config.kdl`)
+
+App de configuración principal, estilo System Settings de macOS con colores ChurrOS. Documentación dedicada en `docs/preferences.md`.
+
+---
+
+# fuzzel (launcher)
+
+**Path:** binario del sistema (instalado vía `archiso/packages.x86_64`).
 **Keybind:** `SUPER + SPACE` (definido en `archiso/airootfs/etc/skel/.config/niri/config.kdl`)
+**Waybar:** `custom/launcher` → `on-click: "fuzzel"` (clic derecho → foot).
 
-Launcher de aplicaciones al estilo Spotlight/Rofi, pero GTK4.
+El launcher de aplicaciones es **fuzzel** ( Wayland-native, ligero), no una app ChurrOS propia. Muestra la lista de apps instaladas (leídas desde los `.desktop` del sistema), filtrado incremental por teclado, y lanza la seleccionada vía la DBus launcheable del .desktop.
 
-## Window
+Config: `archiso/airootfs/etc/skel/.config/fuzzel/fuzzel.ini` (tipografía, colores, atajos).
 
-- Tamaño: 700×500, no redimensionable, **sin decoración** (se ve como un popup flotante)
-- Layout vertical: barra de búsqueda + lista de apps
-- Margen: 20px
-
-## Search
-
-`widgets/search.py` extiende `Gtk.SearchEntry`:
-
-- Placeholder: "Search applications..."
-- Emite la señal `search-changed` en cada cambio de texto
-
-## App List
-
-`widgets/applist.py` usa `Gio.AppInfo.get_all()` para enumerar todas las aplicaciones instaladas en el sistema. Filtra con `app.should_show()` para omitir apps ocultas, y las ordena alfabéticamente.
-
-Cada fila (`widgets/approw.py`) muestra:
-
-- Icono (del `.desktop` o genérico si no tiene)
-- Nombre
-- Hover: `app-row` CSS class
-
-Al pulsar Enter o hacer clic en una fila:
-
-1. Se llama a `app.launch()` (vía `Gio.AppInfo.launch`)
-2. Se cierra la ventana del launcher
-
-## Filter
-
-El filtrado es en tiempo real y por nombre. No hay coincidencia difusa (fuzzy match): se usa `text in application["name"].lower()`. Esto puede mejorarse en versiones futuras.
+Razón: fuzzel cumple el rol de "Spotlight" sin necesitar write + mantain una app GTK4 custom para ello. Si en el futuro se quiere hacer un launcher con previews / acciones extra (estilo Raycast), sería momento de sustituirlo por una app propia.
 
 ---
 
-# churros-ui
+# churros-ui (planificado)
 
-**Path:** `apps/churros-ui/`
-**Estado:** Planificado, en desarrollo.
+**Estado:** Aún no implementado. Idea original pendiente.
 
-Biblioteca de componentes UI compartidos que las apps oficiales usarán para mantener una identidad visual consistente.
+Biblioteca de componentes UI compartidos que las apps oficiales usarían para mantener una identidad visual consistente. Hoy cada app (welcome, control-center, preferences, popups) tiene su propio `style.css` con variables CSS similares pero duplicadas.
 
-## Roadmap
+Roadmap potencial:
 
 ### v0.1
 - `ActionCard`
@@ -233,13 +220,12 @@ Biblioteca de componentes UI compartidos que las apps oficiales usarán para man
 - Temas
 - Componentes avanzados
 
-## Consumers
-
-Las apps que la utilizarán:
+## Consumers esperados
 
 - `churros-welcome`
-- `churros-settings` (futuro)
-- `churros-installer` (futuro)
+- `churros-settings`
+- `churros-control-center`
+- Popups
 - Cualquier herramienta oficial nueva
 
 ---
@@ -272,6 +258,8 @@ Para modificar una app:
 # Future Work
 
 - Mover las apps a un repositorio separado: hoy viven dentro del repo de la distro. A largo plazo deberían empaquetarse e instalarse vía pacman.
-- Sustituir los placeholders de las tarjetas de acción (Comunidad, Personalizar, Actualizar) por acciones reales.
-- Internacionalización: las cadenas están en español hardcodeadas. Hace falta un sistema `gettext` o similar.
-- Tests: no hay suite de tests. Las apps interactúan con el sistema, así que los tests serían de integración con un display virtual.
+- Sustituir placeholders de las tarjetas de_action antiguas — hecho: hoy Welcome tiene Install/GitHub/Discord/Documentation/Terminal/Browser todas funcionales.
+- Internacionalización: hoy `i18n._()` (`/usr/share/churros/preferences/i18n.py` y la copia en `/usr/share/churros/i18n.py`) simplemente devuelve la string original; falta compilar `po/churros.po` a `/usr/share/locale/es/LC_MESSAGES/churros.mo`.
+- Migración foot → kitty: el AGENTS.md y README mencionan Kitty pero el sistema instala foot. Añadir `kitty` a `packages.x86_64` y cambiar spawns cuando se decida.
+- churros-ui: centralizar el CSS + widgets compartidos (hoy hay code duplication entre welcome/control-center/preferences/popups).
+- Tests: no hay suite de tests. Las apps interactúan con el sistema; verificación es `python3 -c "import ast; ast.parse(open(f).read())"` + lanzar manualmente cada app en niri.
