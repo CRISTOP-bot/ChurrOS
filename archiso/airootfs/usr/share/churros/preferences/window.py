@@ -20,7 +20,12 @@ from pages.wallpaper import WallpaperPage
 from pages.audio import AudioPage
 from pages.connectivity import ConnectivityPage
 from pages.display import DisplayPage
+from pages.input import InputPage
 from pages.power import PowerPage
+from pages.power_profile import PowerProfilePage
+from pages.battery import BatteryPage
+from pages.display_timeout import DisplayTimeoutPage
+from pages.sleep import SleepPage
 from pages.applications import ApplicationsPage
 from pages.users import UsersPage
 from pages.privacy import PrivacyPage
@@ -122,6 +127,11 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         )
 
         self.navigator.add_page(
+            "input",
+            InputPage(self.navigator)
+        )
+
+        self.navigator.add_page(
             "power",
             PowerPage(self.navigator)
         )
@@ -173,6 +183,30 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         self.navigator.add_page(
             "wallpaper",
             WallpaperPage(self.navigator)
+        )
+
+        #
+        # Subpáginas de Energía
+        #
+
+        self.navigator.add_page(
+            "power-profile",
+            PowerProfilePage(self.navigator)
+        )
+
+        self.navigator.add_page(
+            "battery",
+            BatteryPage(self.navigator)
+        )
+
+        self.navigator.add_page(
+            "display-timeout",
+            DisplayTimeoutPage(self.navigator)
+        )
+
+        self.navigator.add_page(
+            "sleep",
+            SleepPage(self.navigator)
         )
 
         #

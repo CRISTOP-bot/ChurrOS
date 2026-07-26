@@ -23,7 +23,10 @@
     "network",
     "pulseaudio",
     "custom/sep",
-    "clock",
+    "custom/control-center",
+    "custom/settings",
+    "custom/sep",
+    "clock"
   ],
 
   "niri/workspaces": {
@@ -48,6 +51,18 @@
     "on-click": "fuzzel",
     "on-click-right": "foot",
     "tooltip-format": "Launcher"
+  },
+
+  "custom/control-center": {
+    "format": "󰂗",
+    "on-click": "churros-control-center",
+    "tooltip-format": "Control Center"
+  },
+
+  "custom/settings": {
+    "format": "󰒋",
+    "on-click": "churros-settings",
+    "tooltip-format": "Settings"
   },
 
   "cpu": {

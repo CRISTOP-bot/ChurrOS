@@ -117,6 +117,12 @@ class Sidebar(Gtk.Box):
             ),
 
             (
+                "input",
+                "input.svg",
+                "Entrada"
+            ),
+
+            (
                 "audio",
                 "audio.svg",
                 "Audio"

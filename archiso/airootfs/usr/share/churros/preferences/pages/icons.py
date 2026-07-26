@@ -12,8 +12,11 @@ class IconsPage(Page):
         super().__init__(
             navigator,
             "Iconos",
-            "Selecciona el tema de iconos"
+            "Selecciona el tema de iconos",
+            parent_page="appearance"
         )
+
+        SelectRow.reset_group()
 
         self.rows = []
 

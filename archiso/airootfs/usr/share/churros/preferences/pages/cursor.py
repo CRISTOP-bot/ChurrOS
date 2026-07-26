@@ -1,6 +1,7 @@
 from widgets.page import Page
 from widgets.group import Group
 from widgets.select_row import SelectRow
+from widgets.slider_row import SliderRow
 
 from services.cursor import CursorService
 
@@ -12,10 +13,17 @@ class CursorPage(Page):
         super().__init__(
             navigator,
             "Cursor",
-            "Selecciona el tema del cursor"
+            "Selecciona el tema y tamano del cursor",
+            parent_page="appearance"
         )
 
+        SelectRow.reset_group()
+
         self.rows = []
+
+        #
+        # Tema
+        #
 
         group = Group(
             "Temas disponibles"
@@ -47,6 +55,27 @@ class CursorPage(Page):
             group
         )
 
+        #
+        # Tamano
+        #
+
+        size_group = Group(
+            "Tamano del cursor"
+        )
+
+        self.size_slider = SliderRow(
+            title="Tamano",
+            value=float(CursorService.size()),
+            minimum=8.0,
+            maximum=64.0,
+            step=1.0,
+            callback=self.on_size_changed
+        )
+
+        size_group.add(self.size_slider)
+
+        self.add(size_group)
+
     def select(
         self,
         cursor
@@ -63,3 +92,12 @@ class CursorPage(Page):
             row.set_active(
                 row.title == current
             )
+
+    def on_size_changed(
+        self,
+        slider
+    ):
+
+        CursorService.set_size(
+            slider.get_value()
+        )

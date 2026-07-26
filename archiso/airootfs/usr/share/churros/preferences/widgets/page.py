@@ -11,12 +11,14 @@ class Page(Gtk.ScrolledWindow):
         self,
         navigator,
         title,
-        subtitle=None
+        subtitle=None,
+        parent_page=None
     ):
 
         super().__init__()
 
         self.navigator = navigator
+        self.parent_page = parent_page
 
         self.set_hexpand(True)
         self.set_vexpand(True)
@@ -41,6 +43,24 @@ class Page(Gtk.ScrolledWindow):
         root.set_margin_end(24)
 
         self.set_child(root)
+
+        #
+        # Boton de retroceso (subpaginas)
+        #
+
+        if parent_page is not None:
+
+            back_btn = Gtk.Button.new_from_icon_name(
+                "go-previous-symbolic"
+            )
+
+            back_btn.set_label(" Atras")
+            back_btn.set_halign(Gtk.Align.START)
+            back_btn.add_css_class("back-button")
+            back_btn.set_has_frame(False)
+            back_btn.connect("clicked", self.on_back)
+
+            root.append(back_btn)
 
         #
         # Cabecera
@@ -93,6 +113,12 @@ class Page(Gtk.ScrolledWindow):
         root.append(
             self.content
         )
+
+    def on_back(self, *_):
+
+        if self.parent_page is not None:
+
+            self.navigator.show_page(self.parent_page)
 
     def add(
         self,
