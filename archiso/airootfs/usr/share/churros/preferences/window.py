@@ -2,7 +2,9 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
+
+from services.theme import ThemeService
 
 from widgets.sidebar import Sidebar
 from widgets.navigator import Navigator
@@ -42,6 +44,21 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         self.add_css_class(
             "preferences"
         )
+
+        self._apply_theme_class()
+
+        try:
+
+            gsettings = Gio.Settings.new("org.gnome.desktop.interface")
+
+            gsettings.connect(
+                "changed::color-scheme",
+                lambda *_: self._apply_theme_class()
+            )
+
+        except Exception:
+
+            pass
 
         #
         # Layout principal
@@ -184,3 +201,24 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         self.navigator.show_page(
             page
         )
+
+    def _apply_theme_class(self):
+        """Toggle .light class on this window when dark mode is off."""
+
+        try:
+
+            if ThemeService.is_dark():
+
+                self.remove_css_class("light")
+
+            else:
+
+                self.add_css_class("light")
+
+        except Exception:
+
+            pass
+
+    def refresh_theme(self):
+
+        self._apply_theme_class()

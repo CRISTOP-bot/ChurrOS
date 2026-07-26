@@ -1,22 +1,34 @@
 import subprocess
 
 
+def _unescape(s):
+
+    return s.replace("\\:", ":")
+
+
 class WifiService:
 
     @staticmethod
     def _run(command):
 
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True
-        )
+        try:
 
-        return (
-            result.returncode,
-            result.stdout.strip(),
-            result.stderr.strip()
-        )
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            return (
+                result.returncode,
+                result.stdout.strip(),
+                result.stderr.strip()
+            )
+
+        except Exception:
+
+            return (1, "", "execution error")
 
     @staticmethod
     def available():
@@ -38,7 +50,7 @@ class WifiService:
 
             try:
 
-                _, dev_type = line.split(":")
+                _, dev_type = line.split(":", 1)
 
                 if dev_type == "wifi":
                     return True
@@ -67,14 +79,16 @@ class WifiService:
     @staticmethod
     def scan():
 
-        WifiService._run(
-            [
-                "nmcli",
-                "device",
-                "wifi",
-                "rescan"
-            ]
-        )
+        try:
+
+            subprocess.Popen(
+                ["nmcli", "device", "wifi", "rescan"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+
+        except Exception:
+            pass
 
     @staticmethod
     def get():
@@ -102,12 +116,16 @@ class WifiService:
         code, out, _ = WifiService._run(
             [
                 "nmcli",
+                "--escape",
+                "yes",
                 "-t",
                 "-f",
                 "ACTIVE,SSID,SIGNAL,SECURITY",
                 "device",
                 "wifi",
-                "list"
+                "list",
+                "--rescan",
+                "no"
             ]
         )
 
@@ -123,21 +141,47 @@ class WifiService:
 
                 continue
 
-            parts = line.split(":")
+            fields = []
+            current = ""
+            escape = False
 
-            while len(parts) < 4:
+            for ch in line:
 
-                parts.append("")
+                if escape:
 
-            active, ssid, signal, security = parts[:4]
+                    current += ch
+                    escape = False
+
+                elif ch == "\\":
+
+                    escape = True
+
+                elif ch == ":":
+
+                    fields.append(current)
+                    current = ""
+
+                else:
+
+                    current += ch
+
+            fields.append(current)
+
+            while len(fields) < 4:
+
+                fields.append("")
+
+            active, ssid, signal, security = fields[:4]
+
+            ssid = _unescape(ssid)
 
             network = {
 
                 "ssid": ssid if ssid else "Hidden Network",
 
-                "signal": int(signal) if signal.isdigit() else 0,
+                "signal": int(signal) if signal.lstrip("-").isdigit() else 0,
 
-                "security": security,
+                "security": _unescape(security),
 
                 "connected": active == "yes",
 
@@ -153,7 +197,23 @@ class WifiService:
                 network
             )
 
-        data["networks"].sort(
+        seen = set()
+
+        deduped = []
+
+        for n in data["networks"]:
+
+            key = n["ssid"]
+
+            if key in seen:
+
+                continue
+
+            seen.add(key)
+
+            deduped.append(n)
+
+        deduped.sort(
 
             key=lambda n: (
 
@@ -166,6 +226,8 @@ class WifiService:
             )
 
         )
+
+        data["networks"] = deduped
 
         return data
 
@@ -193,7 +255,7 @@ class WifiService:
 
             try:
 
-                name, conn_type = line.split(":")
+                name, conn_type = line.split(":", 1)
 
                 if conn_type == "802-11-wireless":
 
@@ -261,6 +323,74 @@ class WifiService:
         return False, "Unknown error."
 
     @staticmethod
+    def connect_hidden(ssid, password=None):
+
+        try:
+
+            code, _, err = WifiService._run(
+                [
+                    "nmcli",
+                    "connection",
+                    "add",
+                    "type",
+                    "wifi",
+                    "ifname",
+                    "wlan0",
+                    "con-name",
+                    ssid,
+                    "ssid",
+                    ssid,
+                    "hidden",
+                    "yes"
+                ]
+            )
+
+            if code != 0:
+
+                return False, "Failed to create hidden profile."
+
+        except Exception:
+            return False, "Unknown error."
+
+        cmd = [
+            "nmcli",
+            "connection",
+            "up",
+            ssid
+        ]
+
+        if password:
+
+            cmd.extend(
+                [
+                    "password",
+                    password
+                ]
+            )
+
+        code, _, err = WifiService._run(cmd)
+
+        if code == 0:
+
+            return True, ""
+
+        err = err.lower()
+
+        if "secrets were required" in err:
+
+            return False, "Password required."
+
+        if "invalid" in err:
+
+            return False, "Incorrect password."
+
+        if "activation" in err:
+
+            return False, "Unable to connect."
+
+        return False, "Unknown error."
+
+    @staticmethod
     def disconnect():
 
         code, out, _ = WifiService._run(
@@ -287,27 +417,32 @@ class WifiService:
 
         for line in out.splitlines():
 
-            device, dev_type = line.split(":")
+            try:
 
-            if dev_type == "wifi":
+                device, dev_type = line.split(":", 1)
 
-                WifiService._run(
+                if dev_type == "wifi":
 
-                    [
+                    WifiService._run(
 
-                        "nmcli",
+                        [
 
-                        "device",
+                            "nmcli",
 
-                        "disconnect",
+                            "device",
 
-                        device
+                            "disconnect",
 
-                    ]
+                            device
 
-                )
+                        ]
 
-                break
+                    )
+
+                    break
+
+            except ValueError:
+                pass
 
     @staticmethod
     def forget(ssid):

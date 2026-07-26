@@ -5,6 +5,7 @@ gi.require_version("Gtk", "4.0")
 
 from gi.repository import Gtk, Gdk
 
+from services.accent import AccentService
 from window import PreferencesWindow
 
 
@@ -16,25 +17,18 @@ class PreferencesApplication(Gtk.Application):
             application_id="org.churros.preferences"
         )
 
-    def do_activate(self):
-
-        #
-        # Cargar CSS
-        #
+    def _load_css(
+        self,
+        path,
+        priority=Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+    ):
 
         provider = Gtk.CssProvider()
-
-        css_path = os.path.join(
-            os.path.dirname(
-                os.path.abspath(__file__)
-            ),
-            "style.css"
-        )
 
         try:
 
             provider.load_from_path(
-                css_path
+                path
             )
 
             Gtk.StyleContext.add_provider_for_display(
@@ -43,15 +37,49 @@ class PreferencesApplication(Gtk.Application):
 
                 provider,
 
-                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+                priority
 
             )
 
-            print(f"CSS cargado: {css_path}")
+            print(f"CSS cargado: {path}")
 
         except Exception as error:
 
             print(f"No se pudo cargar el CSS: {error}")
+
+    def do_activate(self):
+
+        AccentService.ensure()
+
+        #
+        # Cargar CSS principal
+        #
+
+        base = os.path.dirname(
+            os.path.abspath(__file__)
+        )
+
+        self._load_css(
+            os.path.join(
+                base,
+                "style.css"
+            )
+        )
+
+        #
+        # Cargar CSS de acento del usuario (si existe)
+        #
+
+        accent_css = AccentService.ACCENT_CSS
+
+        if os.path.exists(
+            accent_css
+        ):
+
+            self._load_css(
+                accent_css,
+                Gtk.STYLE_PROVIDER_PRIORITY_USER
+            )
 
         #
         # Crear ventana

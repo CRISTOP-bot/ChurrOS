@@ -34,7 +34,7 @@ class SettingsService:
 
         "accent": {
 
-            "color": "#ff8c2a"
+            "color": "Orange"
 
         },
 

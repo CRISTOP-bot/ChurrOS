@@ -23,11 +23,16 @@ file_permissions=(
   ["/root/scripts/greetd-config.sh"]="0:0:755"
 
   ["/usr/bin/churros-welcome"]="0:0:755"
-  ["/usr/share/churros/churros-welcome/churros-welcome.sh"]="0:0:755"
 
   ["/usr/bin/churros-popup"]="0:0:755"
 
   ["/usr/local/bin/choose-mirror"]="0:0:755"
   ["/usr/local/bin/churros-theme"]="0:0:755"
   ["/usr/bin/churros-settings"]="0:0:755"
+  ["/usr/bin/churros-control-center"]="0:0:755"
+  ["/usr/share/churros/scripts/set-accent"]="0:0:755"
+  ["/usr/share/churros/scripts/set-theme"]="0:0:755"
+  ["/usr/share/churros/scripts/set-wallpaper"]="0:0:755"
+  ["/usr/share/churros/scripts/set-cursor"]="0:0:755"
+  ["/usr/share/churros/scripts/set-icons"]="0:0:755"
 )

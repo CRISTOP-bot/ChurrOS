@@ -21,7 +21,7 @@ class BrightnessApplication(Gtk.Application):
     def __init__(self):
 
         super().__init__(
-            application_id="com.churros.brightness"
+            application_id="org.churros.popup.brightness"
         )
 
     def do_activate(self):

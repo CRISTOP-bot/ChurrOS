@@ -8,6 +8,13 @@ class AudioService:
     backend = None
 
     @classmethod
+    def available(cls):
+
+        import shutil
+
+        return shutil.which("wpctl") is not None
+
+    @classmethod
     def _backend(cls):
 
         if cls.backend is not None:

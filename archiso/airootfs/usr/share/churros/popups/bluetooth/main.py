@@ -19,6 +19,12 @@ from window import BluetoothWindow
 
 class BluetoothApplication(Gtk.Application):
 
+    def __init__(self):
+
+        super().__init__(
+            application_id="org.churros.popup.bluetooth"
+        )
+
     def do_activate(self):
 
         window = BluetoothWindow(self)
@@ -27,4 +33,4 @@ class BluetoothApplication(Gtk.Application):
 
 app = BluetoothApplication()
 
-app.run(None)
+app.run()

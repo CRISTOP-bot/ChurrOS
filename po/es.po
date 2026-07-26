@@ -1,0 +1,165 @@
+# ChurrOS Spanish translation.
+# Copyright (C) 2025 ChurrOS Project
+# This file is distributed under the GPL-3.0 license.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: churros 0.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+
+msgid "Theme"
+msgstr "Tema"
+
+msgid "Dark mode"
+msgstr "Modo oscuro"
+
+msgid "Dynamic colors"
+msgstr "Colores dinámicos"
+
+msgid "Background"
+msgstr "Fondo"
+
+msgid "Customization"
+msgstr "Personalización"
+
+msgid "Wallpaper"
+msgstr "Fondo de pantalla"
+
+msgid "Accent color"
+msgstr "Color de acento"
+
+msgid "Permissions"
+msgstr "Permisos"
+
+msgid "ChurrOS"
+msgstr "ChurrOS"
+
+msgid "Software"
+msgstr "Software"
+
+msgid "Project"
+msgstr "Proyecto"
+
+msgid "No software brightness control on this display."
+msgstr "Esta pantalla no soporta control de brillo por software."
+
+msgid "Brightness unavailable"
+msgstr "Brillo no disponible"
+
+msgid "Mute"
+msgstr "Silenciar"
+
+msgid "Speakers"
+msgstr "Altavoces"
+
+msgid "No Wi-Fi adapter detected."
+msgstr "No se detectó adaptador Wi-Fi."
+
+msgid "Wi-Fi is disabled."
+msgstr "Wi-Fi desactivado."
+
+msgid "Searching for networks..."
+msgstr "Buscando redes..."
+
+msgid "Password"
+msgstr "Contraseña"
+
+msgid "Connect"
+msgstr "Conectar"
+
+msgid "Cable disconnected"
+msgstr "Cable desconectado"
+
+msgid "Lock"
+msgstr "Bloquear"
+
+msgid "Logout"
+msgstr "Cerrar sesión"
+
+msgid "Suspend"
+msgstr "Suspender"
+
+msgid "Hibernate"
+msgstr "Hibernar"
+
+msgid "Restart"
+msgstr "Reiniciar"
+
+msgid "Shutdown"
+msgstr "Apagar"
+
+msgid "No battery detected"
+msgstr "Batería no detectada"
+
+msgid "Charging"
+msgstr "Cargando"
+
+msgid "Discharging"
+msgstr "Descargando"
+
+msgid "Full"
+msgstr "Cargada"
+
+msgid "Pending charge"
+msgstr "Pendiente de carga"
+
+msgid "until full"
+msgstr "hasta cargarse"
+
+msgid "until empty"
+msgstr "hasta agotarse"
+
+msgid "Unavailable"
+msgstr "No disponible"
+
+msgid "Welcome to ChurrOS"
+msgstr "Bienvenido a ChurrOS"
+
+msgid "A modern Linux distribution based on Arch Linux."
+msgstr "Una distribución Linux moderna basada en Arch Linux."
+
+msgid "Install ChurrOS"
+msgstr "Instalar ChurrOS"
+
+msgid "Install ChurrOS on your hard drive."
+msgstr "Instala ChurrOS en tu disco duro."
+
+msgid "Installer not available on this system."
+msgstr "Instalador no disponible en este sistema."
+
+msgid "GitHub"
+msgstr "GitHub"
+
+msgid "Official project repository."
+msgstr "Repositorio oficial del proyecto."
+
+msgid "Discord"
+msgstr "Discord"
+
+msgid "Join the ChurrOS community."
+msgstr "Únete a la comunidad de ChurrOS."
+
+msgid "Settings"
+msgstr "Configuración"
+
+msgid "Open"
+msgstr "Abrir"
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "OK"
+msgstr "OK"
