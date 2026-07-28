@@ -241,13 +241,17 @@ class PreferencesWindow(Gtk.ApplicationWindow):
 
         try:
 
-            if ThemeService.is_dark():
+            want_light = not ThemeService.is_dark()
 
-                self.remove_css_class("light")
+            has_light = "light" in self.get_css_classes()
 
-            else:
+            if want_light and not has_light:
 
                 self.add_css_class("light")
+
+            elif not want_light and has_light:
+
+                self.remove_css_class("light")
 
         except Exception:
 
@@ -255,4 +259,15 @@ class PreferencesWindow(Gtk.ApplicationWindow):
 
     def refresh_theme(self):
 
+        """Cambia la clase .light del window y fuerza repaint."""
+
         self._apply_theme_class()
+
+        try:
+
+            self.queue_draw()
+            self.queue_resize()
+
+        except Exception:
+
+            pass

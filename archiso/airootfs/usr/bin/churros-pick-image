@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+#
+# churros-pick-image — Selector de imagen.
+#
+# Cadena de fallbacks:
+#   1. zenity --file-selection (standalone, no necesita portal)
+#   2. xdg-desktop-portal (vía gdbus, monitor de signal Response)
+#   3. yad --file
+#   4. thunar + zenity entry (última instancia, manual)
+#
+# Uso: churros-pick-image [directorio_inicial]
+#   imprime la ruta seleccionada a stdout.
+#
+
+set -eu
+
+INIT_DIR="${1:-$HOME}"
+INIT_DIR="${INIT_DIR/#\~/$HOME}"
+
+log() { printf '[churros-pick-image] %s\n' "$*" >&2; }
+
+# ── 1. Zenity: el más fiable, no necesita portal ───────────
+
+pick_via_zenity() {
+
+    if ! command -v zenity >/dev/null 2>&1; then
+        return 1
+    fi
+
+    zenity --file-selection \
+        --title="Importar imagen de fondo" \
+        --filename="$INIT_DIR/" \
+        --file-filter='*.jpg *.jpeg *.png *.webp *.gif *.JPG *.JPEG *.PNG *.WEBP *.GIF' \
+        --file-filter='Todos los archivos | *' \
+        2>/dev/null
+}
+
+# ── 2. Portal xdg via gdbus + monitor de signal Response ────
+
+pick_via_portal() {
+
+    if ! command -v gdbus >/dev/null 2>&1; then
+        return 1
+    fi
+
+    if ! pgrep -x xdg-desktop-portal >/dev/null 2>&1; then
+        log "portal no esta corriendo"
+        return 1
+    fi
+
+    local token="churros_pick_$$"
+    local reply_path="/tmp/churros-pick-$token.txt"
+
+    rm -f "$reply_path"
+
+    local handle_str
+    if ! handle_str=$(gdbus call --session \
+        --dest org.freedesktop.portal.Desktop \
+        --object-path /org/freedesktop/portal/desktop \
+        --method org.freedesktop.portal.FileChooser.OpenFile \
+        "$INIT_DIR" "Importar imagen de fondo" \
+        '{"0": ["image/jpeg", "image/png", "image/webp", "image/gif"]}' \
+        "handle_token=$token" 2>&1); then
+        log "portal call fallo"
+        return 1
+    fi
+
+    handle_str=$(echo "$handle_str" | sed -nE "s/^\('([^']+)'.*/\1/p")
+
+    if [ -z "$handle_str" ]; then
+        log "no pude parsear handle"
+        return 1
+    fi
+
+    if command -v gdbus >/dev/null 2>&1; then
+
+        timeout 120 gdbus monitor --session \
+            --dest org.freedesktop.portal.FileChooser \
+            --object-path "$handle_str" \
+            > "$reply_path" 2>&1 &
+
+        local monitor_pid=$!
+
+        local elapsed=0
+        while [ "$elapsed" -lt 120 ]; do
+
+            if ! kill -0 "$monitor_pid" 2>/dev/null; then
+                break
+            fi
+
+            sleep 0.5
+            elapsed=$((elapsed + 1))
+
+            if grep -q "uris" "$reply_path" 2>/dev/null; then
+                break
+            fi
+
+        done
+
+        kill "$monitor_pid" 2>/dev/null || true
+        wait "$monitor_pid" 2>/dev/null || true
+
+    fi
+
+    if [ ! -s "$reply_path" ]; then
+        log "portal monitor timeout"
+        rm -f "$reply_path"
+        return 1
+    fi
+
+    local uri
+    uri=$(grep -oE 'file://[^"\\]+' "$reply_path" | head -n1)
+
+    rm -f "$reply_path"
+
+    if [ -z "$uri" ]; then
+        log "portal sin URI"
+        return 1
+    fi
+
+    printf '%b' "${uri#file://}" | python3 -c "import sys, urllib.parse; print(urllib.parse.unquote(sys.stdin.read()))"
+}
+
+# ── 3. yad: alternativa a zenity ───────────────────────────
+
+pick_via_yad() {
+
+    if ! command -v yad >/dev/null 2>&1; then
+        return 1
+    fi
+
+    yad --file \
+        --title="Importar imagen de fondo" \
+        --filename="$INIT_DIR/" \
+        --file-filter='Image files | *.jpg *.jpeg *.png *.webp *.gif' \
+        2>/dev/null
+}
+
+# ── 4. thunar: solo visual, el usuario copia la ruta ────────
+
+pick_via_thunar() {
+
+    if ! command -v thunar >/dev/null 2>&1; then
+        return 1
+    fi
+
+    if command -v notify-send >/dev/null 2>&1; then
+
+        notify-send "ChurrOS" \
+            "Thunar se ha abierto. Cuando termines, cierra esta notificación y escribe la ruta de la imagen." \
+            2>/dev/null || true
+
+    fi
+
+    thunar "$INIT_DIR" >/dev/null 2>&1 &
+
+    local input
+    if command -v zenity >/dev/null 2>&1; then
+
+        input=$(zenity --entry \
+            --title="Ruta de la imagen" \
+            --text="Thunar esta abierto. Escribe la ruta completa de la imagen que elegiste:" \
+            --entry-text="$INIT_DIR/" 2>/dev/null) || input=""
+
+    fi
+
+    wait 2>/dev/null || true
+
+    if [ -n "$input" ] && [ -f "$input" ]; then
+        echo "$input"
+        return 0
+    fi
+
+    return 1
+}
+
+# ── Cadena principal ────────────────────────────────────
+
+if result=$(pick_via_zenity) && [ -n "$result" ] && [ -f "$result" ]; then
+    echo "$result"
+    exit 0
+fi
+
+log "zenity no disponible, intentando portal..."
+
+if result=$(pick_via_portal) && [ -n "$result" ] && [ -f "$result" ]; then
+    echo "$result"
+    exit 0
+fi
+
+log "portal no disponible, intentando yad..."
+
+if result=$(pick_via_yad) && [ -n "$result" ] && [ -f "$result" ]; then
+    echo "$result"
+    exit 0
+fi
+
+log "yad no disponible, intentando thunar..."
+
+if result=$(pick_via_thunar) && [ -n "$result" ] && [ -f "$result" ]; then
+    echo "$result"
+    exit 0
+fi
+
+log "no se pudo abrir un selector de archivos"
+exit 1
