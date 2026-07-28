@@ -8,15 +8,6 @@ class ThemeService:
     @classmethod
     def is_dark(cls):
 
-        value = SettingsService.get(
-            "theme.dark",
-            None
-        )
-
-        if value is not None:
-
-            return value
-
         try:
 
             result = subprocess.run(
@@ -34,26 +25,23 @@ class ThemeService:
 
             )
 
-            dark = "dark" in result.stdout.lower()
+            if result.returncode == 0:
+
+                value = result.stdout.strip().lower()
+                dark = value == "'prefer-dark'"
+
+                SettingsService.set("theme.dark", dark)
+                return dark
 
         except Exception:
+            pass
 
-            dark = False
-
-        SettingsService.set(
-            "theme.dark",
-            dark
-        )
-
-        return dark
+        return SettingsService.get("theme.dark", False)
 
     @classmethod
     def set(cls, dark):
 
-        SettingsService.set(
-            "theme.dark",
-            dark
-        )
+        SettingsService.set("theme.dark", bool(dark))
 
         try:
 
@@ -67,6 +55,7 @@ class ThemeService:
                     "prefer-dark" if dark else "default"
                 ],
 
+                capture_output=True,
                 timeout=2
 
             )
@@ -79,7 +68,5 @@ class ThemeService:
     def toggle(cls):
 
         cls.set(
-
             not cls.is_dark()
-
         )

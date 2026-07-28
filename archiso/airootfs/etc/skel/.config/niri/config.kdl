@@ -104,6 +104,7 @@ binds {
     Mod+C { spawn "churros-control-center"; }
     Mod+P { spawn "churros-settings"; }
     Mod+W { spawn "churros-welcome"; }
+    Mod+E { spawn "thunar"; }
     Mod+Shift+E { spawn "churros-popup" "power"; }
     Mod+Shift+N { spawn "churros-popup" "network"; }
     Mod+Shift+A { spawn "churros-popup" "audio"; }
@@ -171,6 +172,7 @@ binds {
 
 // Autostart
 spawn-at-startup "swaybg" "-i" "/usr/share/churros/wallpapers/default.jpeg" "-m" "fill"
+spawn-at-startup "churros-portal-start"
 spawn-at-startup "waybar"
 spawn-at-startup "mako"
 spawn-at-startup "awww-daemon"
