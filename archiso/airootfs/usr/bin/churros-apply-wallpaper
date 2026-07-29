@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+#
+# churros-apply-wallpaper
+#   Lee wallpaper.path de ~/.config/churros/settings.json
+#   y aplica con awww (preferido) o swaybg (fallback).
+#
+#   Si no hay path guardado, usa el default de ChurrOS.
+#
+
+set -eu
+
+SETTINGS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/churros/settings.json"
+
+apply() {
+
+    local path="$1"
+
+    if [ -z "$path" ] || [ ! -f "$path" ]; then
+        return 1
+    fi
+
+    if command -v awww >/dev/null 2>&1; then
+
+        if ! pgrep -x awww-daemon >/dev/null 2>&1; then
+
+            awww-daemon >/dev/null 2>&1 &
+            sleep 0.4
+
+        fi
+
+        if awww img "$path" >/dev/null 2>&1; then
+            echo "[churros-apply-wallpaper] awww: $path"
+            return 0
+        fi
+
+    fi
+
+    if command -v swaybg >/dev/null 2>&1; then
+
+        pkill -x swaybg 2>/dev/null || true
+        sleep 0.2
+
+        if swaybg -i "$path" -m fill >/dev/null 2>&1 & then
+            echo "[churros-apply-wallpaper] swaybg: $path"
+            return 0
+        fi
+
+    fi
+
+    return 1
+}
+
+if [ -f "$SETTINGS_FILE" ]; then
+
+    PATH_SAVED=$(python3 -c "
+import json, sys
+try:
+    with open('$SETTINGS_FILE') as f:
+        d = json.load(f)
+    print(d.get('wallpaper', {}).get('path', ''))
+except Exception:
+    print('')
+" 2>/dev/null || true)
+
+    if [ -n "$PATH_SAVED" ]; then
+        if apply "$PATH_SAVED"; then
+            exit 0
+        fi
+    fi
+
+fi
+
+DEFAULT="/usr/share/churros/wallpapers/default.jpeg"
+
+if [ -f "$DEFAULT" ]; then
+    apply "$DEFAULT" || true
+fi
+
+exit 0

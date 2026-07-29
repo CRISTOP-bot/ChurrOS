@@ -2,7 +2,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GLib, Gdk
 
 from services.theme import ThemeService
 
@@ -16,6 +16,7 @@ from pages.icons import IconsPage
 from pages.cursor import CursorPage
 from pages.fonts import FontsPage
 from pages.wallpaper import WallpaperPage
+from pages.waybar import WaybarPage
 
 from pages.audio import AudioPage
 from pages.connectivity import ConnectivityPage
@@ -54,16 +55,31 @@ class PreferencesWindow(Gtk.ApplicationWindow):
 
         try:
 
-            gsettings = Gio.Settings.new("org.gnome.desktop.interface")
+            schema_source = Gio.SettingsSchemaSource.get_default()
 
-            gsettings.connect(
-                "changed::color-scheme",
-                lambda *_: self._apply_theme_class()
-            )
+            if schema_source is not None:
 
-        except Exception:
+                schema = schema_source.lookup(
+                    "org.gnome.desktop.interface",
+                    False
+                )
 
-            pass
+                if schema is not None:
+
+                    gsettings = Gio.Settings.new_full(
+                        schema,
+                        None,
+                        None
+                    )
+
+                    gsettings.connect(
+                        "changed::color-scheme",
+                        lambda *_: GLib.idle_add(self.refresh_theme)
+                    )
+
+        except Exception as exc:
+
+            print(f"[preferences] gsettings setup: {exc}")
 
         #
         # Layout principal
@@ -181,6 +197,11 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         )
 
         self.navigator.add_page(
+            "waybar",
+            WaybarPage(self.navigator)
+        )
+
+        self.navigator.add_page(
             "wallpaper",
             WallpaperPage(self.navigator)
         )
@@ -237,7 +258,7 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         )
 
     def _apply_theme_class(self):
-        """Toggle .light class on this window when dark mode is off."""
+        """Cambia la clase CSS .light segun el modo del ThemeService."""
 
         try:
 
@@ -253,20 +274,115 @@ class PreferencesWindow(Gtk.ApplicationWindow):
 
                 self.remove_css_class("light")
 
-        except Exception:
+        except Exception as exc:
 
-            pass
+            import sys
+            print(f"[preferences] apply_theme_class: {exc}", file=sys.stderr)
 
     def refresh_theme(self):
 
-        """Cambia la clase .light del window y fuerza repaint."""
+        """Recarga CSS desde disco y re-aplica la clase .light.
+
+        GTK4 con variables CSS en runtime requiere recargar el provider
+        completo para que las variables se re-evaluen en todo el arbol.
+        """
 
         self._apply_theme_class()
+
+        self._reload_css_providers()
+
+        try:
+
+            context = self.get_style_context()
+
+            context.invalidate()
+
+            context.add_class("needs-style-refresh")
+            context.remove_class("needs-style-refresh")
+
+        except Exception:
+
+            pass
 
         try:
 
             self.queue_draw()
             self.queue_resize()
+
+        except Exception:
+
+            pass
+
+    def _reload_css_providers(self):
+
+        """Recarga style.css en providers registrados y refresca accent.css."""
+
+        import os
+
+        try:
+
+            gi = __import__("gi")
+
+            gi.require_version("Gtk", "4.0")
+
+            from gi.repository import Gtk, Gdk
+
+        except Exception:
+
+            return
+
+        try:
+
+            display = Gdk.Display.get_default()
+
+            if display is None:
+                return
+
+            style_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "style.css"
+            )
+
+            accent_path = os.path.expanduser(
+                "~/.config/churros/accent.css"
+            )
+
+            providers = Gtk.StyleContext.list_providers(display) or []
+
+            for entry in providers:
+
+                try:
+
+                    _, provider = entry
+
+                except Exception:
+
+                    provider = entry
+
+                try:
+
+                    provider.load_from_path(style_path)
+
+                except Exception:
+
+                    pass
+
+            if os.path.exists(accent_path):
+
+                try:
+
+                    accent_provider = Gtk.CssProvider()
+                    accent_provider.load_from_path(accent_path)
+
+                    Gtk.StyleContext.add_provider_for_display(
+                        display,
+                        accent_provider,
+                        Gtk.STYLE_PROVIDER_PRIORITY_USER + 1
+                    )
+
+                except Exception:
+
+                    pass
 
         except Exception:
 

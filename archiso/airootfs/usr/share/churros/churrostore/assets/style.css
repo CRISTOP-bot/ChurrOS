@@ -1,0 +1,445 @@
+/*
+    ChurroStore — macOS App Store style
+    Paleta: ChurrOS Orange (#F97316) + tonalidades de fondo oscuras/claras
+*/
+
+.store-window {
+    background: linear-gradient(180deg, #0f0f10 0%, #1a1a1c 100%);
+}
+
+/* ── Top bar ──────────────────────────────────────────── */
+
+.store-top-bar {
+    background: rgba(31, 31, 33, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.store-title-bar {
+    padding: 14px 28px 10px;
+    background: transparent;
+}
+
+.store-brand {
+    align-items: center;
+}
+
+.store-brand-label {
+    color: #f5f5f7;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+entry.search {
+    border-radius: 12px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f5f5f7;
+    min-height: 40px;
+    caret-color: #F97316;
+    margin: 0 24px;
+    font-size: 14px;
+    transition: all 200ms ease-out;
+}
+
+entry.search:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+entry.search:focus {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: #F97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.22);
+}
+
+/* ── Nav bar (categorias) ────────────────────────────── */
+
+.store-nav-bar {
+    padding: 6px 28px 14px;
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.store-nav-button {
+    border-radius: 999px;
+    padding: 0 4px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.65);
+    transition: all 180ms ease-out;
+}
+
+.store-nav-button:hover {
+    background: rgba(249, 115, 22, 0.14);
+    color: #FB923C;
+}
+
+.store-nav-button:checked {
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.10);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.40);
+}
+
+.store-nav-button:checked:hover {
+    background: linear-gradient(135deg, #FB923C 0%, #F97316 100%);
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.50);
+}
+
+.store-nav-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+/* ── List view ─────────────────────────────────────────── */
+
+.store-list {
+    background: transparent;
+}
+
+.store-section-title {
+    color: #f5f5f7;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+
+.store-section-count {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 13px;
+    padding-top: 12px;
+    font-weight: 500;
+}
+
+.store-empty {
+    color: rgba(255, 255, 255, 0.50);
+    font-size: 14px;
+    margin-top: 60px;
+}
+
+/* ── Featured (hero) card ─────────────────────────────── */
+
+.store-featured-card {
+    background: linear-gradient(
+        135deg,
+        rgba(249, 115, 22, 0.20) 0%,
+        rgba(234, 88, 12, 0.08) 60%,
+        rgba(31, 31, 33, 0.95) 100%
+    );
+    border-radius: 20px;
+    border: 1px solid rgba(249, 115, 22, 0.30);
+    padding: 0;
+    box-shadow: 0 12px 40px rgba(249, 115, 22, 0.18), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+    transition: all 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.store-featured-card:hover {
+    border-color: rgba(249, 115, 22, 0.60);
+    box-shadow: 0 20px 60px rgba(249, 115, 22, 0.28), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+    transform: translateY(-3px);
+}
+
+.store-featured-cover {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.20), rgba(249, 115, 22, 0.05));
+    border-radius: 16px;
+    margin: 14px;
+    min-width: 232px;
+    min-height: 232px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.30);
+}
+
+.store-featured-badge {
+    color: #FB923C;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+}
+
+.store-featured-name {
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+
+.store-featured-desc {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 600px;
+}
+
+.store-featured-source {
+    color: #FB923C;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+}
+
+.store-featured-version {
+    color: rgba(255, 255, 255, 0.50);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ── Package card ─────────────────────────────────────── */
+
+.store-card {
+    background: rgba(38, 38, 41, 0.85);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0;
+    transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
+}
+
+.store-card:hover {
+    background: rgba(48, 48, 52, 0.95);
+    border-color: rgba(249, 115, 22, 0.40);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.40), 0 0 0 1px rgba(249, 115, 22, 0.30);
+}
+
+.store-card-small {
+    border-radius: 12px;
+}
+
+.store-card-icon-box {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.10), rgba(255, 255, 255, 0.03));
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.store-card-icon-installed {
+    border: 2px solid rgba(249, 115, 22, 0.80);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.18);
+}
+
+.store-card-installed {
+    color: #ffffff;
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    border-radius: 999px;
+    padding: 3px 11px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    margin: 6px;
+    halign: end;
+    box-shadow: 0 2px 6px rgba(249, 115, 22, 0.40);
+}
+
+.store-card-name {
+    color: #f5f5f7;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.store-card-source {
+    color: #FB923C;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 2px;
+}
+
+.store-card-votes {
+    color: rgba(255, 255, 255, 0.50);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.store-card-desc {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 4px;
+}
+
+.store-card-get {
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    padding: 5px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 6px;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.30);
+    transition: all 180ms ease-out;
+}
+
+.store-card-get:hover {
+    background: linear-gradient(135deg, #FB923C, #F97316);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.50);
+}
+
+.store-card-get:disabled {
+    background: linear-gradient(135deg, #22C55E, #16A34A);
+    opacity: 0.85;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.30);
+}
+
+/* ── Detail view ───────────────────────────────────────── */
+
+.store-detail {
+    background: transparent;
+}
+
+.store-detail-top-bar {
+    background: rgba(31, 31, 33, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 14px 28px;
+    backdrop-filter: blur(20px);
+}
+
+.store-detail-back-button {
+    border-radius: 999px;
+    padding: 6px 14px;
+    background: transparent;
+    color: #f5f5f7;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    transition: all 180ms ease-out;
+}
+
+.store-detail-back-button:hover {
+    background: rgba(249, 115, 22, 0.14);
+    border-color: #F97316;
+    color: #FB923C;
+}
+
+.store-detail-status {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 13px;
+    padding: 0 18px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+button.suggested-action {
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 999px;
+    padding: 8px 22px;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.30);
+    transition: all 180ms ease-out;
+}
+
+button.suggested-action:hover {
+    background: linear-gradient(135deg, #FB923C, #F97316);
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45);
+}
+
+button.suggested-action:disabled {
+    background: linear-gradient(135deg, #22C55E, #16A34A);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.30);
+    opacity: 0.85;
+}
+
+button.destructive-action {
+    background: linear-gradient(135deg, #EF4444, #DC2626);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 999px;
+    padding: 8px 22px;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.30);
+    transition: all 180ms ease-out;
+}
+
+button.destructive-action:hover {
+    background: linear-gradient(135deg, #DC2626, #B91C1C);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
+}
+
+.store-detail-icon-box {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(249, 115, 22, 0.04));
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    min-width: 168px;
+    min-height: 168px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.30), 0 0 0 1px rgba(249, 115, 22, 0.10);
+}
+
+.store-detail-source {
+    color: #FB923C;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+}
+
+.store-detail-name {
+    color: #ffffff;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-top: 4px;
+}
+
+.store-detail-version {
+    color: rgba(255, 255, 255, 0.50);
+    font-size: 13px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+.store-detail-section-title {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.store-detail-info-grid {
+    background: transparent;
+}
+
+.store-detail-info-key {
+    color: rgba(255, 255, 255, 0.50);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+}
+
+.store-detail-info-value {
+    color: #f5f5f7;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.store-detail-screenshot {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.20);
+}
+
+.store-detail-description {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    line-height: 1.65;
+}

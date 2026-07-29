@@ -201,6 +201,24 @@ class AppearancePage(Page):
 
         )
 
+        personalization.add(
+
+            NavigationRow(
+
+                navigator=navigator,
+
+                title="Waybar",
+
+                subtitle="Barra superior: posicion, colores y modulos",
+
+                icon="waybar.svg",
+
+                page_name="waybar"
+
+            )
+
+        )
+
         self.add(
 
             personalization

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg-w" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#EA580C"/>
+    </linearGradient>
+    <path id="brazo-w" d="M 76,32
+             C 50,32 36,52 36,76
+             C 36,90 44,100 56,100
+             C 48,94 44,84 44,76
+             C 44,60 56,46 76,46
+             Z"/>
+  </defs>
+
+  <rect width="128" height="128" rx="26" fill="url(#bg-w)"/>
+
+  <circle cx="64" cy="64" r="8" fill="#FFFFFF"/>
+
+  <use href="#brazo-w" fill="#FFFFFF"/>
+  <use href="#brazo-w" fill="#FFFFFF" transform="rotate(180 64 64)"/>
+
+  <g transform="translate(80 80) scale(0.35)">
+    <circle cx="0" cy="0" r="22" fill="#FFFFFF" opacity="0.9"/>
+    <path d="M -8,-2 L -2,4 L 8,-8"
+          fill="none"
+          stroke="#EA580C"
+          stroke-width="4"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>
