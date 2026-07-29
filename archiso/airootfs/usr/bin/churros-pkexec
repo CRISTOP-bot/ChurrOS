@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#
+# churros-pkexec — Ejecuta con privilegios via pkexec o sudo.
+# Garantiza ejecucion sin prompts para usuarios autorizados.
+#
+
+set -e
+
+if [ "$#" -lt 1 ]; then
+    echo "Uso: churros-pkexec <comando> [args...]" >&2
+    exit 1
+fi
+
+if command -v pkexec >/dev/null 2>&1; then
+
+    if pkexec "$@" 2>/dev/null; then
+        exit 0
+    fi
+
+fi
+
+if command -v sudo >/dev/null 2>&1; then
+
+    if sudo -n "$@" 2>/dev/null; then
+        exit 0
+    fi
+
+fi
+
+echo "churros-pkexec: no se pudo ejecutar con privilegios" >&2
+exit 1

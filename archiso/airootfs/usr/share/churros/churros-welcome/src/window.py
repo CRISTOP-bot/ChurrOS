@@ -41,8 +41,10 @@ class ChurrOSWelcome(Adw.Application):
         window = Adw.ApplicationWindow(application=self)
 
         window.set_title("Welcome — ChurrOS")
-        window.set_default_size(0, 0)  # allow the window to adapt to any resolution
-        window.set_size_request(640, 480)  # enforce a safe minimum size on small displays
+        window.set_default_size(0, 0)
+        window.set_size_request(640, 480)
+        window.set_decorated(False)
+        window.maximize()
 
         content = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
@@ -55,7 +57,7 @@ class ChurrOSWelcome(Adw.Application):
         content.set_margin_end(40)
 
         content.set_halign(Gtk.Align.CENTER)
-        content.set_valign(Gtk.Align.START)  # top-align layout so content can scroll instead of clipping
+        content.set_valign(Gtk.Align.START)
 
         content.append(build_header())
         content.append(build_cards())
@@ -67,7 +69,7 @@ class ChurrOSWelcome(Adw.Application):
             Gtk.PolicyType.AUTOMATIC,
         )
         scroller.set_child(content)
-        scroller.add_css_class("content-scroller")  # responsive scroller for small resolutions
+        scroller.add_css_class("content-scroller")
 
         window.set_content(scroller)
 

@@ -1,0 +1,3 @@
+#!/bin/sh
+# churros-store launcher
+exec python3 /usr/share/churros/churrostore/main.py

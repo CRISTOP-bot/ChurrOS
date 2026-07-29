@@ -516,3 +516,25 @@ entry {
 entry:focus {
     border-color: var(--accent);
 }
+
+/* ── Color picker row ─────────────────────────────────────── */
+
+.color-swatch {
+    border-radius: 6px;
+    border: 1px solid var(--border-soft);
+}
+
+.color-pick-button {
+    min-height: 30px;
+    border-radius: 8px;
+    padding: 4px 14px;
+    background: var(--accent);
+    color: var(--accent-text);
+    border: 1px solid var(--accent);
+    font-weight: 500;
+}
+
+.color-pick-button:hover {
+    background: var(--accent);
+    opacity: 0.85;
+}

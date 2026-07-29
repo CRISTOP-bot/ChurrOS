@@ -8,6 +8,11 @@ class ThemeService:
     @classmethod
     def is_dark(cls):
 
+        cached = SettingsService.get("theme.dark", None)
+
+        if cached is not None:
+            return cached
+
         try:
 
             result = subprocess.run(
@@ -31,12 +36,14 @@ class ThemeService:
                 dark = value == "'prefer-dark'"
 
                 SettingsService.set("theme.dark", dark)
+
                 return dark
 
         except Exception:
+
             pass
 
-        return SettingsService.get("theme.dark", False)
+        return False
 
     @classmethod
     def set(cls, dark):

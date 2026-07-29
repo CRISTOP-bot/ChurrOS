@@ -1,0 +1,61 @@
+polkit.addRule(function(action, subject) {
+    if (!subject.local || !subject.active) {
+        return polkit.Result.NOT_HANDLED;
+    }
+
+    if (action.id == "io.calamares.calamares.pkexec.run" &&
+        subject.user == "churros") {
+        return polkit.Result.YES;
+    }
+
+    if (action.id != "org.freedesktop.policykit.exec") {
+        return polkit.Result.NOT_HANDLED;
+    }
+
+    var cmd = "";
+    try {
+        if (typeof action.lookup === "function") {
+            cmd = action.lookup("command") || "";
+        }
+        if (!cmd && typeof action.getDetails === "function") {
+            cmd = action.getDetails() || "";
+        }
+        if (cmd && typeof cmd === "object" && cmd["command"]) {
+            cmd = cmd["command"];
+        }
+    } catch (e) {
+        cmd = "";
+    }
+
+    cmd = String(cmd || "").replace(/^\s+/, "");
+
+    var parts = cmd.split(/\s+/);
+    var arg0 = parts[0] || "";
+    var basename = arg0.replace(/^.*\//, "");
+
+    function matches(command) {
+        if (!command) return false;
+        if (arg0 === command) return true;
+        if (basename === command) return true;
+        if (cmd.indexOf(command + " ") === 0) return true;
+        if (cmd.indexOf(command + "\t") === 0) return true;
+        return false;
+    }
+
+    if (matches("pacman")  ||
+        matches("flatpak") ||
+        matches("yay")     ||
+        matches("paru")) {
+        return polkit.Result.YES;
+    }
+
+    if (/^churros-[\w-]+$/.test(basename)) {
+        return polkit.Result.YES;
+    }
+
+    if (/^set-(accent|theme|wallpaper|cursor|icons)$/.test(basename)) {
+        return polkit.Result.YES;
+    }
+
+    return polkit.Result.NOT_HANDLED;
+});

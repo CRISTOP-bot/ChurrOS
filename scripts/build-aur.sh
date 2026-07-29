@@ -35,6 +35,7 @@ build_aur() {
 
 build_aur python-pywal
 build_aur waypaper
+build_aur yay
 
 echo
 echo "Updating churros local repo..."
