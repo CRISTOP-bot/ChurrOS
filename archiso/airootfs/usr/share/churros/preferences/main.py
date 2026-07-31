@@ -53,49 +53,42 @@ class PreferencesApplication(Gtk.Application):
 
     def do_activate(self):
 
-        AccentService.ensure()
+        print("[preferences] do_activate")
 
-        #
-        # Cargar CSS principal
-        #
+        try:
+            AccentService.ensure()
+        except Exception as e:
+            print(f"[preferences] AccentService fallo: {e}")
 
         base = os.path.dirname(
             os.path.abspath(__file__)
         )
 
         self._load_css(
-            os.path.join(
-                base,
-                "style.css"
-            )
+            os.path.join(base, "style.css")
         )
-
-        #
-        # Cargar CSS de acento del usuario (si existe)
-        #
 
         accent_css = AccentService.ACCENT_CSS
 
-        if os.path.exists(
-            accent_css
-        ):
+        if os.path.exists(accent_css):
+            self._load_css(accent_css, Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
-            self._load_css(
-                accent_css,
-                Gtk.STYLE_PROVIDER_PRIORITY_USER
-            )
-
-        #
-        # Crear ventana
-        #
-
-        window = PreferencesWindow(
-            self
-        )
-
-        window.present()
+        try:
+            window = PreferencesWindow(self)
+            window.present()
+            print("[preferences] ventana abierta")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"[preferences] ventana fallo: {e}")
 
 
 app = PreferencesApplication()
 
-app.run()
+try:
+    app.run()
+except KeyboardInterrupt:
+    sys.exit(0)
+except Exception as e:
+    import traceback
+    traceback.print_exc()
