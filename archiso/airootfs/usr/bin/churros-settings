@@ -1,3 +1,2 @@
 #!/bin/sh
-
 exec python3 /usr/share/churros/preferences/main.py
