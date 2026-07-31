@@ -389,7 +389,43 @@ class WallpaperPage(Page):
 
     def select(self, wallpaper):
 
-        WallpaperService.set(wallpaper)
+        print("[wallpaper-page] seleccion:", wallpaper, flush=True)
+
+        success = WallpaperService.set(wallpaper)
+
+        print("[wallpaper-page] set retorno:", success, flush=True)
+
+        if not success:
+
+            try:
+
+                win = self.get_root()
+
+                dialog = Gtk.AlertDialog()
+
+                dialog.set_modal(True)
+
+                dialog.set_message("No se pudo aplicar el fondo")
+
+                dialog.set_detail(
+
+                    "Revisa /tmp/churros-settings.log, "
+
+                    "/tmp/awww-img.log y /tmp/swaybg.log"
+
+                )
+
+                if win is not None:
+
+                    dialog.show(win)
+
+                else:
+
+                    dialog.show()
+
+            except Exception:
+
+                pass
 
         GLib.idle_add(
             lambda: self.navigator.show_page("appearance")
