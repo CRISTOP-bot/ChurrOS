@@ -77,6 +77,37 @@ REPO
     echo "✓ Local repo configured."
 fi
 
+#
+# ChurroStore / Discover theme
+#
+
+echo "Applying ChurroOS theme to KDE/Discover..."
+
+if id "churros" &>/dev/null; then
+
+    USER_HOME="/home/churros"
+    mkdir -p "$USER_HOME/.config"
+
+    cat > "$USER_HOME/.config/kdeglobals" << 'KDEGLOBALS'
+[ColorScheme]
+ColorScheme=ChurroOSDark
+name=ChurroOSDark
+
+[General]
+ColorScheme=ChurroOSDark
+Name=Churros Dark
+font=Inter,10,-1,5,50,0,0,0,0,0
+fixed=Hack Nerd Font,9,-1,5,50,0,0,0,0,0
+
+[Icons]
+Theme=Papirus-Dark
+KDEGLOBALS
+
+    chown -R churros:churros "$USER_HOME/.config" 2>/dev/null || true
+
+    echo "✓ Theme applied to churros user"
+fi
+
 echo "Cleaning..."
 bash /root/scripts/cleanup.sh
 
