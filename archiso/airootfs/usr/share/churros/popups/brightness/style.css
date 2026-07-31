@@ -1,47 +1,49 @@
+/*
+    ChurrOS Brightness Popup — Liquid Glass
+    Accent: #F97316
+*/
+
 .brightness-widget {
-
-    padding: 8px;
-
+    padding: 14px;
+    background: rgba(255,255,255,.03);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.05);
 }
 
 .brightness-label {
-
     color: white;
-
     font-size: 16px;
-
     font-weight: bold;
-
 }
 
 scale highlight {
+    background: linear-gradient(90deg, #F97316, #FB923C);
+    box-shadow: 0 0 8px rgba(249,115,22,.30);
+}
 
-    background: #ff7a00;
-
+scale trough {
+    background: rgba(255,255,255,.10);
+    border-radius: 100px;
+    min-height: 8px;
 }
 
 scale slider {
-
     background: white;
-
+    box-shadow: 0 2px 8px rgba(0,0,0,.45);
 }
-    
+
 .brightness-info {
-
-    color: #bdbdbd;
-
+    color: rgba(255,255,255,.70);
     font-size: 12px;
-
 }
 
 .brightness-slider highlight {
-
-    background: #ff7a00;
-
+    background: linear-gradient(90deg, #F97316, #FB923C);
+    border-radius: 100px;
+    box-shadow: 0 0 8px rgba(249,115,22,.30);
 }
 
 .brightness-slider slider {
-
     background: white;
-
+    box-shadow: 0 2px 8px rgba(0,0,0,.45);
 }

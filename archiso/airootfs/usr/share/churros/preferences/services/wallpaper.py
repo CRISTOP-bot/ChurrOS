@@ -39,15 +39,19 @@ class WallpaperService:
     @classmethod
     def _build_env(cls):
         env = os.environ.copy()
+
         if not env.get("WAYLAND_DISPLAY"):
             xrd = env.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
             if os.path.isdir(xrd):
                 for sock in sorted(os.listdir(xrd)):
                     if sock.startswith("wayland-"):
                         env["WAYLAND_DISPLAY"] = sock
+                        env["XDG_RUNTIME_DIR"] = xrd
                         break
+
         if not env.get("XDG_RUNTIME_DIR"):
             env["XDG_RUNTIME_DIR"] = f"/run/user/{os.getuid()}"
+
         return env
 
     @classmethod
@@ -57,14 +61,19 @@ class WallpaperService:
     @classmethod
     def set(cls, path):
         SettingsService.set("wallpaper.path", path)
-        cls.apply(path)
+        return cls.apply(path)
 
     @classmethod
     def apply(cls, path):
         if not path or not os.path.isfile(path):
+            print("[wallpaper] ruta invalida:", path)
             return False
 
         env = cls._build_env()
+        print("[wallpaper] env WAYLAND={} XDG={}".format(
+            env.get("WAYLAND_DISPLAY", "<unset>"),
+            env.get("XDG_RUNTIME_DIR", "<unset>"),
+        ))
 
         if shutil.which("churros-apply-wallpaper") is not None:
             try:
@@ -72,15 +81,40 @@ class WallpaperService:
                     ["churros-apply-wallpaper", path],
                     env=env,
                     capture_output=True,
-                    timeout=10,
+                    timeout=15,
                 )
+                print("[wallpaper] wrapper stdout:", r.stdout.decode(errors="replace"))
+                if r.stderr:
+                    print("[wallpaper] wrapper stderr:", r.stderr.decode(errors="replace"))
                 if r.returncode == 0:
                     return True
+            except Exception as e:
+                print("[wallpaper] wrapper ex:", e)
+
+        if shutil.which("awww") is not None:
+            try:
+                subprocess.run(
+                    ["pkill", "-x", "awww-daemon"],
+                    env=env,
+                    capture_output=True,
+                    timeout=2,
+                )
             except Exception:
                 pass
 
-        if shutil.which("awww") is not None:
-            if cls._ensure_awww_daemon(env):
+            try:
+                subprocess.Popen(
+                    ["awww-daemon"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True,
+                    env=env,
+                )
+                time.sleep(1.0)
+            except Exception:
+                pass
+
+            for attempt in range(5):
                 try:
                     r = subprocess.run(
                         ["awww", "img", path],
@@ -89,14 +123,21 @@ class WallpaperService:
                         timeout=5,
                     )
                     if r.returncode == 0:
+                        print("[wallpaper] awww OK:", path)
                         return True
-                except Exception:
-                    pass
+                    print("[wallpaper] awww intento {} fallo: {}".format(
+                        attempt + 1,
+                        r.stderr.decode(errors="replace")
+                    ))
+                except Exception as e:
+                    print("[wallpaper] awww ex:", e)
+                time.sleep(0.3)
 
         if shutil.which("swaybg") is not None:
             try:
                 subprocess.run(
                     ["pkill", "-x", "swaybg"],
+                    env=env,
                     capture_output=True,
                     timeout=2,
                 )
@@ -110,48 +151,18 @@ class WallpaperService:
                     start_new_session=True,
                     env=env,
                 )
-                time.sleep(0.4)
-                return True
-            except Exception:
-                pass
-
-        return False
-
-    @classmethod
-    def _ensure_awww_daemon(cls, env):
-        if shutil.which("awww-daemon") is None:
-            return False
-        try:
-            r = subprocess.run(
-                ["pgrep", "-x", "awww-daemon"],
-                capture_output=True,
-                timeout=2,
-            )
-            if r.returncode == 0:
-                return True
-        except Exception:
-            pass
-
-        try:
-            subprocess.Popen(
-                ["awww-daemon"],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                start_new_session=True,
-                env=env,
-            )
-            for _ in range(20):
-                time.sleep(0.1)
-                r = subprocess.run(
-                    ["pgrep", "-x", "awww-daemon"],
+                time.sleep(0.5)
+                if subprocess.run(
+                    ["pgrep", "-x", "swaybg"],
+                    env=env,
                     capture_output=True,
-                    timeout=1,
-                )
-                if r.returncode == 0:
-                    time.sleep(0.2)
+                ).returncode == 0:
+                    print("[wallpaper] swaybg OK:", path)
                     return True
-        except Exception:
-            pass
+            except Exception as e:
+                print("[wallpaper] swaybg ex:", e)
+
+        print("[wallpaper] NINGUN backend funciono")
         return False
 
     @classmethod

@@ -177,6 +177,7 @@ class AccentService:
             "    --accent-soft: " + soft + ";\n"
             "    --accent-text: #ffffff;\n"
             "    --accent-bg-hover: " + cls._adjust(base, light_delta=0.32) + ";\n"
+            "    --accent-glow: 0 0 20px " + cls._adjust(base, light_delta=0.0, sat_delta=0.0) + "40;\n"
             "}\n"
         )
 

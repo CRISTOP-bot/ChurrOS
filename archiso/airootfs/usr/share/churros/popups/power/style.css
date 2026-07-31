@@ -1,41 +1,43 @@
+/*
+    ChurrOS Power Popup — Liquid Glass
+    Accent: #F97316
+*/
+
 .power-widget {
-
     padding: 4px;
-
 }
 
 .power-button {
-
-    border-radius: 12px;
-
-    padding: 12px;
-
+    border-radius: 14px;
+    padding: 14px;
     background: rgba(255,255,255,.05);
-
-    transition: 200ms;
-
+    backdrop-filter: blur(16px);
+    -gtk-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,.06);
+    transition: 200ms cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
 }
 
 .power-button:hover {
+    background: rgba(249,115,22,.14);
+    border-color: rgba(249,115,22,.25);
+    box-shadow: 0 4px 18px rgba(249,115,22,.20),
+                0 1px 0 rgba(255,255,255,.08) inset;
+    transform: translateY(-1px);
+}
 
-    background: rgba(255,122,0,.18);
-
+.power-button:active {
+    transform: translateY(0);
+    background: rgba(249,115,22,.22);
 }
 
 .power-icon {
-
-    color: #ff7a00;
-
+    color: #F97316;
     font-size: 20px;
-
 }
 
 .power-text {
-
     color: white;
-
     font-size: 14px;
-
     font-weight: 600;
-
 }
