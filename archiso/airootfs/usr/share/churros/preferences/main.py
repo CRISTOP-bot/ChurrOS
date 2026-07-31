@@ -1,4 +1,8 @@
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import gi
 
 gi.require_version("Gtk", "4.0")
