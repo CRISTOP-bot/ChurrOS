@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 #
 # churros-pick-image — Selector de imagen.
+# Soporta Wayland y X11.
 #
-#   1. Zenity (standalone, GTK file picker, no necesita portal)
+#   1. Zenity (standalone, GTK file picker)
 #   2. yad (alternativa)
-#   3. thunar visual + zenity entry (último recurso, manual)
-#
-# Uso: churros-pick-image [directorio_inicial]
-#   imprime la ruta seleccionada a stdout.
+#   3. Gtk.FileDialog via python (fallback puro GTK4)
 #
 
 INIT_DIR="${1:-$HOME}"
 INIT_DIR="${INIT_DIR/#\~/$HOME}"
 
 log() { printf '[churros-pick-image] %s\n' "$*" >&2; }
+
+export GDK_BACKEND="${GDK_BACKEND:-wayland,x11}"
 
 pick_via_zenity() {
 
@@ -46,54 +46,42 @@ pick_via_yad() {
     return $?
 }
 
-pick_via_thunar() {
+pick_via_python() {
 
-    if ! command -v thunar >/dev/null 2>&1; then
-        return 1
-    fi
+    python3 -c "
+import gi
+gi.require_version('Gtk', '4.0')
+from gi.repository import Gtk, GLib, Gio
+import sys, os
 
-    if command -v notify-send >/dev/null 2>&1; then
+def on_result(dialog, result):
+    try:
+        file = dialog.open_finish(result)
+        if file:
+            path = file.get_path()
+            if path and os.path.isfile(path):
+                print(path)
+    except GLib.Error:
+        pass
+    except Exception:
+        pass
+    Gtk.main_quit()
 
-        notify-send "ChurOS" \
-            "Thunar esta abierto. Cuando elijas la imagen, escribe su ruta completa." \
-            2>/dev/null || true
-
-    fi
-
-    thunar "$INIT_DIR" >/dev/null 2>&1 &
-
-    local input=""
-    local attempt=0
-
-    while [ "$attempt" -lt 3 ]; do
-
-        if command -v zenity >/dev/null 2>&1; then
-
-            input=$(zenity --entry \
-                --title="Ruta de la imagen" \
-                --text="Thunar esta abierto.\nEscribe la ruta completa de la imagen que elegiste:" \
-                --entry-text="/home/" 2>/dev/null) || input=""
-
-        fi
-
-        if [ -n "$input" ] && [ -f "$input" ]; then
-
-            pkill -x thunar 2>/dev/null || true
-            echo "$input"
-            return 0
-
-        fi
-
-        attempt=$((attempt + 1))
-
-    done
-
-    pkill -x thunar 2>/dev/null || true
-
-    return 1
+dialog = Gtk.FileDialog()
+dialog.set_title('Importar imagen de fondo')
+flt = Gtk.FileFilter()
+flt.set_name('Imagenes')
+for mt in ['image/jpeg', 'image/png', 'image/webp', 'image/gif']:
+    flt.add_mime_type(mt)
+filters = Gio.ListStore.new(Gtk.FileFilter)
+filters.append(flt)
+dialog.set_filters(filters)
+dialog.set_default_filter(flt)
+dialog.set_initial_folder(Gio.File.new_for_path('$INIT_DIR'))
+dialog.open(None, None, on_result)
+Gtk.main()
+"
 }
-
-# ── Cadena principal ────────────────────────────────────
 
 result=$(pick_via_zenity 2>/dev/null) || result=""
 
@@ -111,7 +99,14 @@ if [ -n "$result" ] && [ -f "$result" ]; then
     exit 0
 fi
 
-log "yad no disponible, intentando thunar..."
+log "yad no disponible, intentando python GTK4..."
 
-pick_via_thunar
-exit $?
+result=$(pick_via_python 2>/dev/null) || result=""
+
+if [ -n "$result" ] && [ -f "$result" ]; then
+    echo "$result"
+    exit 0
+fi
+
+log "ningun selector disponible"
+exit 1
