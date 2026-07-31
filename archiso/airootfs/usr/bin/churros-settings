@@ -1,2 +1,21 @@
 #!/bin/sh
-exec python3 /usr/share/churros/preferences/main.py
+# Churros Preferences launcher.
+# Logs a /tmp/churros-settings.log para debugging.
+
+LOG="/tmp/churros-settings.log"
+
+{
+    echo ""
+    echo "=== churros-settings start $(date) ==="
+    echo "WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
+    echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR"
+    echo "DISPLAY=$DISPLAY"
+    echo "USER=$USER HOME=$HOME"
+} >> "$LOG" 2>&1
+
+cd /usr/share/churros/preferences
+
+export GDK_BACKEND="${GDK_BACKEND:-wayland,x11}"
+export PYTHONUNBUFFERED=1
+
+exec python3 main.py 2>> "$LOG"
