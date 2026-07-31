@@ -1,78 +1,84 @@
 /*
-    ChurrOS Preferences — macOS-style System Settings
-    ──────────────────────────────────────────────
-
-    Tokens: las variables se sobrescriben en .light cuando dark
-    mode is off. Toda regla que использan colores de fondo/texto
-    a continuacion debe usar var(--*) para que ambos temas se vean
-    consistentes.
-
-    Colores de marca ChurrOS:
-        Accent       #DE8636  (naranja cálido)
-        Accent-soft  #E6A56A
-        Accent-strong #B86A24
+    ChurrOS Preferences — Liquid Glass
+    ──────────────────────────────────
+    Glassmorphism + manteniendo colores Churros
+    Accent: #F97316 (naranja cálido)
+    Fondo:  #0f0f10 / #1a1a1c
 */
 
 /* ── Tokens (dark default) ─────────────────────────────── */
 window {
-    --bg-window:        rgba(30,30,32,.96);
-    --bg-sidebar:       rgba(42,42,46,.78);
-    --bg-group:         rgba(56,56,60,.55);
-    --bg-group-hover:   rgba(255,255,255,.06);
+    --bg-window:        rgba(15,15,16,.72);
+    --bg-sidebar:       rgba(26,26,28,.55);
+    --bg-group:         rgba(255,255,255,.06);
+    --bg-group-hover:   rgba(255,255,255,.10);
     --row-bg:           transparent;
-    --row-bg-hover:     rgba(255,255,255,.05);
-    --row-bg-active:    rgba(255,255,255,.08);
+    --row-bg-hover:     rgba(255,255,255,.06);
+    --row-bg-active:    rgba(255,255,255,.10);
     --text-primary:     rgba(255,255,255,.96);
     --text-secondary:   rgba(255,255,255,.55);
     --text-tertiary:    rgba(255,255,255,.40);
-    --border-soft:      rgba(255,255,255,.08);
-    --border-strong:    rgba(255,255,255,.14);
-    --accent:           #DE8636;
-    --accent-soft:      #E6A56A;
-    --accent-strong:    #B86A24;
+    --border-soft:      rgba(255,255,255,.10);
+    --border-strong:    rgba(255,255,255,.18);
+    --glass-blur:       24px;
+    --glass-shadow:     0 8px 32px rgba(0,0,0,.45);
+    --glass-inset:      0 1px 0 rgba(255,255,255,.08) inset;
+    --accent:           #F97316;
+    --accent-soft:      #FB923C;
+    --accent-strong:    #C2410C;
     --accent-text:      #ffffff;
-    --accent-bg-hover:  rgba(222,134,54,.18);
-    --scroller-thumb:  rgba(255,255,255,.12);
+    --accent-bg-hover:  rgba(249,115,22,.18);
+    --accent-glow:      0 0 20px rgba(249,115,22,.25);
+    --scroller-thumb:   rgba(255,255,255,.12);
 }
 
-/* Light override — mismo set, al activar window.light */
+/* Light override */
 window.light {
-    --bg-window:        rgba(242,242,245,.98);
-    --bg-sidebar:       rgba(232,232,236,.85);
-    --bg-group:         rgba(255,255,255,.92);
-    --bg-group-hover:   rgba(0,0,0,.04);
+    --bg-window:        rgba(242,242,245,.78);
+    --bg-sidebar:       rgba(255,255,255,.55);
+    --bg-group:         rgba(255,255,255,.65);
+    --bg-group-hover:   rgba(0,0,0,.06);
     --row-bg:           transparent;
     --row-bg-hover:     rgba(0,0,0,.04);
-    --row-bg-active:    rgba(0,0,0,.07);
+    --row-bg-active:    rgba(0,0,0,.08);
     --text-primary:     rgba(28,28,30,.96);
     --text-secondary:   rgba(28,28,30,.60);
     --text-tertiary:    rgba(28,28,30,.45);
     --border-soft:      rgba(0,0,0,.08);
     --border-strong:    rgba(0,0,0,.14);
-    --accent:           #C5651C;
-    --accent-soft:      #E6A56A;
-    --accent-strong:    #9E5012;
+    --glass-blur:       24px;
+    --glass-shadow:     0 8px 32px rgba(0,0,0,.12);
+    --glass-inset:      0 1px 0 rgba(255,255,255,.45) inset;
+    --accent:           #EA580C;
+    --accent-soft:      #F97316;
+    --accent-strong:    #9A3412;
     --accent-text:      #ffffff;
-    --accent-bg-hover:  rgba(197,101,28,.14);
+    --accent-bg-hover:  rgba(234,88,12,.14);
+    --accent-glow:      0 0 20px rgba(234,88,12,.20);
     --scroller-thumb:   rgba(0,0,0,.18);
 }
 
-/* ── Window base ────────────────────────────────────────── */
+/* ── Window base (glass) ───────────────────────────────── */
 window {
     background: var(--bg-window);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+    -gtk-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
 }
 
 .preferences {
-    background: var(--bg-window);
+    background: transparent;
 }
 
-/* ── Sidebar (translucent, rounded, macOS style) ─────── */
+/* ── Sidebar (glass panel) ─────────────────────────────── */
 .sidebar {
     background: var(--bg-sidebar);
-    border-radius: 16px;
-    padding: 10px;
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+    -gtk-backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+    border-radius: 18px;
+    padding: 12px;
     margin: 16px 10px 16px 16px;
     border: 1px solid var(--border-soft);
+    box-shadow: var(--glass-shadow), var(--glass-inset);
 }
 
 .sidebar-title {
@@ -91,28 +97,30 @@ window {
 }
 
 .sidebar-item {
-    border-radius: 9px;
-    min-height: 38px;
-    padding: 0 10px;
+    border-radius: 11px;
+    min-height: 40px;
+    padding: 0 12px;
     background: transparent;
     color: var(--text-primary);
     background-image: none;
     box-shadow: none;
-    transition: 120ms ease-out;
+    transition: 160ms cubic-bezier(.4,0,.2,1);
 }
 
 .sidebar-item:hover {
     background: var(--accent-bg-hover);
+    box-shadow: var(--glass-inset);
 }
 
 .sidebar-item.active {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
     color: var(--accent-text);
     font-weight: 600;
+    box-shadow: var(--accent-glow), 0 4px 14px rgba(249,115,22,.30);
 }
 
 .sidebar-item.active:hover {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent));
 }
 
 .sidebar-item image {
@@ -127,19 +135,21 @@ window {
 /* ── Search box ───────────────────────────────────────── */
 .preferences-search,
 searchentry {
-    min-height: 34px;
-    border-radius: 9px;
-    padding: 4px 12px;
+    min-height: 36px;
+    border-radius: 11px;
+    padding: 4px 14px;
     background: var(--row-bg-hover);
     border: 1px solid var(--border-soft);
     color: var(--text-primary);
     caret-color: var(--accent);
+    transition: 160ms ease-out;
 }
 
 .preferences-search:focus,
 searchentry:focus {
     border: 1px solid var(--accent);
-    background: var(--bg-window);
+    background: rgba(249,115,22,.06);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.12);
 }
 
 .preferences-search image,
@@ -161,7 +171,7 @@ searchentry image {
     margin-bottom: 20px;
 }
 
-/* ── Section title (small caps) ──────────────────────── */
+/* ── Section title ────────────────────────────────────── */
 .section-title {
     color: var(--accent);
     font-size: 12px;
@@ -170,13 +180,16 @@ searchentry image {
     text-transform: uppercase;
 }
 
-/* ── Group (rounded translucent card, macOS-like) ────── */
+/* ── Group (glass card) ───────────────────────────────── */
 .group {
     background: var(--bg-group);
-    border-radius: 12px;
+    backdrop-filter: blur(16px) saturate(1.2);
+    -gtk-backdrop-filter: blur(16px) saturate(1.2);
+    border-radius: 14px;
     padding: 4px;
     border: 1px solid var(--border-soft);
     margin-bottom: 18px;
+    box-shadow: var(--glass-shadow), var(--glass-inset);
 }
 
 .group-title {
@@ -190,9 +203,12 @@ searchentry image {
 
 .group-card {
     background: var(--bg-group);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -gtk-backdrop-filter: blur(16px) saturate(1.2);
     border: 1px solid var(--border-soft);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 10px;
+    box-shadow: var(--glass-inset);
 }
 
 .group-separator {
@@ -201,19 +217,20 @@ searchentry image {
     background: var(--border-strong);
 }
 
-/* ── Row (button-based, list-item style) ─────────────── */
+/* ── Row ─────────────────────────────────────────────── */
 .row {
-    min-height: 54px;
+    min-height: 56px;
     padding: 10px 14px;
-    border-radius: 8px;
+    border-radius: 10px;
     background: var(--row-bg);
-    transition: 120ms ease-out;
+    transition: 160ms cubic-bezier(.4,0,.2,1);
     border: 1px solid transparent;
 }
 
 .row:hover {
     background: var(--row-bg-hover);
     border-color: var(--border-soft);
+    box-shadow: var(--glass-inset);
 }
 
 .row:active,
@@ -249,87 +266,100 @@ searchentry image {
     font-size: 14px;
 }
 
-/* ── Switch (toggle, macOS style) ────────────────────── */
+/* ── Switch ──────────────────────────────────────────── */
 switch {
-    min-width: 42px;
-    min-height: 24px;
-    border-radius: 14px;
-    background: var(--bg-group-hover);
+    min-width: 46px;
+    min-height: 26px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.10);
     border: 1px solid var(--border-strong);
+    transition: 200ms ease;
 }
 
 switch slider {
-    min-width: 18px;
-    min-height: 18px;
+    min-width: 20px;
+    min-height: 20px;
     margin: 2px;
     border-radius: 50%;
     background: #ffffff;
-    box-shadow: 0 1px 2px rgba(0,0,0,.35);
+    box-shadow: 0 2px 6px rgba(0,0,0,.40);
+    transition: 200ms cubic-bezier(.4,0,.2,1);
 }
 
 switch:checked {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
     border-color: var(--accent);
+    box-shadow: var(--accent-glow);
 }
 
 switch:checked slider {
-    margin-left: 22px;
+    margin-left: 24px;
 }
 
-/* ── Slider (scale) ──────────────────────────────────── */
+/* ── Slider ──────────────────────────────────────────── */
 scale {
     min-width: 180px;
 }
 
 scale trough {
-    min-height: 5px;
-    border-radius: 6px;
-    background: var(--bg-group-hover);
+    min-height: 6px;
+    border-radius: 8px;
+    background: rgba(255,255,255,.10);
     border: 1px solid var(--border-soft);
 }
 
 scale highlight {
-    background: var(--accent);
-    border-radius: 6px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(249,115,22,.30);
 }
 
 scale slider {
-    min-width: 14px;
-    min-height: 14px;
+    min-width: 16px;
+    min-height: 16px;
     margin: -6px;
     border-radius: 50%;
     background: #ffffff;
-    box-shadow: 0 1px 3px rgba(0,0,0,.4);
+    box-shadow: 0 2px 8px rgba(0,0,0,.45), var(--glass-inset);
     border: 1px solid var(--border-strong);
+    transition: 120ms ease;
 }
 
-/* ── DropDown (combo) ─────────────────────────────────── */
+scale slider:hover {
+    box-shadow: 0 2px 12px rgba(249,115,22,.40), 0 0 0 4px rgba(249,115,22,.15);
+}
+
+/* ── DropDown ─────────────────────────────────────────── */
 dropdown,
 button.combo {
-    min-height: 30px;
-    border-radius: 8px;
-    padding: 2px 10px;
+    min-height: 32px;
+    border-radius: 10px;
+    padding: 4px 12px;
     background: var(--row-bg-hover);
     color: var(--text-primary);
     border: 1px solid var(--border-soft);
     box-shadow: none;
     background-image: none;
+    transition: 160ms ease-out;
 }
 
 dropdown:hover,
 button.combo:hover {
     background: var(--accent-bg-hover);
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.10);
 }
 
-/* popover list */
 popover contents list {
-    background: var(--bg-window);
+    background: rgba(26,26,28,.92);
+    backdrop-filter: blur(20px);
+    -gtk-backdrop-filter: blur(20px);
 }
 
 popover contents listview row {
     color: var(--text-primary);
-    border-radius: 6px;
+    border-radius: 8px;
+    padding: 6px 10px;
 }
 
 popover contents listview row:hover {
@@ -341,7 +371,7 @@ popover contents listview row:selected {
     color: var(--accent-text);
 }
 
-/* ── Scrollbar (thin, macOS style) ───────────────────── */
+/* ── Scrollbar ───────────────────────────────────────── */
 scrollbar {
     border: none;
     background: transparent;
@@ -350,26 +380,31 @@ scrollbar {
 scrollbar slider {
     min-width: 8px;
     min-height: 30px;
-    border-radius: 4px;
+    border-radius: 6px;
     background: var(--scroller-thumb);
     margin: 4px;
+    transition: 120ms ease;
 }
 
 scrollbar slider:hover {
     background: var(--accent);
+    min-width: 10px;
 }
 
-/* ── About card ───────────────────────────────────────── */
+/* ── About card ──────────────────────────────────────── */
 .about-card {
     background: var(--bg-group);
+    backdrop-filter: blur(20px) saturate(1.3);
+    -gtk-backdrop-filter: blur(20px) saturate(1.3);
     border: 1px solid var(--border-soft);
-    border-radius: 16px;
+    border-radius: 18px;
     padding: 28px;
+    box-shadow: var(--glass-shadow), var(--glass-inset);
 }
 
 .about-title {
     color: var(--text-primary);
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 700;
 }
 
@@ -389,7 +424,7 @@ scrollbar slider:hover {
     font-weight: 500;
 }
 
-/* ── Info rows ────────────────────────────────────────── */
+/* ── Info rows ───────────────────────────────────────── */
 .info-row {
     border-radius: 8px;
 }
@@ -399,36 +434,42 @@ scrollbar slider:hover {
     font-weight: 600;
 }
 
-/* ── Wallpaper grid ───────────────────────────────────── */
+/* ── Wallpaper grid ──────────────────────────────────── */
 .wallpaper-button {
     padding: 0;
-    border-radius: 12px;
+    border-radius: 14px;
     border: 2px solid transparent;
     background: transparent;
     box-shadow: none;
+    transition: 180ms cubic-bezier(.4,0,.2,1);
 }
 
 .wallpaper-button:hover {
     border-color: var(--accent);
+    box-shadow: 0 6px 20px rgba(249,115,22,.25);
+    transform: translateY(-2px);
 }
 
 .wallpaper-button:hover image {
-    opacity: .9;
+    opacity: .95;
 }
 
 .wallpaper-thumb {
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--bg-group-hover);
+    box-shadow: var(--glass-shadow);
 }
 
 .wallpaper-selected {
     border: 3px solid var(--accent);
-    border-radius: 12px;
+    border-radius: 14px;
+    box-shadow: var(--accent-glow), 0 4px 16px rgba(249,115,22,.35);
 }
 
 .wallpaper-preview {
-    border-radius: 14px;
+    border-radius: 16px;
     border: 2px solid var(--border-soft);
+    box-shadow: var(--glass-shadow);
 }
 
 .wallpaper-name {
@@ -439,17 +480,19 @@ scrollbar slider:hover {
 
 .wallpaper-card {
     padding: 8px;
-    border-radius: 12px;
+    border-radius: 14px;
 }
 
-/* ── SelectRow (radio-button style) ─────────────────── */
+/* ── SelectRow ────────────────────────────────────────── */
 .select-row {
     background: var(--row-bg);
-    border-radius: 8px;
+    border-radius: 10px;
+    transition: 120ms ease;
 }
 
 .select-row:hover {
     background: var(--accent-bg-hover);
+    box-shadow: var(--glass-inset);
 }
 
 .select-row.active {
@@ -460,19 +503,21 @@ scrollbar slider:hover {
     color: var(--accent);
 }
 
-/* ── Back button (subpáginas) ────────────────────────── */
+/* ── Back button ──────────────────────────────────────── */
 .back-button {
-    min-height: 32px;
-    border-radius: 8px;
-    padding: 4px 12px;
+    min-height: 34px;
+    border-radius: 10px;
+    padding: 4px 14px;
     background: var(--row-bg-hover);
     color: var(--text-primary);
     border: 1px solid var(--border-soft);
+    transition: 160ms ease-out;
 }
 
 .back-button:hover {
     background: var(--accent-bg-hover);
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.10);
 }
 
 /* ── Misc cleanup ─────────────────────────────────────── */
@@ -481,23 +526,27 @@ button {
     box-shadow: none;
     background-image: none;
     border: 1px solid transparent;
+    transition: 160ms ease;
 }
 
 button.suggested-action {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
     color: var(--accent-text);
-    border-radius: 8px;
+    border-radius: 10px;
     border: 1px solid var(--accent);
+    box-shadow: var(--accent-glow), 0 4px 14px rgba(249,115,22,.25);
 }
 
 button.suggested-action:hover {
-    background: var(--accent-strong);
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent));
+    box-shadow: var(--accent-glow), 0 6px 18px rgba(249,115,22,.35);
 }
 
 button.destructive-action {
-    background: #d04141;
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
     color: white;
-    border-radius: 8px;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(239,68,68,.25);
 }
 
 label {
@@ -505,36 +554,38 @@ label {
 }
 
 entry {
-    border-radius: 8px;
-    padding: 6px 12px;
+    border-radius: 10px;
+    padding: 8px 14px;
     background: var(--row-bg-hover);
     border: 1px solid var(--border-soft);
     color: var(--text-primary);
     caret-color: var(--accent);
+    transition: 160ms ease-out;
 }
 
 entry:focus {
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.12);
 }
 
-/* ── Color picker row ─────────────────────────────────────── */
-
+/* ── Color picker ────────────────────────────────────── */
 .color-swatch {
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border-soft);
+    box-shadow: var(--glass-inset);
 }
 
 .color-pick-button {
-    min-height: 30px;
-    border-radius: 8px;
-    padding: 4px 14px;
-    background: var(--accent);
+    min-height: 32px;
+    border-radius: 10px;
+    padding: 4px 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
     color: var(--accent-text);
     border: 1px solid var(--accent);
     font-weight: 500;
+    box-shadow: var(--accent-glow);
 }
 
 .color-pick-button:hover {
-    background: var(--accent);
-    opacity: 0.85;
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent));
 }

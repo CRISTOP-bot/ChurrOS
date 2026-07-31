@@ -1,35 +1,33 @@
+/*
+    ChurrOS Battery Popup — Liquid Glass
+    Accent: #F97316
+*/
+
 .battery-widget {
-
     margin-top: 12px;
-
+    padding: 14px;
+    background: rgba(255,255,255,.03);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.05);
 }
 
 .battery-widget label {
-
     color: white;
-
 }
 
 .battery-percentage {
-
     font-size: 28px;
-
     font-weight: bold;
-
+    color: white;
 }
 
 .battery-status {
-
-    color: #ff7a00;
-
+    color: #F97316;
     font-size: 15px;
-
+    font-weight: 600;
 }
 
 .battery-remaining {
-
-    color: #b5b5b5;
-
+    color: rgba(255,255,255,.65);
     font-size: 14px;
-
 }
