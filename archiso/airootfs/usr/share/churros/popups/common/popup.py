@@ -23,6 +23,10 @@ class PopupWindow(Gtk.ApplicationWindow):
 
         self.load_css()
 
+        key_controller = Gtk.EventControllerKey()
+        key_controller.connect("key-pressed", self._on_key)
+        self.add_controller(key_controller)
+
         self.main_box = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL
         )
@@ -45,6 +49,12 @@ class PopupWindow(Gtk.ApplicationWindow):
 
     def add(self, widget):
         self.content.append(widget)
+
+    def _on_key(self, controller, keyval, keycode, state):
+        if keyval == Gdk.KEY_Escape:
+            self.destroy()
+            return True
+        return False
 
     def load_css(self):
 

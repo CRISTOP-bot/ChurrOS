@@ -4,51 +4,81 @@
 #   Lee wallpaper.path de ~/.config/churros/settings.json
 #   y aplica con awww (preferido) o swaybg (fallback).
 #
-#   Si no hay path guardado, usa el default de ChurrOS.
+#   Tambien acepta argumento: churros-apply-wallpaper /ruta/imagen.jpg
 #
 
-set -eu
+set -u
+
+ARG_PATH="${1:-}"
 
 SETTINGS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/churros/settings.json"
+
+_detect_session_env() {
+
+    if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+        if [ -d "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" ]; then
+            for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/wayland-*; do
+                [ -S "$sock" ] || continue
+                export WAYLAND_DISPLAY="${sock##*/}"
+                break
+            done
+        fi
+    fi
+
+    if [ -z "${XDG_RUNTIME_DIR:-}" ]; then
+        export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+    fi
+}
 
 apply() {
 
     local path="$1"
 
+    _detect_session_env
+
     if [ -z "$path" ] || [ ! -f "$path" ]; then
+        echo "[churros-apply-wallpaper] no existe: $path" >&2
         return 1
     fi
 
     if command -v awww >/dev/null 2>&1; then
 
         if ! pgrep -x awww-daemon >/dev/null 2>&1; then
-
             awww-daemon >/dev/null 2>&1 &
-            sleep 0.4
-
+            sleep 0.8
         fi
 
-        if awww img "$path" >/dev/null 2>&1; then
-            echo "[churros-apply-wallpaper] awww: $path"
-            return 0
-        fi
-
+        for _ in 1 2 3 4 5; do
+            if awww img "$path" >/dev/null 2>&1; then
+                echo "[churros-apply-wallpaper] awww: $path"
+                return 0
+            fi
+            sleep 0.3
+        done
     fi
 
     if command -v swaybg >/dev/null 2>&1; then
 
         pkill -x swaybg 2>/dev/null || true
-        sleep 0.2
+        sleep 0.3
 
-        if swaybg -i "$path" -m fill >/dev/null 2>&1 & then
+        swaybg -i "$path" -m fill >/dev/null 2>&1 &
+        sleep 0.3
+
+        if pgrep -x swaybg >/dev/null 2>&1; then
             echo "[churros-apply-wallpaper] swaybg: $path"
             return 0
         fi
-
     fi
 
+    echo "[churros-apply-wallpaper] fallo al aplicar $path" >&2
     return 1
 }
+
+if [ -n "$ARG_PATH" ]; then
+    apply "$ARG_PATH"
+    exit $?
+fi
 
 if [ -f "$SETTINGS_FILE" ]; then
 

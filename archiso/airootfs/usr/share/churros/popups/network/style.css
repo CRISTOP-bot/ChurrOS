@@ -92,7 +92,9 @@ switch slider {
 
 .network-item {
 
-    background: rgba(255,255,255,.04);
+    background: #2a2a2e;
+
+    border: 1px solid alpha(#ffffff, 0.10);
 
     border-radius: 12px;
 
@@ -122,11 +124,15 @@ switch slider {
 
     font-weight:bold;
 
+    text-shadow: 0 1px 2px rgba(0,0,0,.85);
+
 }
 
 .network-status{
 
-    color:#bdbdbd;
+    color:#e0e0e0;
+
+    text-shadow: 0 1px 2px rgba(0,0,0,.85);
 
     font-size:12px;
 
