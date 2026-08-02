@@ -3,9 +3,13 @@ import shutil
 import subprocess
 
 from services.settings import SettingsService
+from services.wallpaper import WallpaperService
 
 
 CACHE_DIR = os.path.expanduser("~/.cache/churros-theme")
+
+DARK_WALLPAPER = "/usr/share/churros/wallpapers/fondo1.png"
+LIGHT_WALLPAPER = "/usr/share/churros/wallpapers/default.jpeg"
 
 
 def _build_env():
@@ -76,6 +80,18 @@ class ThemeService:
     def set(cls, dark):
         SettingsService.set("theme.dark", bool(dark))
         _write_gtk_settings(dark)
+
+        if dark:
+            wp = DARK_WALLPAPER
+        else:
+            wp = LIGHT_WALLPAPER
+
+        if os.path.isfile(wp):
+            SettingsService.set("wallpaper.path", wp)
+            try:
+                WallpaperService.apply(wp)
+            except Exception as e:
+                print("[theme] wallpaper apply fallo:", e, flush=True)
 
         env = _build_env()
 

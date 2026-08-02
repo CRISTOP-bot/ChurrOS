@@ -11,7 +11,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk, GLib, Gdk
 
 from widgets.page import Page
 from widgets.group import Group
@@ -60,8 +60,6 @@ class WaybarPage(Page):
         )
 
         self._pending = False
-
-        self.module_popovers = {}
 
         try:
             self.values = WaybarService.get()
@@ -194,21 +192,30 @@ class WaybarPage(Page):
 
         self.module_rows = {}
 
+        modules_group = Group("Modulos (clic para mover)")
+
         for position in ("left", "center", "right"):
 
             for module in self.module_states[position]:
 
                 row = Row(
                     title=module,
-                    subtitle=position,
+                    subtitle=position + " — clic para mover, clic der. para quitar",
                     icon="waybar.svg",
-                    callback=lambda *_, m=module: self._show_module_menu(m)
+                    callback=lambda *_, m=module: self._cycle_module(m)
                 )
+
+                right_click = Gtk.GestureClick()
+                right_click.set_button(3)
+                right_click.connect("pressed", lambda *_, m=module: (self._remove_module(m), True))
+                row.add_controller(right_click)
 
                 modules_group.add(row)
                 self.module_rows[module] = (row, position)
 
         self.add(modules_group)
+
+        self.modules_group = modules_group
 
         actions_group = Group("Acciones")
 
@@ -231,105 +238,67 @@ class WaybarPage(Page):
 
         self.add(actions_group)
 
-    def _show_module_menu(self, module):
+    def _cycle_module(self, module):
+        _, current = self.module_rows.get(module, (None, None))
 
-        row, current = self.module_rows.get(module, (None, None))
-
-        if row is None:
-            return
-
-        for old in list(self.module_popovers.values()):
-
-            try:
-                old.popdown()
-
-            except Exception:
-                pass
-
-        menu = Gtk.Popover()
-        menu.set_has_arrow(True)
-        menu.set_autohide(True)
-
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        vbox.set_margin_top(8)
-        vbox.set_margin_bottom(8)
-        vbox.set_margin_start(8)
-        vbox.set_margin_end(8)
-
-        positions = [
-            ("left",   "Mover a izquierda"),
-            ("center", "Mover a centro"),
-            ("right",  "Mover a derecha"),
-            ("remove", "Quitar de la barra"),
-        ]
-
-        has_action = False
-
-        for target, label in positions:
-
-            if target == current:
-                continue
-
-            btn = Gtk.Button(label=label)
-            btn.set_has_frame(False)
-            btn.set_halign(Gtk.Align.FILL)
-
-            btn.connect(
-                "clicked",
-                lambda *_, t=target, m=module: (menu.popdown(), self._move_module(m, t))
-            )
-
-            vbox.append(btn)
-            has_action = True
-
-        if not has_action and current is not None:
-
-            noop = Gtk.Label(label="Sin acciones")
-            noop.set_margin_top(8)
-            noop.set_margin_bottom(8)
-            vbox.append(noop)
-
-        if current is None:
-
-            btn = Gtk.Button(label="Agregar a la barra")
-            btn.set_has_frame(False)
-            btn.set_halign(Gtk.Align.FILL)
-            btn.connect("clicked", lambda *_, m=module: (menu.popdown(), self._move_module(m, "left")))
-            vbox.append(btn)
-
-        menu.set_child(vbox)
-
+        order = ["left", "center", "right"]
         try:
-            menu.set_parent(row)
-        except Exception:
-            pass
+            idx = order.index(current)
+            nxt = order[(idx + 1) % 3]
+        except (ValueError, IndexError):
+            nxt = "left"
 
-        try:
-            menu.popup()
-        except Exception as exc:
-            print("[waybar] popover fallo:", exc)
-            return
+        self._move_module(module, nxt)
+        self._rebuild_modules()
 
-        self.module_popovers[module] = menu
+    def _remove_module(self, module):
+        for pos in list(self.module_states.keys()):
+            if module in self.module_states[pos]:
+                self.module_states[pos].remove(module)
+                break
+
+        self._on_change("full")
+        self._rebuild_modules()
+
+    def _rebuild_modules(self):
+        group = self.modules_group
+        child = group.get_first_child()
+        while child is not None:
+            nxt = child.get_next_sibling()
+            group.remove(child)
+            child = nxt
+
+        self.module_rows = {}
+
+        for position in ("left", "center", "right"):
+            for module in self.module_states[position]:
+                row = Row(
+                    title=module,
+                    subtitle=position + " — clic para mover, clic der. para quitar",
+                    icon="waybar.svg",
+                    callback=lambda *_, m=module: self._cycle_module(m)
+                )
+
+                right_click = Gtk.GestureClick()
+                right_click.set_button(3)
+                right_click.connect("pressed", lambda *_, m=module: (self._remove_module(m), True))
+                row.add_controller(right_click)
+
+                group.add(row)
+                self.module_rows[module] = (row, position)
 
     def _move_module(self, module, target):
 
         for position in list(self.module_states.keys()):
-
             if module in self.module_states[position]:
-
                 self.module_states[position].remove(module)
-
                 break
 
         if target in ("left", "center", "right"):
-
             if module not in self.module_states[target]:
                 self.module_states[target].append(module)
 
         self._on_change("full")
-
-        self._on_change()
 
     def _on_change(self, reload_kind="style"):
 
@@ -366,16 +335,6 @@ class WaybarPage(Page):
         GLib.timeout_add(400, apply)
 
     def _reset_defaults(self):
-
-        for old in list(self.module_popovers.values()):
-
-            try:
-                old.popdown()
-
-            except Exception:
-                pass
-
-        self.module_popovers.clear()
 
         WaybarService.reset()
 

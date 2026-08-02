@@ -88,50 +88,9 @@ class WallpaperService:
                     print("[wallpaper] wrapper stderr:", r.stderr.decode(errors="replace"))
                 if r.returncode == 0:
                     return True
+                print("[wallpaper] wrapper fallo rc={}".format(r.returncode), flush=True)
             except Exception as e:
-                print("[wallpaper] wrapper ex:", e)
-
-        if shutil.which("awww") is not None:
-            try:
-                subprocess.run(
-                    ["pkill", "-x", "awww-daemon"],
-                    env=env,
-                    capture_output=True,
-                    timeout=2,
-                )
-            except Exception:
-                pass
-
-            try:
-                subprocess.Popen(
-                    ["awww-daemon"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    start_new_session=True,
-                    env=env,
-                )
-                time.sleep(1.0)
-            except Exception:
-                pass
-
-            for attempt in range(5):
-                try:
-                    r = subprocess.run(
-                        ["awww", "img", path],
-                        env=env,
-                        capture_output=True,
-                        timeout=5,
-                    )
-                    if r.returncode == 0:
-                        print("[wallpaper] awww OK:", path)
-                        return True
-                    print("[wallpaper] awww intento {} fallo: {}".format(
-                        attempt + 1,
-                        r.stderr.decode(errors="replace")
-                    ))
-                except Exception as e:
-                    print("[wallpaper] awww ex:", e)
-                time.sleep(0.3)
+                print("[wallpaper] wrapper ex:", e, flush=True)
 
         if shutil.which("swaybg") is not None:
             try:
@@ -157,12 +116,12 @@ class WallpaperService:
                     env=env,
                     capture_output=True,
                 ).returncode == 0:
-                    print("[wallpaper] swaybg OK:", path)
+                    print("[wallpaper] swaybg OK:", path, flush=True)
                     return True
             except Exception as e:
-                print("[wallpaper] swaybg ex:", e)
+                print("[wallpaper] swaybg ex:", e, flush=True)
 
-        print("[wallpaper] NINGUN backend funciono")
+        print("[wallpaper] NINGUN backend funciono", flush=True)
         return False
 
     @classmethod

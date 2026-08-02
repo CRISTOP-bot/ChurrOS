@@ -1,3 +1,12 @@
+import os
+import subprocess
+
+import gi
+
+gi.require_version("Gtk", "4.0")
+
+from gi.repository import Gtk, GLib
+
 from widgets.page import Page
 from widgets.group import Group
 from widgets.row import Row
@@ -190,3 +199,39 @@ class SystemPage(Page):
         self.add(
             hardware
         )
+
+        #
+        # Acciones
+        #
+
+        actions = Group("Acciones")
+
+        actions.add(
+            Row(
+                title="Actualizar sistema",
+                subtitle="Ejecuta pacman -Syu en una terminal",
+                icon="system.svg",
+                callback=lambda *_: self._update_system()
+            )
+        )
+
+        self.add(actions)
+
+    def _update_system(self):
+        try:
+            subprocess.Popen(
+                ["foot", "-e", "sudo", "pacman", "-Syu"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        except Exception:
+            try:
+                subprocess.Popen(
+                    ["kitty", "-e", "sudo", "pacman", "-Syu"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True,
+                )
+            except Exception:
+                pass

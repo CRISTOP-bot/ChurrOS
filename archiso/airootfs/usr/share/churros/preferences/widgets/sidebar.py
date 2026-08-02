@@ -105,6 +105,12 @@ class Sidebar(Gtk.Box):
             ),
 
             (
+                "datetime",
+                "system.svg",
+                "Fecha y hora"
+            ),
+
+            (
                 "appearance",
                 "appearance.svg",
                 "Apariencia"
@@ -156,6 +162,12 @@ class Sidebar(Gtk.Box):
                 "applications",
                 "applications.svg",
                 "Aplicaciones"
+            ),
+
+            (
+                "keyboard",
+                "input.svg",
+                "Teclado"
             ),
 
             (

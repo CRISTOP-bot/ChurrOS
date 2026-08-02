@@ -34,12 +34,23 @@ class WallpaperPage(Page):
         actions_group.add(
             Row(
                 title="Importar desde archivos...",
-                subtitle="Elige una imagen de tu disco duro",
+                subtitle="Abre el selector de archivos de GTK",
                 icon="wallpaper.svg",
                 callback=lambda *_: self.import_from_files()
             )
         )
         self.add(actions_group)
+
+        thunar_group = Group("Abrir carpeta")
+        thunar_group.add(
+            Row(
+                title="Abrir ~/Imagenes con Thunar",
+                subtitle="Arrastra fondos a ~/.local/share/churros/wallpapers",
+                icon="wallpaper.svg",
+                callback=lambda *_: self._open_pictures_folder()
+            )
+        )
+        self.add(thunar_group)
 
         #
         # Fondo actual + grid
@@ -120,21 +131,6 @@ class WallpaperPage(Page):
         self.add(grid_group)
 
     def import_from_files(self):
-        """Abre un selector de imagen y la copia a la carpeta de
-        wallpapers del usuario.
-
-        Flujo:
-        1. Helper externo `churros-pick-image` (portal xdg / zenity / thunar).
-        2. Si no hay helper, fallback Gtk.FileDialog (GTK4 portal).
-        """
-
-        try:
-            self._pick_via_helper()
-            return
-        except FileNotFoundError:
-            print("[wallpaper] helper churros-pick-image no instalado")
-        except Exception as exc:
-            print("[wallpaper] helper externo fallo:", exc)
 
         win = self.get_root()
 
@@ -148,6 +144,11 @@ class WallpaperPage(Page):
             filter_any.add_mime_type("image/png")
             filter_any.add_mime_type("image/webp")
             filter_any.add_mime_type("image/gif")
+            filter_any.add_pattern("*.jpg")
+            filter_any.add_pattern("*.jpeg")
+            filter_any.add_pattern("*.png")
+            filter_any.add_pattern("*.webp")
+            filter_any.add_pattern("*.gif")
 
             filters = Gio.ListStore.new(Gtk.FileFilter)
             filters.append(filter_any)
@@ -162,7 +163,6 @@ class WallpaperPage(Page):
                 pass
 
             def on_result(source, result, _user_data=None):
-
                 try:
                     file = dialog.open_finish(result)
                 except GLib.Error:
@@ -178,78 +178,70 @@ class WallpaperPage(Page):
 
                 self._apply_wallpaper(src)
 
-            try:
-                dialog.open(win, None, on_result)
-            except Exception as exc:
-                print("[wallpaper] FileDialog fallo:", exc)
+            dialog.open(win, None, on_result)
 
-        except Exception as exc:
-            print("[wallpaper] FileDialog error:", exc)
+        except Exception:
+            self._open_pictures_folder()
 
-    def _pick_via_helper(self):
-
+    def _open_pictures_folder(self):
         import subprocess
 
-        home = os.path.expanduser("~")
-
-        env = os.environ.copy()
-        env["DISPLAY"] = env.get("DISPLAY", ":0")
-
-        if "DBUS_SESSION_BUS_ADDRESS" not in env:
-            try:
-                out = subprocess.run(
-                    ["dbus-launch", "--autolaunch", os.uname().nodename],
-                    capture_output=True,
-                    text=True,
-                    timeout=2
-                ).stdout
-                for line in out.splitlines():
-                    if "DBUS_SESSION_BUS_ADDRESS=" in line:
-                        env["DBUS_SESSION_BUS_ADDRESS"] = line.split("=", 1)[1].strip()
-                        break
-            except Exception:
-                pass
+        pics_dir = os.path.expanduser("~/Imagenes")
+        if not os.path.isdir(pics_dir):
+            pics_dir = os.path.expanduser("~")
 
         try:
-            proc = subprocess.run(
-                ["/usr/bin/churros-pick-image", home],
-                capture_output=True,
-                text=True,
-                timeout=120,
-                env=env
+            subprocess.Popen(
+                ["thunar", pics_dir],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
             )
-        except FileNotFoundError:
-            raise
-        except subprocess.TimeoutExpired:
-            print("[wallpaper] churros-pick-image timeout")
-            return
-
-        if proc.returncode != 0:
-            print("[wallpaper] helper retorno", proc.returncode, proc.stderr.strip())
-            return
-
-        src = proc.stdout.strip()
-
-        if not src:
-            return
-
-        if not os.path.isfile(src):
-            print("[wallpaper] helper devolvio ruta invalida:", src)
-            return
-
-        self._apply_wallpaper(src)
+        except Exception:
+            pass
 
     def _apply_wallpaper(self, src):
 
         dest = WallpaperService.import_image(src)
 
         if dest is None:
-            print("[wallpaper] no se pudo importar", src)
+            print("[wallpaper] no se pudo importar", src, flush=True)
+            self._show_error("No se pudo importar el fondo", src)
             return
 
-        WallpaperService.set(dest)
+        success = WallpaperService.set(dest)
+
+        print("[wallpaper] import+set retorno:", success, "dest:", dest, flush=True)
+
+        if not success:
+            self._show_error(
+                "No se pudo aplicar el fondo",
+                "Revisa /tmp/churros-settings.log y /tmp/awww-img.log"
+            )
 
         self._rebuild_grid()
+
+    def _show_error(self, message, detail):
+
+        try:
+
+            win = self.get_root()
+
+            dialog = Gtk.AlertDialog()
+
+            dialog.set_modal(True)
+
+            dialog.set_message(message)
+
+            dialog.set_detail(detail)
+
+            if win is not None:
+                dialog.show(win)
+            else:
+                dialog.show()
+
+        except Exception:
+            pass
 
     def _rebuild_grid(self):
         """Recarga todo el contenido de la pagina para mostrar la nueva imagen."""

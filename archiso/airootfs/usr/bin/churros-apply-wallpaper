@@ -111,16 +111,31 @@ apply_awww() {
 
     echo "$LOG_PREFIX awww img $path (WAYLAND=$WAYLAND_DISPLAY XDG=$XDG_RUNTIME_DIR)" >&2
 
-    WAYLAND_DISPLAY="$WAYLAND_DISPLAY" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
-        awww img "$path" >/tmp/awww-img.log 2>&1
-    local rc=$?
+    local attempt
+    for attempt in 1 2 3 4 5; do
+        WAYLAND_DISPLAY="$WAYLAND_DISPLAY" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
+            awww img "$path" >/tmp/awww-img.log 2>&1
+        local rc=$?
 
-    if [ "$rc" -eq 0 ]; then
-        echo "$LOG_PREFIX awww OK: $path" >&2
-        return 0
-    fi
+        if [ "$rc" -eq 0 ]; then
+            echo "$LOG_PREFIX awww OK intento $attempt: $path" >&2
+            return 0
+        fi
 
-    echo "$LOG_PREFIX awww fallo rc=$rc: $(head -3 /tmp/awww-img.log 2>/dev/null)" >&2
+        echo "$LOG_PREFIX awww intento $attempt fallo rc=$rc: $(head -3 /tmp/awww-img.log 2>/dev/null)" >&2
+
+        if ! _awww_running; then
+            echo "$LOG_PREFIX awww-daemon murio, relanzando..." >&2
+            WAYLAND_DISPLAY="$WAYLAND_DISPLAY" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
+                nohup awww-daemon >> /tmp/awww-daemon.log 2>&1 &
+            disown 2>/dev/null || true
+            sleep 0.5
+        fi
+
+        sleep 0.3
+    done
+
+    echo "$LOG_PREFIX awww fallo tras 5 intentos" >&2
     return 1
 }
 
@@ -161,24 +176,33 @@ apply() {
         return 1
     fi
 
-    if command -v awww >/dev/null 2>&1; then
-
-        if apply_awww "$path"; then
-            return 0
-        fi
-
-        echo "$LOG_PREFIX awww fallo, probando swaybg..." >&2
-    fi
-
     if command -v swaybg >/dev/null 2>&1; then
 
         if apply_swaybg "$path"; then
+            _niri_refresh
+            return 0
+        fi
+
+        echo "$LOG_PREFIX swaybg fallo, probando awww..." >&2
+    fi
+
+    if command -v awww >/dev/null 2>&1; then
+
+        if apply_awww "$path"; then
+            _niri_refresh
             return 0
         fi
     fi
 
     echo "$LOG_PREFIX NINGUN backend pudo aplicar $path" >&2
     return 1
+}
+
+_niri_refresh() {
+
+    if command -v niri >/dev/null 2>&1; then
+        niri msg action do-screen-transition 2>/dev/null || true
+    fi
 }
 
 if [ -n "$ARG_PATH" ]; then
