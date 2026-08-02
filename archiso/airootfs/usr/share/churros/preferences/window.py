@@ -31,6 +31,8 @@ from pages.applications import ApplicationsPage
 from pages.users import UsersPage
 from pages.privacy import PrivacyPage
 from pages.about import AboutPage
+from pages.keyboard import KeyboardPage
+from pages.datetime import DateTimePage
 
 
 class PreferencesWindow(Gtk.ApplicationWindow):
@@ -128,6 +130,11 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         )
 
         self.navigator.add_page(
+            "datetime",
+            DateTimePage(self.navigator)
+        )
+
+        self.navigator.add_page(
             "audio",
             AudioPage(self.navigator)
         )
@@ -170,6 +177,11 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         self.navigator.add_page(
             "about",
             AboutPage(self.navigator)
+        )
+
+        self.navigator.add_page(
+            "keyboard",
+            KeyboardPage(self.navigator)
         )
 
         #

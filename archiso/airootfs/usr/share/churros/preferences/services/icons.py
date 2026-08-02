@@ -1,9 +1,36 @@
 import os
+import subprocess
 
 from services.settings import SettingsService
 
 
 HOME = os.path.expanduser("~")
+
+
+def _apply_live_icon_theme(theme):
+
+    env = os.environ.copy()
+    env["WAYLAND_DISPLAY"] = env.get("WAYLAND_DISPLAY", "wayland-1")
+    env["XDG_RUNTIME_DIR"] = env.get(
+        "XDG_RUNTIME_DIR", "/run/user/" + str(os.getuid())
+    )
+
+    try:
+        subprocess.Popen(
+            [
+                "gsettings",
+                "set",
+                "org.gnome.desktop.interface",
+                "icon-theme",
+                theme,
+            ],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception:
+        pass
 
 
 class IconsService:
@@ -55,6 +82,8 @@ class IconsService:
                 lines.insert(0, "[Settings]")
             with open(ini, "w") as f:
                 f.write("\n".join(lines) + "\n")
+
+        _apply_live_icon_theme(theme)
 
     @classmethod
     def available(cls):

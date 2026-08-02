@@ -37,15 +37,18 @@ preferences/
 │   └── navigation_row.py    # NavigationRow (row con flecha a subpágina)
 ├── services/                # Services (lógica del sistema)
 │   ├── settings.py          # SettingsService (JSON en ~/.config/churros/settings.json)
-│   ├── theme.py             # ThemeService (dark/light via gsettings)
-│   ├── accent.py            # AccentService (genera accent.css en runtime)
+│   ├── theme.py             # ThemeService (dark/light + wallpaper連動)
+│   ├── accent.py            # AccentService (genera accent.css con --accent-glow)
 │   ├── fonts.py             # FontService (gsettings + Gtk.Settings)
-│   ├── cursor.py            # CursorService (gsettings cursor-theme/size)
-│   ├── icons.py             # IconsService (gsettings icon-theme)
-│   ├── wallpaper.py         # WallpaperService (awww + swaybg fallback + import_image)
+│   ├── cursor.py            # CursorService (gsettings cursor-theme/size en vivo)
+│   ├── icons.py             # IconsService (gsettings icon-theme en vivo)
+│   ├── wallpaper.py         # WallpaperService (swaybg primero, awww fallback)
+│   ├── waybar.py            # WallpaperService (genera config.jsonc + style.css liquid glass)
+│   ├── keyboard.py          # KeyboardService (parsea y edita binds de niri)
 │   ├── audio.py             # AudioService (wpctl/PipeWire)
 │   ├── power.py             # PowerService (powerprofilesctl, upower, gsettings)
 │   ├── display.py           # DisplayService + backends (niri/hyprland)
+│   ├── datetime.py          # DateTime helpers (timedatectl wrapper)
 │   ├── connectivity.py
 │   ├── about.py
 │   ├── system.py
@@ -54,11 +57,11 @@ preferences/
 │   ├── privacy.py
 │   └── backends/            # Backends de display
 │       ├── base.py
-│       ├── niri.py          # niri msg
+│       ├── niri.py          # niri msg outputs/action
 │       └── hyprland.py      # hyprctl
 └── pages/                   # Páginas de la UI
     ├── system.py
-    ├── appearance.py         # Padre de accent/icons/cursor/fonts/wallpaper
+    ├── appearance.py         # Padre de accent/icons/cursor/fonts/wallpaper/waybar
     ├── audio.py
     ├── display.py
     ├── connectivity.py
@@ -68,12 +71,15 @@ preferences/
     ├── privacy.py
     ├── about.py
     ├── input.py              # Teclado/ratón
+    ├── datetime.py          # Fecha y hora (timedatectl)
+    ├── keyboard.py          # Editor visual de atajos de Niri
     # Subpáginas de appearance
     ├── accent.py
     ├── icons.py
     ├── cursor.py
     ├── fonts.py
-    └── wallpaper.py
+    ├── wallpaper.py
+    └── waybar.py             # Editor de barra superior
     # Subpáginas de power
     ├── power_profile.py
     ├── battery.py
@@ -218,11 +224,84 @@ CSS:
 - `.wallpaper-selected` — 3px border accent.
 - `.wallpaper-button:hover` — border accent al hover.
 
+## Theme連動 (Modo oscuro/claro)
+
+`ThemeService.set(dark)` (en `services/theme.py`):
+
+1. Persiste `theme.dark` en JSON local.
+2. Llama `_write_gtk_settings(dark)` que escribe `~/.config/gtk-{3,4}.0/settings.ini` con `gtk-theme-name` y `gtk-application-prefer-dark-theme`.
+3. **Cambia el wallpaper automáticamente**:
+   - Dark → `/usr/share/churros/wallpapers/fondo1.png`
+   - Light → `/usr/share/churros/wallpapers/default.jpeg`
+4. Envía `SIGUSR1` a waybar/kitty para recarga suave.
+
+`WallpaperService.apply(path)`:
+
+1. Llama `churros-apply-wallpaper` (wrapper bash).
+2. Wrapper prueba en orden: `swaybg` → `awww` (si falla).
+3. Al final del apply, ejecuta `niri msg action do-screen-transition` para forzar repintura en Niri.
+4. Fallback inline en Python si el wrapper no existe.
+
+## Waybar (subpágina de Apariencia)
+
+`WaybarService` (`services/waybar.py`):
+
+- `DEFAULTS`: layer=top, position=top, height=30, spacing=0, font-size=14, font-family="JetBrainsMono Nerd Font", background=#2a1612, foreground=#c9c4c3, accent=#DE8636, background-alpha=0.9.
+
+- `get()` — lee config.jsonc + colors-waybar.css.
+
+- `set(values)`:
+  1. Escribe `~/.config/waybar/config.jsonc` (preserva definiciones de módulos del skel).
+  2. Escribe `~/.config/waybar/colors-waybar.css` con `@define-color` para `background`, `foreground`, `color4`, `color1`. **Nunca** `@define-color background-alpha` con número — waybar crashea con `'0' is not a valid color name`.
+  3. Escribe `~/.config/waybar/style.css` con liquid glass: ventana transparente, workspaces con pill translúcido + items activos en naranja, hover states.
+  4. Llama `reload()` que mata waybar (`pkill -x waybar`), espera 1s, verifica que murió (`pgrep`), lanza nuevo `waybar`.
+
+- `reload()` loguea a `/tmp/waybar.log` para debugging.
+
+`WaybarPage` UI:
+
+- Sliders para altura (20-80), espaciado (0-16), font-size (10-24).
+- Combo para capa (top/overlay/bottom) y posición (top/bottom/left/right).
+- Color pickers para fondo, texto, acento.
+- **Sistema de rotación de módulos** (sin popovers — GTK4 Popover no funciona en Niri):
+  - Click izquierdo en un módulo → rota posición left → center → right → left.
+  - Click derecho → quita el módulo.
+- Botones "Recargar waybar" y "Restablecer defaults".
+
+## Keyboard (Atajos de teclado)
+
+`KeyboardService` (`services/keyboard.py`):
+
+- Lee/escribe `~/.config/niri/config.kdl` directamente.
+- `get_keybinds()` — parsea el bloque `binds { ... }` con regex.
+- `set_keybind(key, action_type, command, args)` — reemplaza un binding existente.
+- `add_keybind(key, action_type, command, args)` — añade un nuevo binding antes del `}` de cierre.
+- `restore_backup()` — restaura desde `config.kdl.bak`.
+
+Backup automático antes de cada escritura en `NIRI_CONFIG_BACKUP`.
+
+`KeyboardPage` UI:
+
+- Agrupa atajos en categorías: Aplicaciones, Ventanas, Workspaces, Movimiento, Capturas, Overlays, Multimedia, Niri.
+- **Click en un atajo** abre diálogo de edición que muestra:
+  - Atajo actual y acción actual (resaltados).
+  - Campo "Nuevo atajo" (placeholder: `Ej: Mod+Shift+X`).
+  - Campo "Nuevo comando" (pre-rellenado).
+  - Campo "Argumentos" (pre-rellenado).
+- Botón **"Agregar nuevo atajo"** al inicio para crear atajos nuevos con campos vacíos.
+- Al guardar, rebuild automático de la lista.
+
+## DateTime (Fecha y hora)
+
+`DateTimePage` (sin service dedicado, usa `timedatectl` directamente):
+
+- Estado actual: hora, fecha, zona horaria, RTC.
+- "Sincronizar hora con internet" → `sudo timedatectl set-ntp true` en foot.
+- "Cambiar zona horaria" → selector interactivo con `fzf` sobre `timedatectl list-timezones` o fallback `less`.
+
 ---
 
 # Power
-
-`PowerService` (`services/power.py`) usa `upower`, `powerprofilesctl` y `gsettings`.
 
 Métodos de lectura:
 

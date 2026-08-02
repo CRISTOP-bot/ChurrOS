@@ -24,35 +24,40 @@ class SwitchRow(Row):
             active
         )
 
+        self.switch.set_valign(Gtk.Align.CENTER)
+
         super().__init__(
             title=title,
             subtitle=subtitle,
             icon=icon,
-            suffix=self.switch
+            suffix=self.switch,
+            callback=self._on_row_clicked if callback else None
         )
+
+        self._user_callback = callback
 
         if callback is not None:
 
             self.switch.connect(
                 "notify::active",
-                self._on_changed
+                self._on_switch_changed
             )
 
-            self.callback = callback
+    def _on_row_clicked(self, row):
 
-        else:
+        new_state = not self.switch.get_active()
 
-            self.callback = None
+        self.switch.set_active(new_state)
 
-    def _on_changed(
+    def _on_switch_changed(
         self,
         switch,
         param
     ):
 
-        if self.callback is not None:
+        if self._user_callback is not None:
 
-            self.callback(
+            self._user_callback(
                 switch.get_active()
             )
 

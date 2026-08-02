@@ -1,9 +1,69 @@
 import os
+import subprocess
 
 from services.settings import SettingsService
 
 
 HOME = os.path.expanduser("~")
+
+
+def _apply_live_cursor_theme(theme_name, size):
+
+    env = os.environ.copy()
+    env["WAYLAND_DISPLAY"] = env.get("WAYLAND_DISPLAY", "wayland-1")
+    env["XDG_RUNTIME_DIR"] = env.get(
+        "XDG_RUNTIME_DIR", "/run/user/" + str(os.getuid())
+    )
+
+    try:
+        subprocess.Popen(
+            [
+                "sh",
+                "-c",
+                "for pid in $(pgrep -x gnome-shell); do "
+                "kill -USR1 $pid 2>/dev/null; done; exit 0"
+            ],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception:
+        pass
+
+    try:
+        subprocess.Popen(
+            [
+                "gsettings",
+                "set",
+                "org.gnome.desktop.interface",
+                "cursor-theme",
+                theme_name,
+            ],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception:
+        pass
+
+    try:
+        subprocess.Popen(
+            [
+                "gsettings",
+                "set",
+                "org.gnome.desktop.interface",
+                "cursor-size",
+                str(size),
+            ],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception:
+        pass
 
 
 class CursorService:
@@ -58,8 +118,10 @@ class CursorService:
     @classmethod
     def set(cls, theme):
         SettingsService.set("cursor.theme", theme)
+        size = cls.size()
         cls._write_gtk("gtk-cursor-theme-name", theme)
-        cls._write_gtk("gtk-cursor-theme-size", "24")
+        cls._write_gtk("gtk-cursor-theme-size", str(size))
+        _apply_live_cursor_theme(theme, size)
 
     @classmethod
     def available(cls):
@@ -84,4 +146,6 @@ class CursorService:
     def set_size(cls, size):
         size = int(size)
         SettingsService.set("cursor.size", size)
+        theme = cls.current()
         cls._write_gtk("gtk-cursor-theme-size", str(size))
+        _apply_live_cursor_theme(theme, size)

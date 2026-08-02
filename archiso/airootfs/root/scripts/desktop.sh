@@ -9,6 +9,23 @@ cp -r /etc/skel/.config /home/churros/
 # Permisos
 chown -R churros:churros /home/churros/.config
 
+# Optimizar para Niri: quitar awww-daemon del autostart (swaybg es mas estable)
+NIRI_CONF="/home/churros/.config/niri/config.kdl"
+if [ -f "$NIRI_CONF" ]; then
+    sed -i '/spawn-at-startup "awww-daemon"/d' "$NIRI_CONF" 2>/dev/null || true
+    chown churros:churros "$NIRI_CONF"
+fi
+
+# Setear XDG_CURRENT_DESKTOP para que los servicios de preferences detecten Niri
+SESSION_FILE="/home/churros/.config/environment.d/churros-session.conf"
+mkdir -p "/home/churros/.config/environment.d"
+cat > "$SESSION_FILE" << 'EOF'
+XDG_CURRENT_DESKTOP=niri
+XDG_SESSION_DESKTOP=niri
+XDG_SESSION_TYPE=wayland
+EOF
+chown -R churros:churros "/home/churros/.config/environment.d"
+
 # Regenerar cache de iconos GTK para que encuentre los iconos Churros
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
 

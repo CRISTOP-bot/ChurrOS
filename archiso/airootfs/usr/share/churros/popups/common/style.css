@@ -6,7 +6,6 @@
 .popup {
     background: rgba(15,15,16,.72);
     backdrop-filter: blur(24px) saturate(1.4);
-    -gtk-backdrop-filter: blur(24px) saturate(1.4);
     border-radius: 18px;
     border: 1px solid rgba(255,255,255,.08);
     box-shadow: 0 8px 40px rgba(0,0,0,.50),
