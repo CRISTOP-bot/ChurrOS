@@ -31,6 +31,7 @@ file_permissions=(
   ["/usr/bin/churros-settings"]="0:0:755"
   ["/usr/bin/churros-control-center"]="0:0:755"
   ["/usr/bin/churros-pick-image"]="0:0:755"
+  ["/usr/bin/churros-pkexec"]="0:0:755"
   ["/usr/bin/churros-portal-start"]="0:0:755"
   ["/usr/bin/churros-apply-wallpaper"]="0:0:755"
   ["/usr/share/churros/scripts/set-accent"]="0:0:755"

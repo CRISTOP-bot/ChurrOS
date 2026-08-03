@@ -106,11 +106,12 @@ Limpiar archivos temporales
 ChurrOS
 ├── archiso/
 ├── branding/
-├── apps/
 ├── docs/
 ├── installer/
+├── po/
 ├── scripts/
 ├── out/
+├── vm/
 ├── work/
 ├── churros
 └── README.md

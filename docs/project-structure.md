@@ -12,11 +12,12 @@ Mantener una estructura clara facilita el mantenimiento, el desarrollo y la inco
 ChurrOS
 ├── archiso/
 ├── branding/
-├── configs/
 ├── docs/
 ├── installer/
-├── out/
+├── po/
 ├── scripts/
+├── out/
+├── vm/
 ├── work/
 ├── churros
 ├── LICENSE
@@ -71,25 +72,6 @@ Aquí se almacenan elementos como:
 - futuras imágenes del instalador
 
 Todo lo relacionado con la identidad visual debe vivir aquí.
-
----
-
-## configs/
-
-Almacena configuraciones reutilizables.
-
-Ejemplos futuros:
-
-```text
-configs
-├── niri/
-├── foot/
-├── waybar/
-├── fuzzel/
-└── greetd/
-```
-
-La idea es mantener separadas las configuraciones del sistema y poder reutilizarlas fácilmente.
 
 ---
 

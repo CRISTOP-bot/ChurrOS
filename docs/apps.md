@@ -20,7 +20,7 @@ Las apps se instalan en `/usr/share/churros/<app>/` dentro de la ISO Live y se e
 
 # churros-welcome
 
-**Path:** `apps/churros-welcome/`
+**Path:** `archiso/airootfs/usr/share/churros/churros-welcome/`
 **Instalada en:** `/usr/share/churros/churros-welcome/`
 **Wrapper:** `/usr/bin/churros-welcome`
 **Autostart:** `archiso/airootfs/etc/skel/.config/niri/config.kdl` (`spawn-at-startup "churros-welcome"`)
@@ -52,8 +52,6 @@ La pantalla de bienvenida que se muestra al iniciar la sesión Live.
 src/
 ├── main.py                # Entry point
 ├── window.py              # ChurrOSWelcome (Adw.Application)
-├── pages/
-│   └── home.py            # Página principal
 ├── config/
 │   ├── constants.py       # WINDOW_WIDTH, CARD_WIDTH, etc.
 │   ├── metadata.py        # APP_NAME, VERSION, REPOSITORY, etc.
@@ -66,14 +64,11 @@ src/
 │   ├── action_card.py     # Tarjeta de acción (botón)
 │   └── system_card.py     # Tarjeta con info del sistema
 ├── service/
-│   ├── welcome.py
-│   ├── applications.py
-│   ├── package_manager.py
-│   └── updater.py
+│   ├── package_manager.py # Stubs para selección de paquetes
+│   └── updater.py         # Stubs para el actualizador del sistema
 └── utils/
-    ├── browser.py         # Abrir URLs
-    ├── commands.py
-    ├── desktop.py         # Lanzar apps (foot, firefox, calamares)
+    ├── browser.py         # Abrir URLs (GitHub, Discord, Wiki)
+    ├── desktop.py         # Lanzar el instalador (Calamares)
     └── system.py          # get_cpu, get_memory, etc.
 ```
 
@@ -94,20 +89,17 @@ La memoria RAM usa `psutil` si está disponible. Si no, lee `/proc/meminfo` dire
 
 ## Action Cards
 
-La pantalla principal muestra la `SystemCard` más 6 tarjetas de acción:
+La pantalla principal muestra la `SystemCard` más 3 tarjetas de acción:
 
 | Icono | Título | Callback |
 |-------|--------|----------|
 | install.svg | Install ChurrOS | Lanza `calamares.desktop` vía `Gio.DesktopAppInfo.new("calamares.desktop").launch()`. Si no existe muestra un `Gtk.AlertDialog` informativo. |
 | github.svg | GitHub | Abre el repositorio en el navegador. |
-| community.svg | Discord | Abre la comunidad. |
-| documentation.svg | Documentation | Abre la wiki. |
-| terminal.svg | Terminal | Lanza `foot`. |
-| browser.svg | Browser | Lanza `firefox`. |
+| community.svg | Comunidad | Abre el servidor de comunidad. |
 
 La `SystemCard` no es clickable, solo informativa (CPU, RAM, kernel, SO, arquitectura, hostname). Se muestra la primera en el FlowBox.
 
-Las tarjetas están organizadas en un `Gtk.FlowBox` con un máximo de 4 columnas y mínimo de 1. En pantallas estrechas se reorganizan automáticamente.
+Las tarjetas están organizadas en un `Gtk.FlowBox` con un máximo de 3 columnas y mínimo de 1. En pantallas estrechas se reorganizan automáticamente.
 
 ## Desktop Entry
 
@@ -232,9 +224,9 @@ Roadmap potencial:
 
 # Packaging
 
-Las apps se incluyen en la ISO copiando su contenido a `archiso/airootfs/usr/share/churros/<app>/`. La estructura ya está sincronizada: `apps/<app>/` es la fuente y `archiso/airootfs/usr/share/churros/<app>/` es la copia que se incluye en la imagen.
+Las apps viven dentro del directorio `archiso/airootfs/usr/share/churros/<app>/`, que es lo que archiso empaqueta directamente en la ISO. Los wrappers en `/usr/bin/churros-*` ejecutan `python3` apuntando a esos paths.
 
-> **Nota:** El `build.sh` no copia automáticamente las apps. La sincronización es manual. Revisa siempre que ambas copias estén alineadas antes de hacer un commit.
+> **Nota:** El `build.sh` no copia automáticamente las apps. El código fuente *es* el árbol que termina en la ISO.
 
 ---
 
@@ -242,16 +234,15 @@ Las apps se incluyen en la ISO copiando su contenido a `archiso/airootfs/usr/sha
 
 Para modificar una app:
 
-1. Edita el código en `apps/<app>/` (o en `archiso/airootfs/usr/share/churros/<app>/` si el archivo solo existe ahí).
-2. Si solo existe en `archiso/`, cópialo a `apps/` para mantener la paridad.
-3. Compila y prueba:
+1. Edita el código en `archiso/airootfs/usr/share/churros/<app>/`.
+2. Compila y prueba:
 
 ```bash
 ./churros build
 ./churros run
 ```
 
-4. Confirma que la app arranca y se ve correctamente.
+3. Confirma que la app arranca y se ve correctamente.
 
 ---
 
