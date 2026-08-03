@@ -58,14 +58,6 @@ Código del futuro instalador gráfico.
 
 ---
 
-```
-configs/
-```
-
-Configuraciones oficiales del sistema.
-
----
-
 # Filosofía
 
 Cada componente del proyecto debe ser independiente.
