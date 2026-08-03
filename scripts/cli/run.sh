@@ -32,7 +32,9 @@ if [ ! -f "$DISK" ]; then
     echo
 
     qemu-img create -f qcow2 "$DISK" 64G
+fi
 
+if [ ! -f "$VARS" ]; then
     cp /usr/share/edk2/x64/OVMF_VARS.4m.fd "$VARS"
 fi
 
