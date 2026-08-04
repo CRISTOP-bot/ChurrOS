@@ -78,7 +78,9 @@ class UsersPage(Page):
 
                 icon="users.svg",
 
-                active=UsersService.auto_login()
+                active=UsersService.auto_login(),
+
+                callback=UsersService.set_auto_login
 
             )
 
