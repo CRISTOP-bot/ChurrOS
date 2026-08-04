@@ -4,6 +4,26 @@ gi.require_version("Gtk", "4.0")
 
 from gi.repository import Gtk
 
+import sys
+import os
+
+_CHURROS = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..")
+)
+
+if _CHURROS not in sys.path:
+
+    sys.path.insert(0, _CHURROS)
+
+try:
+
+    from i18n import _ as _i18n
+
+except Exception:
+
+    def _i18n(s):
+        return s
+
 
 class Page(Gtk.ScrolledWindow):
 
@@ -54,7 +74,7 @@ class Page(Gtk.ScrolledWindow):
                 "go-previous-symbolic"
             )
 
-            back_btn.set_label(" Atras")
+            back_btn.set_label(" " + _i18n("Atras"))
             back_btn.set_halign(Gtk.Align.START)
             back_btn.add_css_class("back-button")
             back_btn.set_has_frame(False)
@@ -72,7 +92,7 @@ class Page(Gtk.ScrolledWindow):
         )
 
         title_label = Gtk.Label(
-            label=title,
+            label=_i18n(title),
             xalign=0
         )
 
@@ -85,7 +105,7 @@ class Page(Gtk.ScrolledWindow):
         if subtitle:
 
             subtitle_label = Gtk.Label(
-                label=subtitle,
+                label=_i18n(subtitle),
                 xalign=0
             )
 
