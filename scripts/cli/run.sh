@@ -9,9 +9,11 @@ VARS="$VM_DIR/OVMF_VARS.fd"
 ISO=$(find out -name "*.iso" | head -n1)
 
 FORCE_NOKVM=false
+FORCE_FRESH=false
 for arg in "$@"; do
     case "$arg" in
         --nokvm) FORCE_NOKVM=true ;;
+        --fresh) FORCE_FRESH=true ;;
     esac
 done
 
@@ -25,6 +27,11 @@ if [ -z "$ISO" ]; then
 fi
 
 mkdir -p "$VM_DIR"
+
+if [ "$FORCE_FRESH" = true ] && [ -f "$VARS" ]; then
+    echo "Resetting EFI vars (--fresh)..."
+    rm -f "$VARS"
+fi
 
 if [ ! -f "$DISK" ]; then
     echo
