@@ -219,6 +219,24 @@ class AppearancePage(Page):
 
         )
 
+        personalization.add(
+
+            NavigationRow(
+
+                navigator=navigator,
+
+                title="Niri",
+
+                subtitle="Compositor: disposicion, bordes, blur",
+
+                icon="niri.svg",
+
+                page_name="niri"
+
+            )
+
+        )
+
         self.add(
 
             personalization
