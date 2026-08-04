@@ -35,6 +35,22 @@ class ControlCenterApp(Gtk.Application):
 
     def do_activate(self):
 
+        display = Gdk.Display.get_default()
+
+        shared_path = "/usr/share/churros/styles/churros.css"
+
+        if os.path.exists(shared_path):
+
+            shared = Gtk.CssProvider()
+
+            shared.load_from_path(shared_path)
+
+            Gtk.StyleContext.add_provider_for_display(
+                display,
+                shared,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
+
         css = Gtk.CssProvider()
 
         css.load_from_path(
@@ -45,9 +61,9 @@ class ControlCenterApp(Gtk.Application):
         )
 
         Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(),
+            display,
             css,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1
         )
 
         window = ControlCenterWindow(self)

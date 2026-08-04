@@ -64,8 +64,15 @@ class PreferencesApplication(Gtk.Application):
             os.path.abspath(__file__)
         )
 
+        shared = "/usr/share/churros/styles/churros.css"
+
+        if os.path.exists(shared):
+
+            self._load_css(shared, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
         self._load_css(
-            os.path.join(base, "style.css")
+            os.path.join(base, "style.css"),
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1
         )
 
         accent_css = AccentService.ACCENT_CSS

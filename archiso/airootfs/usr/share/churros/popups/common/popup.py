@@ -58,6 +58,22 @@ class PopupWindow(Gtk.ApplicationWindow):
 
     def load_css(self):
 
+        display = Gdk.Display.get_default()
+
+        shared_path = "/usr/share/churros/styles/churros.css"
+
+        if Path(shared_path).exists():
+
+            shared = Gtk.CssProvider()
+
+            shared.load_from_path(shared_path)
+
+            Gtk.StyleContext.add_provider_for_display(
+                display,
+                shared,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
+
         provider = Gtk.CssProvider()
 
         provider.load_from_path(
@@ -65,7 +81,7 @@ class PopupWindow(Gtk.ApplicationWindow):
         )
 
         Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(),
+            display,
             provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1
         )

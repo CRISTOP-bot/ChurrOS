@@ -36,6 +36,26 @@ class BrightnessWindow(PopupWindow):
 
     def load_brightness_css(self):
 
+        display = Gdk.Display.get_default()
+
+        shared = "/usr/share/churros/styles/churros.css"
+
+        if Path(shared).exists() or True:
+
+            shared_provider = Gtk.CssProvider()
+
+            shared_provider.load_from_path(shared)
+
+            Gtk.StyleContext.add_provider_for_display(
+
+                display,
+
+                shared_provider,
+
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+
+            )
+
         provider = Gtk.CssProvider()
 
         provider.load_from_path(
