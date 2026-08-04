@@ -333,7 +333,17 @@ class PreferencesWindow(Gtk.ApplicationWindow):
 
     def _reload_css_providers(self):
 
-        """Recarga style.css en providers registrados y refresca accent.css."""
+        """Re-carga style.css y accent.css en providers ya registrados.
+
+        Antes iterabamos list_providers() y le haciamos load_from_path(style.css)
+        sobre cada uno, lo que pisaba el contenido de accent.css en su propio
+        provider. Ademas cargabamos un CssProvider nuevo para accent.css en
+        cada refresh_theme(), acumulando providers con el mismo contenido pero
+        prioridad USER+1; tras varios toggles de modo oscuro la cascada se
+        corrompia y la ventana quedaba en negro.
+
+        Ahora mantenemos dos providers singleton y solo los recargamos.
+        """
 
         import os
 
@@ -354,54 +364,80 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             display = Gdk.Display.get_default()
 
             if display is None:
+
                 return
 
             style_path = os.path.join(
+
                 os.path.dirname(os.path.abspath(__file__)),
+
                 "style.css"
+
             )
 
             accent_path = os.path.expanduser(
+
                 "~/.config/churros/accent.css"
+
             )
 
-            providers = Gtk.StyleContext.list_providers(display) or []
+            if not hasattr(self, "_style_provider") or self._style_provider is None:
 
-            for entry in providers:
+                self._style_provider = Gtk.CssProvider()
 
-                try:
+                Gtk.StyleContext.add_provider_for_display(
 
-                    _, provider = entry
+                    display,
 
-                except Exception:
+                    self._style_provider,
 
-                    provider = entry
+                    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
 
-                try:
+                )
 
-                    provider.load_from_path(style_path)
+            if not hasattr(self, "_accent_provider") or self._accent_provider is None:
 
-                except Exception:
+                self._accent_provider = Gtk.CssProvider()
 
-                    pass
+                Gtk.StyleContext.add_provider_for_display(
+
+                    display,
+
+                    self._accent_provider,
+
+                    Gtk.STYLE_PROVIDER_PRIORITY_USER
+
+                )
+
+            try:
+
+                self._style_provider.load_from_path(style_path)
+
+            except Exception as exc:
+
+                print("[preferences] reload style.css:", exc)
 
             if os.path.exists(accent_path):
 
                 try:
 
-                    accent_provider = Gtk.CssProvider()
-                    accent_provider.load_from_path(accent_path)
+                    self._accent_provider.load_from_path(accent_path)
 
-                    Gtk.StyleContext.add_provider_for_display(
-                        display,
-                        accent_provider,
-                        Gtk.STYLE_PROVIDER_PRIORITY_USER + 1
-                    )
+                except Exception as exc:
+
+                    print("[preferences] reload accent.css:", exc)
+
+            else:
+
+                try:
+
+                    self._accent_provider.load_from_data(b"")
 
                 except Exception:
 
                     pass
 
-        except Exception:
+        except Exception as exc:
 
-            pass
+            print("[preferences] _reload_css_providers:", exc)
+
