@@ -5,6 +5,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, Gio, GLib, Gdk
 
 from services.theme import ThemeService
+from services.settings import SettingsService
 
 from widgets.sidebar import Sidebar
 from widgets.navigator import Navigator
@@ -252,8 +253,17 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         # Página inicial
         #
 
-        self.navigator.show_page(
+        last_page = SettingsService.get(
+            "preferences.last_page",
             "system"
+        )
+
+        self.navigator.show_page(
+            last_page
+        )
+
+        self.sidebar.select(
+            last_page
         )
 
         #
@@ -270,6 +280,11 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         sidebar,
         page
     ):
+
+        SettingsService.set(
+            "preferences.last_page",
+            page
+        )
 
         self.navigator.show_page(
             page

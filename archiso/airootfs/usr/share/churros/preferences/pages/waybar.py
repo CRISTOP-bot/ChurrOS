@@ -336,20 +336,38 @@ class WaybarPage(Page):
 
     def _reset_defaults(self):
 
-        WaybarService.reset()
+        dialog = Gtk.AlertDialog()
 
-        try:
-            self.values = WaybarService.get()
-        except Exception:
-            self.values = WaybarService.defaults()
+        dialog.set_heading("Restablecer Waybar")
+        dialog.set_message("¿Seguro que quieres restaurar la configuracion por defecto de ChurrOS? Perderás todos los cambios realizados.")
+        dialog.set_modal(True)
+        dialog.set_buttons(["Cancelar", "Restablecer"])
 
-        content = self.content
-        child = content.get_first_child()
-        while child is not None:
-            nxt = child.get_next_sibling()
-            content.remove(child)
-            child = nxt
+        def on_response(d, result):
+            try:
+                response = d.choose_finish(result)
+            except Exception:
+                return
 
-        self._build()
+            if response != 1:
+                return
 
-        WaybarService.reload(full_restart=True)
+            WaybarService.reset()
+
+            try:
+                self.values = WaybarService.get()
+            except Exception:
+                self.values = WaybarService.defaults()
+
+            content = self.content
+            child = content.get_first_child()
+            while child is not None:
+                nxt = child.get_next_sibling()
+                content.remove(child)
+                child = nxt
+
+            self._build()
+
+            WaybarService.reload(full_restart=True)
+
+        dialog.choose(self.get_root(), None, on_response)
