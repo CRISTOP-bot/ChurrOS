@@ -17,6 +17,7 @@ from pages.cursor import CursorPage
 from pages.fonts import FontsPage
 from pages.wallpaper import WallpaperPage
 from pages.waybar import WaybarPage
+from pages.niri import NiriPage
 
 from pages.audio import AudioPage
 from pages.connectivity import ConnectivityPage
@@ -211,6 +212,11 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         self.navigator.add_page(
             "waybar",
             WaybarPage(self.navigator)
+        )
+
+        self.navigator.add_page(
+            "niri",
+            NiriPage(self.navigator)
         )
 
         self.navigator.add_page(

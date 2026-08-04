@@ -444,3 +444,545 @@ class NiriConfig:
         cls._write_atomic(
             new_content
         )
+
+    # --------------------------------------------------------------- Layout
+
+    @classmethod
+    def set_gaps(
+        cls,
+        gaps
+    ):
+
+        content = cls._read()
+
+        pattern = re.compile(
+            r"^layout\s*\{([^{}]*)\}",
+            re.MULTILINE | re.DOTALL
+        )
+
+        match = pattern.search(content)
+
+        if match:
+
+            block = match.group(1)
+
+            new_block = re.sub(
+                r"gaps[ \t]+[0-9]+",
+                "gaps " + str(int(gaps)),
+                block,
+                count=1
+            )
+
+            if new_block == block:
+
+                if re.search(r"gaps", block):
+
+                    new_block = re.sub(
+                        r"gaps[ \t]+[0-9]+",
+                        "gaps " + str(int(gaps)),
+                        block,
+                        count=1
+                    )
+
+                else:
+
+                    new_block = block + "    gaps " + str(int(gaps)) + "\n"
+
+            new_full = "layout {" + new_block + "}"
+
+            new_content = pattern.sub(
+                new_full,
+                content,
+                count=1
+            )
+
+        else:
+
+            new_content = cls._append(
+                content,
+                "layout {\n    gaps " + str(int(gaps)) + "\n}"
+            )
+
+        cls._write_atomic(new_content)
+
+    # --------------------------------------------------------------- Border
+
+    @classmethod
+    def set_border(
+        cls,
+        on,
+        width=None,
+        active_color=None,
+        inactive_color=None
+    ):
+
+        content = cls._read()
+
+        layout_pattern = re.compile(
+            r"^layout\s*\{([^{}]*)\}",
+            re.MULTILINE | re.DOTALL
+        )
+
+        match = layout_pattern.search(content)
+
+        existing = ""
+
+        if match:
+
+            existing = match.group(1)
+
+        border_pattern = re.compile(
+            r"border\s*\{([^{}]*)\}",
+            re.DOTALL
+        )
+
+        border_match = border_pattern.search(existing)
+
+        if not on:
+
+            if border_match:
+
+                new_existing = border_pattern.sub(
+                    "",
+                    existing
+                )
+
+                new_full = "layout {" + new_existing + "}"
+
+                new_content = layout_pattern.sub(
+                    new_full,
+                    content,
+                    count=1
+                )
+
+                cls._write_atomic(new_content)
+
+            return
+
+        width_str = ""
+
+        if width is not None:
+
+            width_str = "    width " + str(int(width)) + "\n"
+
+        active_str = ""
+
+        if active_color is not None:
+
+            active_str = "    active-color \"" + str(active_color) + "\"\n"
+
+        inactive_str = ""
+
+        if inactive_color is not None:
+
+            inactive_str = "    inactive-color \"" + str(inactive_color) + "\"\n"
+
+        new_border = "border {\n" + width_str + active_str + inactive_str + "}"
+
+        if border_match:
+
+            new_existing = border_pattern.sub(
+                new_border,
+                existing
+            )
+
+        else:
+
+            new_existing = existing + "    " + new_border + "\n"
+
+        new_full = "layout {" + new_existing + "}"
+
+        new_content = layout_pattern.sub(
+            new_full,
+            content,
+            count=1
+        )
+
+        cls._write_atomic(new_content)
+
+    # ----------------------------------------------------------- Focus ring
+
+    @classmethod
+    def set_focus_ring(
+        cls,
+        on
+    ):
+
+        content = cls._read()
+
+        layout_pattern = re.compile(
+            r"^layout\s*\{([^{}]*)\}",
+            re.MULTILINE | re.DOTALL
+        )
+
+        match = layout_pattern.search(content)
+
+        existing = ""
+
+        if match:
+
+            existing = match.group(1)
+
+        fr_pattern = re.compile(
+            r"focus-ring\s*\{([^{}]*)\}",
+            re.DOTALL
+        )
+
+        fr_match = fr_pattern.search(existing)
+
+        if not on:
+
+            if fr_match:
+
+                new_existing = fr_pattern.sub(
+                    "",
+                    existing
+                )
+
+                new_full = "layout {" + new_existing + "}"
+
+                new_content = layout_pattern.sub(
+                    new_full,
+                    content,
+                    count=1
+                )
+
+                cls._write_atomic(new_content)
+
+            else:
+
+                new_existing = existing + "    focus-ring {\n        off\n    }\n"
+
+                new_full = "layout {" + new_existing + "}"
+
+                new_content = layout_pattern.sub(
+                    new_full,
+                    content,
+                    count=1
+                )
+
+                cls._write_atomic(new_content)
+
+            return
+
+        if fr_match:
+
+            block = fr_match.group(1)
+
+            if re.search(r"\boff\b", block):
+
+                new_block = re.sub(
+                    r"off\s*\n?",
+                    "",
+                    block
+                )
+
+                new_existing = fr_pattern.sub(
+                    "focus-ring {" + new_block + "}",
+                    existing
+                )
+
+                new_full = "layout {" + new_existing + "}"
+
+                new_content = layout_pattern.sub(
+                    new_full,
+                    content,
+                    count=1
+                )
+
+                cls._write_atomic(new_content)
+
+            return
+
+        new_existing = existing + "    focus-ring {\n        on\n    }\n"
+
+        new_full = "layout {" + new_existing + "}"
+
+        new_content = layout_pattern.sub(
+            new_full,
+            content,
+            count=1
+        )
+
+        cls._write_atomic(new_content)
+
+    # ---------------------------------------------------------------- Blur
+
+    @classmethod
+    def set_blur(
+        cls,
+        passes=None,
+        offset=None,
+        noise=None,
+        saturation=None
+    ):
+
+        content = cls._read()
+
+        pattern = re.compile(
+            r"^blur\s*\{([^{}]*)\}",
+            re.MULTILINE | re.DOTALL
+        )
+
+        match = pattern.search(content)
+
+        parts = []
+
+        if passes is not None:
+
+            parts.append("    passes " + str(int(passes)) + "\n")
+
+        if offset is not None:
+
+            parts.append("    offset " + str(int(offset)) + "\n")
+
+        if noise is not None:
+
+            parts.append("    noise " + str(float(noise)) + "\n")
+
+        if saturation is not None:
+
+            parts.append("    saturation " + str(float(saturation)) + "\n")
+
+        new_block = "blur {\n" + "".join(parts) + "}"
+
+        if match:
+
+            new_content = pattern.sub(
+                new_block,
+                content,
+                count=1
+            )
+
+        else:
+
+            new_content = cls._append(
+                content,
+                new_block
+            )
+
+        cls._write_atomic(new_content)
+
+    # ------------------------------------------------------- prefer-no-csd
+
+    @classmethod
+    def set_prefer_no_csd(
+        cls,
+        value
+    ):
+
+        content = cls._read()
+
+        pattern = re.compile(
+            r"^prefer-no-csd\b[^\n]*\n",
+            re.MULTILINE
+        )
+
+        line = "prefer-no-csd\n" if value else "prefer-no-csd false\n"
+
+        if pattern.search(content):
+
+            new_content = pattern.sub(
+                line,
+                content,
+                count=1
+            )
+
+        else:
+
+            new_content = cls._append(
+                content,
+                line.rstrip("\n")
+            )
+
+        cls._write_atomic(new_content)
+
+    # --------------------------------------------------------------- Getters
+
+    @classmethod
+    def get_gaps(cls):
+
+        content = cls._read()
+
+        match = re.search(
+            r"^layout\s*\{[^{}]*\bgaps[ \t]+([0-9]+)",
+            content,
+            re.MULTILINE | re.DOTALL
+        )
+
+        return int(match.group(1)) if match else 8
+
+    @classmethod
+    def get_border(cls):
+
+        content = cls._read()
+
+        layout = re.search(
+            r"^layout\s*\{([^{}]*)\}",
+            content,
+            re.MULTILINE | re.DOTALL
+        )
+
+        if not layout:
+
+            return {
+                "on": False,
+                "width": 2,
+                "active_color": "#DE8636",
+                "inactive_color": "#766561"
+            }
+
+        block = layout.group(1)
+
+        border = re.search(
+            r"border\s*\{([^{}]*)\}",
+            block,
+            re.DOTALL
+        )
+
+        if not border:
+
+            return {
+                "on": False,
+                "width": 2,
+                "active_color": "#DE8636",
+                "inactive_color": "#766561"
+            }
+
+        b = border.group(1)
+
+        on = not bool(re.search(r"\boff\b", b))
+
+        width_match = re.search(r"width[ \t]+([0-9]+)", b)
+
+        width = int(width_match.group(1)) if width_match else 2
+
+        active_match = re.search(r"active-color[ \t]+\"([^\"]+)\"", b)
+
+        active = active_match.group(1) if active_match else "#DE8636"
+
+        inactive_match = re.search(r"inactive-color[ \t]+\"([^\"]+)\"", b)
+
+        inactive = inactive_match.group(1) if inactive_match else "#766561"
+
+        return {
+            "on": on,
+            "width": width,
+            "active_color": active,
+            "inactive_color": inactive
+        }
+
+    @classmethod
+    def get_focus_ring(cls):
+
+        content = cls._read()
+
+        layout = re.search(
+            r"^layout\s*\{([^{}]*)\}",
+            content,
+            re.MULTILINE | re.DOTALL
+        )
+
+        if not layout:
+
+            return False
+
+        block = layout.group(1)
+
+        fr = re.search(
+            r"focus-ring\s*\{([^{}]*)\}",
+            block,
+            re.DOTALL
+        )
+
+        if not fr:
+
+            return False
+
+        return not bool(re.search(r"\boff\b", fr.group(1)))
+
+    @classmethod
+    def get_blur(cls):
+
+        content = cls._read()
+
+        match = re.search(
+            r"^blur\s*\{([^{}]*)\}",
+            content,
+            re.MULTILINE | re.DOTALL
+        )
+
+        if not match:
+
+            return {"passes": 2, "offset": 2, "noise": 0, "saturation": 1.2}
+
+        b = match.group(1)
+
+        def _int(key, default):
+
+            m = re.search(key + r"[ \t]+([0-9]+)", b)
+
+            return int(m.group(1)) if m else default
+
+        def _float(key, default):
+
+            m = re.search(key + r"[ \t]+([0-9]+(?:\.[0-9]+)?)", b)
+
+            return float(m.group(1)) if m else default
+
+        return {
+            "passes": _int("passes", 2),
+            "offset": _int("offset", 2),
+            "noise": _float("noise", 0),
+            "saturation": _float("saturation", 1.2)
+        }
+
+    @classmethod
+    def get_prefer_no_csd(cls):
+
+        content = cls._read()
+
+        match = re.search(
+            r"^prefer-no-csd\b[ \t]*(\S*)",
+            content,
+            re.MULTILINE
+        )
+
+        if not match:
+
+            return True
+
+        val = match.group(1).strip()
+
+        if val == "false":
+
+            return False
+
+        return True
+
+    @classmethod
+    def get_cursor_size(cls):
+
+        content = cls._read()
+
+        match = re.search(
+            r"xcursor-size[ \t]+([0-9]+)",
+            content
+        )
+
+        return int(match.group(1)) if match else 24
+
+    @classmethod
+    def reload(cls):
+
+        try:
+
+            import subprocess
+
+            subprocess.Popen(
+                ["niri", "msg", "action", "do-screen-transition"]
+            )
+
+        except Exception:
+
+            pass
