@@ -13,11 +13,18 @@ from ui.footer import build_footer
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CSS_PATH = BASE_DIR / "assets" / "style.css"
+SHARED_CSS = "/usr/share/churros/styles/churros.css"
 
 
 def load_css():
 
     provider = Gtk.CssProvider()
+
+    shared = Path(SHARED_CSS)
+
+    if shared.exists():
+        provider.load_from_path(str(shared))
+
     provider.load_from_path(str(CSS_PATH))
 
     Gtk.StyleContext.add_provider_for_display(
