@@ -1,4 +1,7 @@
 import os
+import subprocess
+
+from services.settings import SettingsService
 
 
 class PrivacyService:
@@ -6,50 +9,127 @@ class PrivacyService:
     @staticmethod
     def location():
 
-        #
-        # Más adelante leeremos la configuración
-        # del servicio de ubicación.
-        #
+        return SettingsService.get(
+            "privacy.location",
+            False
+        )
 
-        return False
+    @staticmethod
+    def set_location(value):
+
+        SettingsService.set(
+            "privacy.location",
+            value
+        )
 
     @staticmethod
     def camera():
 
-        #
-        # Más adelante integraremos PipeWire
-        # y xdg-desktop-portal.
-        #
+        return SettingsService.get(
+            "privacy.camera",
+            True
+        )
 
-        return True
+    @staticmethod
+    def set_camera(value):
+
+        SettingsService.set(
+            "privacy.camera",
+            value
+        )
 
     @staticmethod
     def microphone():
 
-        #
-        # Más adelante integraremos PipeWire.
-        #
+        return SettingsService.get(
+            "privacy.microphone",
+            True
+        )
 
-        return True
+    @staticmethod
+    def set_microphone(value):
+
+        SettingsService.set(
+            "privacy.microphone",
+            value
+        )
 
     @staticmethod
     def telemetry():
 
-        #
-        # ChurrOS no enviará telemetría
-        # por defecto.
-        #
+        return SettingsService.get(
+            "privacy.telemetry",
+            False
+        )
 
-        return False
+    @staticmethod
+    def set_telemetry(value):
+
+        SettingsService.set(
+            "privacy.telemetry",
+            value
+        )
 
     @staticmethod
     def firewall():
 
         try:
 
-            return os.system(
-                "systemctl is-active --quiet ufw"
+            return subprocess.call(
+                [
+                    "systemctl",
+                    "is-active",
+                    "--quiet",
+                    "ufw"
+                ]
             ) == 0
+
+        except Exception:
+
+            return False
+
+    @staticmethod
+    def set_firewall(value):
+
+        action = "enable" if value else "disable"
+
+        try:
+
+            if os.geteuid() == 0:
+
+                subprocess.call(
+                    [
+                        "systemctl",
+                        action,
+                        "ufw.service"
+                    ]
+                )
+
+                subprocess.call(
+                    ["ufw", "--force", "enable" if value else "disable"]
+                )
+
+            else:
+
+                subprocess.call(
+                    [
+                        "pkexec",
+                        "systemctl",
+                        action,
+                        "ufw.service"
+                    ]
+                )
+
+                subprocess.call(
+                    [
+                        "pkexec",
+                        "ufw",
+                        "--force",
+                        "enable" if value else "disable"
+                    ]
+                )
+
+            return True
 
         except Exception:
 
@@ -58,28 +138,23 @@ class PrivacyService:
     @staticmethod
     def screen_lock():
 
-        #
-        # Más adelante leeremos
-        # la configuración de Noctalia.
-        #
-
-        return True
+        return SettingsService.get(
+            "privacy.screen_lock",
+            True
+        )
 
     @staticmethod
     def history():
 
-        #
-        # Historial de archivos recientes.
-        #
-
-        return True
+        return SettingsService.get(
+            "privacy.history",
+            True
+        )
 
     @staticmethod
     def crash_reports():
 
-        #
-        # En futuras versiones podremos
-        # activar el envío de reportes.
-        #
-
-        return False
+        return SettingsService.get(
+            "privacy.crash_reports",
+            False
+        )

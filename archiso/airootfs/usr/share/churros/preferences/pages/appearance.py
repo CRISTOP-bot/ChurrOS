@@ -11,6 +11,7 @@ from gi.repository import GLib
 
 from services.theme import ThemeService
 from services.settings import SettingsService
+from services.pywal_service import PywalService
 
 
 class AppearancePage(Page):
@@ -281,10 +282,16 @@ class AppearancePage(Page):
 
     ):
 
-        SettingsService.set(
+        PywalService.toggle(active)
 
-            "theme.dynamic_colors",
+        try:
 
-            active
+            window = self.get_root()
 
-        )
+            if hasattr(window, "refresh_theme"):
+
+                GLib.idle_add(window.refresh_theme)
+
+        except Exception:
+
+            pass

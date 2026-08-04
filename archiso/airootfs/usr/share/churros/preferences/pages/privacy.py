@@ -22,7 +22,6 @@ class PrivacyPage(Page):
         permissions = Group(
             "Permisos"
         )
-
         permissions.add(
 
             SwitchRow(
@@ -33,7 +32,9 @@ class PrivacyPage(Page):
 
                 icon="privacy.svg",
 
-                active=PrivacyService.location()
+                active=PrivacyService.location(),
+
+                callback=PrivacyService.set_location
 
             )
 
@@ -49,7 +50,9 @@ class PrivacyPage(Page):
 
                 icon="privacy.svg",
 
-                active=PrivacyService.camera()
+                active=PrivacyService.camera(),
+
+                callback=PrivacyService.set_camera
 
             )
 
@@ -65,16 +68,53 @@ class PrivacyPage(Page):
 
                 icon="privacy.svg",
 
-                active=PrivacyService.microphone()
+                active=PrivacyService.microphone(),
+
+                callback=PrivacyService.set_microphone
 
             )
 
         )
 
         self.add(
+
             permissions
+
         )
 
+        #
+        # Firewall
+        #
+
+        firewall = Group(
+
+            "Firewall"
+
+        )
+
+        firewall.add(
+
+            SwitchRow(
+
+                title="Firewall (ufw)",
+
+                subtitle="Activar el firewall del sistema",
+
+                icon="privacy.svg",
+
+                active=PrivacyService.firewall(),
+
+                callback=PrivacyService.set_firewall
+
+            )
+
+        )
+
+        self.add(
+
+            firewall
+
+        )
         #
         # Diagnóstico
         #
@@ -93,7 +133,9 @@ class PrivacyPage(Page):
 
                 icon="privacy.svg",
 
-                active=PrivacyService.telemetry()
+                active=PrivacyService.telemetry(),
+
+                callback=PrivacyService.set_telemetry
 
             )
 

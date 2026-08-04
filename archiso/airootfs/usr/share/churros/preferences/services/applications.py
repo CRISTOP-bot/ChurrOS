@@ -1,5 +1,7 @@
 import subprocess
 
+from services.settings import SettingsService
+
 
 class ApplicationsService:
 
@@ -21,9 +23,13 @@ class ApplicationsService:
             )
 
             return str(
+
                 len(
+
                     result.stdout.splitlines()
+
                 )
+
             )
 
         except Exception:
@@ -38,21 +44,46 @@ class ApplicationsService:
     @staticmethod
     def auto_updates():
 
-        #
-        # Más adelante leeremos
-        # la configuración de ChurrOS Update.
-        #
+        return SettingsService.get(
 
-        return True
+            "applications.auto_updates",
+
+            True
+
+        )
+
+    @staticmethod
+    def set_auto_updates(value):
+
+        SettingsService.set(
+
+            "applications.auto_updates",
+
+            value
+
+        )
 
     @staticmethod
     def auto_install():
 
-        #
-        # Todavía no implementado.
-        #
+        return SettingsService.get(
 
-        return False
+            "applications.auto_install",
+
+            False
+
+        )
+
+    @staticmethod
+    def set_auto_install(value):
+
+        SettingsService.set(
+
+            "applications.auto_install",
+
+            value
+
+        )
 
     @staticmethod
     def package_manager():

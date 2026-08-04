@@ -78,7 +78,9 @@ class ApplicationsPage(Page):
 
                 icon="applications.svg",
 
-                active=ApplicationsService.auto_updates()
+                active=ApplicationsService.auto_updates(),
+
+                callback=ApplicationsService.set_auto_updates
 
             )
 
@@ -94,7 +96,9 @@ class ApplicationsPage(Page):
 
                 icon="applications.svg",
 
-                active=ApplicationsService.auto_install()
+                active=ApplicationsService.auto_install(),
+
+                callback=ApplicationsService.set_auto_install
 
             )
 

@@ -61,7 +61,15 @@ class WallpaperService:
     @classmethod
     def set(cls, path):
         SettingsService.set("wallpaper.path", path)
-        return cls.apply(path)
+        applied = cls.apply(path)
+
+        try:
+            from services.pywal_service import PywalService
+            PywalService.regenerate_if_enabled()
+        except Exception as exc:
+            print("[wallpaper] pywal hook fallo:", exc, flush=True)
+
+        return applied
 
     @classmethod
     def apply(cls, path):
