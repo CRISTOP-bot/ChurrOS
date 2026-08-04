@@ -6,6 +6,7 @@
 ./churros build      # Build ISO (runs from repo root; needs sudo for mkarchiso)
 ./churros run        # Build (if needed) and launch QEMU
 ./churros run --nokvm  # Force software emulation (no /dev/kvm)
+./churros run --fresh  # Reset OVMF_VARS.fd so UEFI boots from CD-ROM instead of an existing install
 ./churros clean      # Remove work/ and out/ (also runs sudo rm -rf)
 ./churros check      # Static checks: bash, python, package list, niri autostart, po files
 ./churros doctor     # Check for mkarchiso, qemu, xorriso, mksquashfs, mcopy, mkinitcpio

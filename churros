@@ -52,6 +52,7 @@ echo
 echo "  ./churros build"
 echo "  ./churros run"
 echo "  ./churros run --nokvm"
+echo "  ./churros run --fresh"
 echo "  ./churros check"
 echo "  ./churros doctor"
 echo
