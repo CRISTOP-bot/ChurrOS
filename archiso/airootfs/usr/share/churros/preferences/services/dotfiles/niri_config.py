@@ -105,6 +105,155 @@ class NiriConfig:
         return None
 
     @classmethod
+    def _parse_lines(cls, content):
+
+        """Devuelve una lista de (line, depth, indent_str).
+
+        depth cuenta el numero de bloques abiertos en esa linea.
+        Las lineas con '{' incrementan depth para las siguientes.
+        """
+
+        lines = content.splitlines()
+        depth = 0
+        result = []
+        for raw in lines:
+            stripped = raw.strip()
+            open_in_line = stripped.count("{")
+            close_in_line = stripped.count("}")
+            indent = raw[:len(raw) - len(raw.lstrip())]
+
+            effective_depth = depth + max(open_in_line - close_in_line, 0)
+
+            if stripped.endswith("{"):
+                depth += 1
+            elif "}" in stripped:
+                depth -= stripped.count("}")
+
+            result.append((raw, effective_depth, indent))
+
+        return result
+
+    @classmethod
+    def _find_block(cls, content, path):
+
+        """Encuentra (start_line_idx, end_line_idx) del bloque en path.
+
+        path es una lista de nombres, p.ej. ['layout', 'border'].
+        Devuelve indices sobre splitlines(); el bloque incluye la
+        linea de apertura 'path[-1] {' y la linea de cierre '}'.
+        """
+
+        lines = content.splitlines()
+        stack = []
+
+        for i, raw in enumerate(lines):
+
+            stripped = raw.strip()
+
+            if not stripped or stripped.startswith("//"):
+                continue
+
+            if stripped.endswith("{"):
+
+                name = stripped.rstrip("{").strip()
+                name = re.sub(r'"\s*"$', '"', name).strip()
+                name = name.split("=", 1)[0].strip()
+                name = name.strip('"')
+
+                stack.append((i, name))
+
+            elif stripped == "}" or stripped.startswith("}"):
+
+                if stack:
+
+                    start_idx, name = stack[-1]
+
+                    full_path = [n for _, n in stack]
+                    if full_path == path:
+                        return start_idx, i
+
+                    stack.pop()
+
+        return None, None
+
+    @classmethod
+    def _update_value_in_block(cls, content, path, key, value):
+
+        """Actualiza o inserta 'key=value' dentro del bloque en path.
+
+        Mantiene indentacion y formato de lineas existentes. Si el
+        bloque no existe, devuelve None (el caller debe crearlo).
+        """
+
+        lines = content.splitlines()
+
+        start, end = cls._find_block(content, path)
+
+        if start is None:
+            return None
+
+        header_line = lines[start]
+        m = re.match(r"^(\s*)", header_line)
+        base_indent = m.group(1) if m else ""
+        inner_indent = base_indent + "    "
+
+        for j in range(start + 1, end):
+
+            stripped = lines[j].strip()
+
+            if stripped.startswith(key + " ") or stripped.startswith(key + "="):
+
+                lines[j] = inner_indent + key + " " + str(value)
+                return "\n".join(lines)
+
+        insert_line = inner_indent + key + " " + str(value)
+        lines.insert(end, insert_line)
+
+        return "\n".join(lines)
+
+    @classmethod
+    def _create_block(cls, content, path, body_lines=None):
+
+        """Crea el bloque en path al final del config.
+
+        Crea cada padre si no existe. body_lines: lista de strings
+        para el contenido interno (con indentacion apropiada).
+        """
+
+        if body_lines is None:
+            body_lines = []
+
+        current = path[:-1]
+        block_name = path[-1]
+
+        for i in range(1, len(path) + 1):
+
+            sub_path = path[:i]
+            _, found_end = cls._find_block(content, list(sub_path))
+
+            if found_end is None:
+
+                indent = "    " * (len(sub_path) - 1)
+
+                lines = body_lines if i == len(path) else []
+
+                block_str = indent + sub_path[-1] + " {\n"
+
+                for ln in lines:
+                    block_str += indent + "    " + ln + "\n"
+
+                block_str += indent + "}\n"
+
+                if content and not content.endswith("\n"):
+                    content += "\n"
+
+                content += block_str
+
+                return content
+
+        return content
+
+    @classmethod
     def _replace_value(
         cls,
         content,
@@ -454,56 +603,22 @@ class NiriConfig:
     ):
 
         content = cls._read()
-
-        pattern = re.compile(
-            r"^layout\s*\{([^{}]*)\}",
-            re.MULTILINE | re.DOTALL
+        result = cls._update_value_in_block(
+            content,
+            ["layout"],
+            "gaps",
+            str(int(gaps))
         )
 
-        match = pattern.search(content)
+        if result is None:
 
-        if match:
-
-            block = match.group(1)
-
-            new_block = re.sub(
-                r"gaps[ \t]+[0-9]+",
-                "gaps " + str(int(gaps)),
-                block,
-                count=1
-            )
-
-            if new_block == block:
-
-                if re.search(r"gaps", block):
-
-                    new_block = re.sub(
-                        r"gaps[ \t]+[0-9]+",
-                        "gaps " + str(int(gaps)),
-                        block,
-                        count=1
-                    )
-
-                else:
-
-                    new_block = block + "    gaps " + str(int(gaps)) + "\n"
-
-            new_full = "layout {" + new_block + "}"
-
-            new_content = pattern.sub(
-                new_full,
+            result = cls._create_block(
                 content,
-                count=1
+                ["layout"],
+                ["gaps " + str(int(gaps))]
             )
 
-        else:
-
-            new_content = cls._append(
-                content,
-                "layout {\n    gaps " + str(int(gaps)) + "\n}"
-            )
-
-        cls._write_atomic(new_content)
+        cls._write_atomic(result)
 
     # --------------------------------------------------------------- Border
 
@@ -518,87 +633,94 @@ class NiriConfig:
 
         content = cls._read()
 
-        layout_pattern = re.compile(
-            r"^layout\s*\{([^{}]*)\}",
-            re.MULTILINE | re.DOTALL
-        )
-
-        match = layout_pattern.search(content)
-
-        existing = ""
-
-        if match:
-
-            existing = match.group(1)
-
-        border_pattern = re.compile(
-            r"border\s*\{([^{}]*)\}",
-            re.DOTALL
-        )
-
-        border_match = border_pattern.search(existing)
+        start, end = cls._find_block(content, ["layout", "border"])
 
         if not on:
 
-            if border_match:
+            if start is not None:
 
-                new_existing = border_pattern.sub(
-                    "",
-                    existing
-                )
-
-                new_full = "layout {" + new_existing + "}"
-
-                new_content = layout_pattern.sub(
-                    new_full,
-                    content,
-                    count=1
-                )
-
-                cls._write_atomic(new_content)
+                lines = content.splitlines(True)
+                del lines[start:end + 1]
+                cls._write_atomic("".join(lines))
 
             return
 
-        width_str = ""
+        if start is None:
+
+            body = []
+            if width is not None:
+                body.append("width " + str(int(width)))
+            if active_color is not None:
+                body.append("active-color \"" + str(active_color) + "\"")
+            if inactive_color is not None:
+                body.append("inactive-color \"" + str(inactive_color) + "\"")
+
+            _, parent_end = cls._find_block(content, ["layout"])
+
+            if parent_end is None:
+
+                result = cls._create_block(
+                    content,
+                    ["layout", "border"],
+                    body
+                )
+
+            else:
+
+                lines = content.splitlines(True)
+                indent = "    "
+                block_str = indent + "border {\n"
+                for ln in body:
+                    block_str += indent + "    " + ln + "\n"
+                block_str += indent + "}\n"
+                lines.insert(parent_end, block_str)
+                result = "".join(lines)
+
+            cls._write_atomic(result)
+
+            return
+
+        lines = content.splitlines(False)
+
+        child_indent = "            "
 
         if width is not None:
 
-            width_str = "    width " + str(int(width)) + "\n"
+            updated = cls._update_value_in_block(
+                "\n".join(lines),
+                ["layout", "border"],
+                "width",
+                str(int(width))
+            )
 
-        active_str = ""
+            if updated is not None:
+                lines = updated.splitlines(False)
 
         if active_color is not None:
 
-            active_str = "    active-color \"" + str(active_color) + "\"\n"
+            updated = cls._update_value_in_block(
+                "\n".join(lines),
+                ["layout", "border"],
+                "active-color",
+                "\"" + str(active_color) + "\""
+            )
 
-        inactive_str = ""
+            if updated is not None:
+                lines = updated.splitlines(False)
 
         if inactive_color is not None:
 
-            inactive_str = "    inactive-color \"" + str(inactive_color) + "\"\n"
-
-        new_border = "border {\n" + width_str + active_str + inactive_str + "}"
-
-        if border_match:
-
-            new_existing = border_pattern.sub(
-                new_border,
-                existing
+            updated = cls._update_value_in_block(
+                "\n".join(lines),
+                ["layout", "border"],
+                "inactive-color",
+                "\"" + str(inactive_color) + "\""
             )
 
-        else:
+            if updated is not None:
+                lines = updated.splitlines(False)
 
-            new_existing = existing + "    " + new_border + "\n"
-
-        new_full = "layout {" + new_existing + "}"
-
-        new_content = layout_pattern.sub(
-            new_full,
-            content,
-            count=1
-        )
-
-        cls._write_atomic(new_content)
+        cls._write_atomic("\n".join(lines))
 
     # ----------------------------------------------------------- Focus ring
 
@@ -610,101 +732,96 @@ class NiriConfig:
 
         content = cls._read()
 
-        layout_pattern = re.compile(
-            r"^layout\s*\{([^{}]*)\}",
-            re.MULTILINE | re.DOTALL
-        )
-
-        match = layout_pattern.search(content)
-
-        existing = ""
-
-        if match:
-
-            existing = match.group(1)
-
-        fr_pattern = re.compile(
-            r"focus-ring\s*\{([^{}]*)\}",
-            re.DOTALL
-        )
-
-        fr_match = fr_pattern.search(existing)
+        start, end = cls._find_block(content, ["layout", "focus-ring"])
 
         if not on:
 
-            if fr_match:
+            if start is not None:
 
-                new_existing = fr_pattern.sub(
-                    "",
-                    existing
-                )
-
-                new_full = "layout {" + new_existing + "}"
-
-                new_content = layout_pattern.sub(
-                    new_full,
-                    content,
-                    count=1
-                )
-
-                cls._write_atomic(new_content)
+                lines = content.splitlines(True)
+                del lines[start:end + 1]
+                cls._write_atomic("".join(lines))
 
             else:
 
-                new_existing = existing + "    focus-ring {\n        off\n    }\n"
+                parent_end = None
+                _, parent_end = cls._find_block(content, ["layout"])
 
-                new_full = "layout {" + new_existing + "}"
+                if parent_end is None:
 
-                new_content = layout_pattern.sub(
-                    new_full,
-                    content,
-                    count=1
-                )
+                    result = cls._create_block(
+                        content,
+                        ["layout", "focus-ring"],
+                        ["off"]
+                    )
 
-                cls._write_atomic(new_content)
+                else:
 
-            return
+                    lines = content.splitlines(True)
+                    block_str = "    focus-ring {\n        off\n    }\n"
+                    lines.insert(parent_end, block_str)
+                    result = "".join(lines)
 
-        if fr_match:
-
-            block = fr_match.group(1)
-
-            if re.search(r"\boff\b", block):
-
-                new_block = re.sub(
-                    r"off\s*\n?",
-                    "",
-                    block
-                )
-
-                new_existing = fr_pattern.sub(
-                    "focus-ring {" + new_block + "}",
-                    existing
-                )
-
-                new_full = "layout {" + new_existing + "}"
-
-                new_content = layout_pattern.sub(
-                    new_full,
-                    content,
-                    count=1
-                )
-
-                cls._write_atomic(new_content)
+                cls._write_atomic(result)
 
             return
 
-        new_existing = existing + "    focus-ring {\n        on\n    }\n"
+        if start is not None:
 
-        new_full = "layout {" + new_existing + "}"
+            lines = content.splitlines(False)
 
-        new_content = layout_pattern.sub(
-            new_full,
-            content,
-            count=1
-        )
+            inner = [l for l in lines[start + 1:end]
+                     if l.strip() and l.strip() != "off"]
 
-        cls._write_atomic(new_content)
+            has_on = any(l.strip() == "on" for l in inner)
+
+            if not has_on:
+
+                insert_idx = None
+                for k in range(start + 1, end):
+                    if lines[k].strip():
+                        insert_idx = k
+                        break
+
+                if insert_idx is None:
+
+                    insert_idx = end
+
+                    lines.insert(insert_idx, "        on")
+
+                else:
+
+                    lines.insert(insert_idx, "        on")
+
+                result = "\n".join(lines)
+
+            else:
+
+                result = "\n".join(lines)
+
+            cls._write_atomic(result)
+
+            return
+
+        parent_end = None
+        _, parent_end = cls._find_block(content, ["layout"])
+
+        if parent_end is None:
+
+            result = cls._create_block(
+                content,
+                ["layout", "focus-ring"],
+                ["on"]
+            )
+
+        else:
+
+            lines = content.splitlines(True)
+            block_str = "    focus-ring {\n        on\n    }\n"
+            lines.insert(parent_end, block_str)
+            result = "".join(lines)
+
+        cls._write_atomic(result)
 
     # ---------------------------------------------------------------- Blur
 
@@ -719,270 +836,313 @@ class NiriConfig:
 
         content = cls._read()
 
-        pattern = re.compile(
-            r"^blur\s*\{([^{}]*)\}",
-            re.MULTILINE | re.DOTALL
-        )
+        start, end = cls._find_block(content, ["blur"])
 
-        match = pattern.search(content)
-
-        parts = []
-
+        changes = []
         if passes is not None:
-
-            parts.append("    passes " + str(int(passes)) + "\n")
-
+            changes.append(("passes", str(int(passes))))
         if offset is not None:
-
-            parts.append("    offset " + str(int(offset)) + "\n")
-
+            changes.append(("offset", str(float(offset))))
         if noise is not None:
-
-            parts.append("    noise " + str(float(noise)) + "\n")
-
+            changes.append(("noise", str(float(noise))))
         if saturation is not None:
+            changes.append(("saturation", str(float(saturation))))
 
-            parts.append("    saturation " + str(float(saturation)) + "\n")
+        if start is None:
 
-        new_block = "blur {\n" + "".join(parts) + "}"
+            body = [k + " " + v for k, v in changes]
 
-        if match:
-
-            new_content = pattern.sub(
-                new_block,
+            result = cls._create_block(
                 content,
-                count=1
+                ["blur"],
+                body
             )
 
-        else:
+            cls._write_atomic(result)
 
-            new_content = cls._append(
-                content,
-                new_block
+            return
+
+        lines = "\n".join(content.splitlines(False))
+
+        for key, value in changes:
+
+            updated = cls._update_value_in_block(
+                lines,
+                ["blur"],
+                key,
+                value
             )
 
-        cls._write_atomic(new_content)
+            if updated is not None:
+                lines = updated
+
+        cls._write_atomic(lines)
 
     # ------------------------------------------------------- prefer-no-csd
 
     @classmethod
     def set_prefer_no_csd(
         cls,
-        value
+        on
     ):
 
         content = cls._read()
 
-        pattern = re.compile(
-            r"^prefer-no-csd\b[^\n]*\n",
-            re.MULTILINE
-        )
+        lines = content.splitlines(False)
 
-        line = "prefer-no-csd\n" if value else "prefer-no-csd false\n"
+        for i, raw in enumerate(lines):
 
-        if pattern.search(content):
+            stripped = raw.strip()
 
-            new_content = pattern.sub(
-                line,
-                content,
-                count=1
-            )
+            if stripped == "prefer-no-csd":
 
-        else:
+                if not on:
+                    del lines[i]
+                    cls._write_atomic("\n".join(lines))
 
-            new_content = cls._append(
-                content,
-                line.rstrip("\n")
-            )
+                return
 
-        cls._write_atomic(new_content)
+            if stripped.startswith("prefer-no-csd"):
+
+                if not on:
+                    del lines[i]
+                    cls._write_atomic("\n".join(lines))
+                else:
+                    lines[i] = raw[:len(raw) - len(raw.lstrip())] + "prefer-no-csd"
+                    cls._write_atomic("\n".join(lines))
+
+                return
+
+        if on:
+
+            if content and not content.endswith("\n"):
+                content += "\n"
+
+            content += "prefer-no-csd\n"
+
+            cls._write_atomic(content)
 
     # --------------------------------------------------------------- Getters
+
+    @staticmethod
+    def _extract_value(content, block_path, key):
+
+        lines = content.splitlines(False)
+
+        depth = 0
+        stack = []
+
+        target_depth = len(block_path)
+
+        for i, raw in enumerate(lines):
+
+            stripped = raw.strip()
+
+            if not stripped or stripped.startswith("//"):
+                continue
+
+            if stripped.endswith("{"):
+
+                name = stripped.rstrip("{").strip()
+                name = name.split("=", 1)[0].strip().strip('"')
+                stack.append(name)
+                depth += 1
+
+            elif stripped == "}" or stripped.startswith("}"):
+
+                if stack:
+                    stack.pop()
+                    depth -= 1
+
+            if depth == target_depth and stack == block_path:
+
+                if (stripped.startswith(key + " ")
+                        or stripped.startswith(key + "=")):
+
+                    value = stripped[len(key):].strip().lstrip("=").strip()
+                    return value.rstrip(";").strip()
+
+        return None
 
     @classmethod
     def get_gaps(cls):
 
         content = cls._read()
 
-        match = re.search(
-            r"^layout\s*\{[^{}]*\bgaps[ \t]+([0-9]+)",
-            content,
-            re.MULTILINE | re.DOTALL
-        )
+        val = cls._extract_value(content, ["layout"], "gaps")
 
-        return int(match.group(1)) if match else 8
+        if val is None:
+            return 16
+
+        try:
+            return int(val)
+        except ValueError:
+            return 16
 
     @classmethod
     def get_border(cls):
 
         content = cls._read()
 
-        layout = re.search(
-            r"^layout\s*\{([^{}]*)\}",
-            content,
-            re.MULTILINE | re.DOTALL
-        )
+        start, end = cls._find_block(content, ["layout", "border"])
 
-        if not layout:
+        if start is None:
+            return {"on": False, "width": 0,
+                    "active_color": "", "inactive_color": ""}
 
-            return {
-                "on": False,
-                "width": 2,
-                "active_color": "#DE8636",
-                "inactive_color": "#766561"
-            }
+        lines = content.splitlines(False)
 
-        block = layout.group(1)
+        result = {"on": True, "width": 0,
+                  "active_color": "", "inactive_color": ""}
 
-        border = re.search(
-            r"border\s*\{([^{}]*)\}",
-            block,
-            re.DOTALL
-        )
+        for j in range(start + 1, end):
 
-        if not border:
+            stripped = lines[j].strip()
 
-            return {
-                "on": False,
-                "width": 2,
-                "active_color": "#DE8636",
-                "inactive_color": "#766561"
-            }
+            if stripped.startswith("width"):
+                try:
+                    result["width"] = int(stripped.split()[1])
+                except (IndexError, ValueError):
+                    pass
 
-        b = border.group(1)
+            elif stripped.startswith("active-color"):
+                m = re.search(r'"(.*?)"', stripped)
+                if m:
+                    result["active_color"] = m.group(1)
 
-        on = not bool(re.search(r"\boff\b", b))
+            elif stripped.startswith("inactive-color"):
+                m = re.search(r'"(.*?)"', stripped)
+                if m:
+                    result["inactive_color"] = m.group(1)
 
-        width_match = re.search(r"width[ \t]+([0-9]+)", b)
-
-        width = int(width_match.group(1)) if width_match else 2
-
-        active_match = re.search(r"active-color[ \t]+\"([^\"]+)\"", b)
-
-        active = active_match.group(1) if active_match else "#DE8636"
-
-        inactive_match = re.search(r"inactive-color[ \t]+\"([^\"]+)\"", b)
-
-        inactive = inactive_match.group(1) if inactive_match else "#766561"
-
-        return {
-            "on": on,
-            "width": width,
-            "active_color": active,
-            "inactive_color": inactive
-        }
+        return result
 
     @classmethod
     def get_focus_ring(cls):
 
         content = cls._read()
 
-        layout = re.search(
-            r"^layout\s*\{([^{}]*)\}",
-            content,
-            re.MULTILINE | re.DOTALL
-        )
+        start, end = cls._find_block(content, ["layout", "focus-ring"])
 
-        if not layout:
-
+        if start is None:
             return False
 
-        block = layout.group(1)
+        lines = content.splitlines(False)
 
-        fr = re.search(
-            r"focus-ring\s*\{([^{}]*)\}",
-            block,
-            re.DOTALL
-        )
+        for j in range(start + 1, end):
 
-        if not fr:
+            stripped = lines[j].strip()
 
-            return False
+            if stripped == "off":
+                return False
+            if stripped == "on":
+                return True
 
-        return not bool(re.search(r"\boff\b", fr.group(1)))
+        return True
 
     @classmethod
     def get_blur(cls):
 
         content = cls._read()
 
-        match = re.search(
-            r"^blur\s*\{([^{}]*)\}",
-            content,
-            re.MULTILINE | re.DOTALL
-        )
+        start, end = cls._find_block(content, ["blur"])
 
-        if not match:
+        if start is None:
+            return {"passes": 0, "offset": 0.0,
+                    "noise": 0.0, "saturation": 1.0}
 
-            return {"passes": 2, "offset": 2, "noise": 0, "saturation": 1.2}
+        lines = content.splitlines(False)
 
-        b = match.group(1)
+        result = {"passes": 0, "offset": 0.0,
+                  "noise": 0.0, "saturation": 1.0}
 
-        def _int(key, default):
+        for j in range(start + 1, end):
 
-            m = re.search(key + r"[ \t]+([0-9]+)", b)
+            stripped = lines[j].strip()
 
-            return int(m.group(1)) if m else default
+            parts = stripped.split()
 
-        def _float(key, default):
+            if len(parts) == 2:
 
-            m = re.search(key + r"[ \t]+([0-9]+(?:\.[0-9]+)?)", b)
+                key, value = parts
 
-            return float(m.group(1)) if m else default
+                if key == "passes":
+                    try:
+                        result["passes"] = int(value)
+                    except ValueError:
+                        pass
 
-        return {
-            "passes": _int("passes", 2),
-            "offset": _int("offset", 2),
-            "noise": _float("noise", 0),
-            "saturation": _float("saturation", 1.2)
-        }
+                elif key in ("offset", "noise", "saturation"):
+                    try:
+                        result[key] = float(value)
+                    except ValueError:
+                        pass
+
+        return result
 
     @classmethod
     def get_prefer_no_csd(cls):
 
         content = cls._read()
 
-        match = re.search(
-            r"^prefer-no-csd\b[ \t]*(\S*)",
-            content,
-            re.MULTILINE
-        )
+        lines = content.splitlines(False)
 
-        if not match:
+        for raw in lines:
 
-            return True
+            stripped = raw.strip()
 
-        val = match.group(1).strip()
+            if stripped == "prefer-no-csd":
+                return True
 
-        if val == "false":
+            if stripped.startswith("prefer-no-csd"):
+                val = stripped.split(None, 1)
 
-            return False
+                if len(val) == 2 and val[1] in ("on", "true"):
+                    return True
 
-        return True
+                if len(val) == 2 and val[1] in ("off", "false"):
+                    return False
+
+                return True
+
+        return False
 
     @classmethod
     def get_cursor_size(cls):
 
         content = cls._read()
 
-        match = re.search(
-            r"xcursor-size[ \t]+([0-9]+)",
-            content
-        )
+        val = cls._extract_value(content, ["cursor"], "xcursor-size")
 
-        return int(match.group(1)) if match else 24
-
-    @classmethod
-    def reload(cls):
+        if val is None:
+            return 24
 
         try:
+            return int(val)
+        except ValueError:
+            return 24
 
-            import subprocess
+    @classmethod
+    def get_keyboard_layout(cls):
 
-            subprocess.Popen(
-                ["niri", "msg", "action", "do-screen-transition"]
-            )
+        content = cls._read()
 
-        except Exception:
+        start, end = cls._find_block(content, ["input", "keyboard", "xkb"])
 
-            pass
+        if start is not None:
+
+            lines = content.splitlines(False)
+
+            for j in range(start + 1, end):
+
+                stripped = lines[j].strip()
+
+                if stripped.startswith("layout"):
+                    return stripped.split(None, 1)[1].strip().strip('"')
+
+        m = re.search(r'layout\s+"([^"]+)"', content)
+
+        if m:
+            return m.group(1)
+
+        return "us"
