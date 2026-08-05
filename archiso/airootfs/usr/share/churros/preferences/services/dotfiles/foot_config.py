@@ -231,3 +231,101 @@ class FootConfig:
         cls._write_atomic(
             lines
         )
+
+    # ------------------------------------------------------------ Getters
+
+    @classmethod
+    def _get_key(cls, section, key, default=""):
+
+        lines = cls._read()
+        idx = cls._find_section(lines, section)
+        if idx < 0:
+            return default
+
+        for j in range(idx + 1, len(lines)):
+            stripped = lines[j].strip()
+            if stripped.startswith("[") and stripped.endswith("]"):
+                break
+            if stripped.startswith(key + "="):
+                return stripped.split("=", 1)[1].strip()
+
+        return default
+
+    @classmethod
+    def get_font(cls):
+
+        return cls._get_key("main", "font", "JetBrainsMono Nerd Font:size=10")
+
+    @classmethod
+    def get_pad(cls):
+
+        return cls._get_key("main", "pad", "8x8")
+
+    @classmethod
+    def get_cursor_style(cls):
+
+        return cls._get_key("cursor", "style", "beam")
+
+    @classmethod
+    def get_cursor_blink(cls):
+
+        v = cls._get_key("cursor", "blink", "yes")
+        return v.lower() in ("yes", "true", "1")
+
+    @classmethod
+    def get_bell(cls):
+
+        v = cls._get_key("bell", "urgent", "yes")
+        return v.lower() in ("yes", "true", "1")
+
+    @classmethod
+    def get_hide_when_typing(cls):
+
+        v = cls._get_key("mouse", "hide-when-typing", "yes")
+        return v.lower() in ("yes", "true", "1")
+
+    # ------------------------------------------------------------- Setters
+
+    @classmethod
+    def set_pad(cls, pad):
+
+        lines = cls._read()
+        cls._set_key(lines, "main", "pad", pad)
+        cls._write_atomic(lines)
+
+    @classmethod
+    def set_cursor(cls, style, blink):
+
+        lines = cls._read()
+        cls._set_key(lines, "cursor", "style", style)
+        cls._set_key(lines, "cursor", "blink", "yes" if blink else "no")
+        cls._write_atomic(lines)
+
+    @classmethod
+    def set_bell(cls, urgent):
+
+        lines = cls._read()
+        cls._set_key(lines, "bell", "urgent", "yes" if urgent else "no")
+        cls._set_key(lines, "bell", "notify", "yes" if urgent else "no")
+        cls._write_atomic(lines)
+
+    @classmethod
+    def set_hide_when_typing(cls, hide):
+
+        lines = cls._read()
+        cls._set_key(lines, "mouse", "hide-when-typing", "yes" if hide else "no")
+        cls._write_atomic(lines)
+
+    @classmethod
+    def reload(cls):
+
+        try:
+            import subprocess
+            subprocess.Popen(
+                ["pkill", "-SIGUSR1", "foot"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        except Exception:
+            pass
+

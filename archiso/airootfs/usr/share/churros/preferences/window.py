@@ -19,6 +19,8 @@ from pages.fonts import FontsPage
 from pages.wallpaper import WallpaperPage
 from pages.waybar import WaybarPage
 from pages.niri import NiriPage
+from pages.foot import FootPage
+from pages.fuzzel import FuzzelPage
 
 from pages.audio import AudioPage
 from pages.connectivity import ConnectivityPage
@@ -218,6 +220,16 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         self.navigator.add_page(
             "niri",
             NiriPage(self.navigator)
+        )
+
+        self.navigator.add_page(
+            "foot",
+            FootPage(self.navigator)
+        )
+
+        self.navigator.add_page(
+            "fuzzel",
+            FuzzelPage(self.navigator)
         )
 
         self.navigator.add_page(

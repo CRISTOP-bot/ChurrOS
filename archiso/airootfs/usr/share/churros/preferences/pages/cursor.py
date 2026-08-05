@@ -4,6 +4,7 @@ from widgets.select_row import SelectRow
 from widgets.slider_row import SliderRow
 
 from services.cursor import CursorService
+from services.dotfiles.niri_config import NiriConfig
 
 
 class CursorPage(Page):
@@ -98,6 +99,14 @@ class CursorPage(Page):
         slider
     ):
 
-        CursorService.set_size(
-            slider.get_value()
-        )
+        size = slider.get_value()
+
+        CursorService.set_size(size)
+
+        try:
+
+            NiriConfig.set_cursor_size(size)
+
+        except Exception as exc:
+
+            print("[cursor] niri size fallo:", exc)
