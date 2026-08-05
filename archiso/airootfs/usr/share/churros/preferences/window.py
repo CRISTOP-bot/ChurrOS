@@ -22,6 +22,7 @@ from pages.niri import NiriPage
 from pages.foot import FootPage
 from pages.fuzzel import FuzzelPage
 from pages.mako import MakoPage
+from pages.backup import BackupPage
 
 from pages.audio import AudioPage
 from pages.connectivity import ConnectivityPage
@@ -127,6 +128,11 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         self.navigator.add_page(
             "system",
             SystemPage(self.navigator)
+        )
+
+        self.navigator.add_page(
+            "backup",
+            BackupPage(self.navigator)
         )
 
         self.navigator.add_page(
