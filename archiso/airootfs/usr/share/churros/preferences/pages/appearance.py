@@ -238,6 +238,42 @@ class AppearancePage(Page):
 
         )
 
+        personalization.add(
+
+            NavigationRow(
+
+                navigator=navigator,
+
+                title="Foot",
+
+                subtitle="Terminal: fuente, cursor, padding, bell",
+
+                icon="terminal.svg",
+
+                page_name="foot"
+
+            )
+
+        )
+
+        personalization.add(
+
+            NavigationRow(
+
+                navigator=navigator,
+
+                title="Fuzzel",
+
+                subtitle="Launcher: fuente, layout, iconos",
+
+                icon="applications.svg",
+
+                page_name="fuzzel"
+
+            )
+
+        )
+
         self.add(
 
             personalization

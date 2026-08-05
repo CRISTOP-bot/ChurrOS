@@ -6,6 +6,8 @@ from widgets.combo_row import ComboRow
 
 import subprocess
 
+from services.dotfiles.niri_config import NiriConfig
+
 
 def _run(command):
 
@@ -145,6 +147,14 @@ class InputPage(Page):
             "sources",
             "[('xkb', '" + layout + "')]"
         )
+
+        try:
+
+            NiriConfig.set_keyboard_layout(layout)
+
+        except Exception as exc:
+
+            print("[input] niri layout fallo:", exc)
 
     def on_tap_changed(self, active):
 
