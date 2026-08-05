@@ -1,0 +1,36 @@
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        "source": "~/.config/fastfetch/churros-logo",
+        "color": {
+            "1": "red",
+            "2": "yellow",
+            "3": "green",
+            "4": "white"
+        },
+        "padding": {
+            "top": 1
+        }
+    },
+    "display": {
+        "separator": " 󰁔 ",
+        "key": {
+            "width": 12
+        }
+    },
+    "modules": [
+        { "type": "custom", "format": "┌──────────────────────────┐" },
+        { "type": "custom", "format": "│       ChurrOS 0.2.0      │" },
+        { "type": "custom", "format": "└──────────────────────────┘" },
+        { "type": "separator" },
+        { "type": "os",         "key": "OS",        "keyColor": "yellow" },
+        { "type": "kernel",     "key": "Kernel",    "keyColor": "yellow" },
+        { "type": "packages",   "key": "Packages",  "keyColor": "yellow" },
+        { "type": "shell",      "key": "Shell",     "keyColor": "yellow" },
+        { "type": "wm",         "key": "WM",        "keyColor": "yellow" },
+        { "type": "terminal",   "key": "Terminal",  "keyColor": "yellow" },
+        { "type": "memory",     "key": "Memory",    "keyColor": "yellow" },
+        { "type": "uptime",     "key": "Uptime",    "keyColor": "yellow" },
+        { "type": "separator" }
+    ]
+}

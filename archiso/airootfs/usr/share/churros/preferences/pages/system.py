@@ -10,6 +10,7 @@ from gi.repository import Gtk, GLib
 from widgets.page import Page
 from widgets.group import Group
 from widgets.row import Row
+from widgets.navigation_row import NavigationRow
 
 from services.system import SystemService
 
@@ -212,6 +213,16 @@ class SystemPage(Page):
                 subtitle="Ejecuta pacman -Syu en una terminal",
                 icon="system.svg",
                 callback=lambda *_: self._update_system()
+            )
+        )
+
+        actions.add(
+            NavigationRow(
+                navigator=navigator,
+                title="Copia de seguridad",
+                subtitle="Exportar, importar o restablecer la configuracion",
+                icon="backup.svg",
+                page_name="backup"
             )
         )
 
