@@ -274,6 +274,24 @@ class AppearancePage(Page):
 
         )
 
+        personalization.add(
+
+            NavigationRow(
+
+                navigator=navigator,
+
+                title="Mako",
+
+                subtitle="Notificaciones: fuente, colores, posicion, DND",
+
+                icon="mako.svg",
+
+                page_name="mako"
+
+            )
+
+        )
+
         self.add(
 
             personalization
