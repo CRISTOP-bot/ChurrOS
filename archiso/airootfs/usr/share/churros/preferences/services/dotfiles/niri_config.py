@@ -878,6 +878,102 @@ class NiriConfig:
 
         cls._write_atomic(lines)
 
+    # -------------------------------------------------------- Animations
+
+    @classmethod
+    def set_animations(
+        cls,
+        on
+    ):
+
+        content = cls._read()
+
+        start, end = cls._find_block(content, ["animations"])
+
+        if not on:
+
+            if start is None:
+
+                if content and not content.endswith("\n"):
+                    content += "\n"
+
+                content += "animations {\n    off\n}\n"
+
+                cls._write_atomic(content)
+
+            else:
+
+                lines = content.splitlines(False)
+
+                has_off = any(
+                    lines[j].strip() == "off"
+                    for j in range(start + 1, end)
+                )
+
+                if not has_off:
+
+                    insert_idx = end
+
+                    for j in range(start + 1, end):
+                        if lines[j].strip():
+                            insert_idx = j
+                            break
+
+                    lines.insert(insert_idx, "    off")
+
+                    cls._write_atomic("\n".join(lines))
+
+            return
+
+        if start is None:
+            return
+
+        lines = content.splitlines(False)
+
+        new_inner = [
+            l for l in lines[start + 1:end]
+            if l.strip() and l.strip() != "off"
+        ]
+
+        if not new_inner:
+
+            del lines[start:end + 1]
+
+            cls._write_atomic("\n".join(lines))
+
+            return
+
+        del lines[start + 1:end]
+
+        for k, l in enumerate(new_inner):
+            lines.insert(start + 1 + k, l)
+
+        cls._write_atomic("\n".join(lines))
+
+    @classmethod
+    def get_animations(cls):
+
+        content = cls._read()
+
+        start, end = cls._find_block(content, ["animations"])
+
+        if start is None:
+            return True
+
+        lines = content.splitlines(False)
+
+        for j in range(start + 1, end):
+
+            stripped = lines[j].strip()
+
+            if stripped == "off":
+                return False
+
+            if stripped == "on":
+                return True
+
+        return True
+
     # ------------------------------------------------------- prefer-no-csd
 
     @classmethod
