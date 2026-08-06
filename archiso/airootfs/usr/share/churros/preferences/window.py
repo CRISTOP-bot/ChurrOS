@@ -23,6 +23,9 @@ from pages.foot import FootPage
 from pages.fuzzel import FuzzelPage
 from pages.mako import MakoPage
 from pages.backup import BackupPage
+from pages.logs import LogsPage
+from pages.window_rules import WindowRulesPage
+from pages.shortcuts import ShortcutsPage
 
 from pages.audio import AudioPage
 from pages.connectivity import ConnectivityPage
@@ -400,6 +403,36 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             "Copia de seguridad",
             "Exportar, importar o restablecer la configuracion",
             "backup.svg"
+        )
+
+        self.navigator.add_page(
+            "logs",
+            LogsPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "logs", "system",
+            "Logs de Niri", "Registros del compositor y validacion",
+            "logs.svg"
+        )
+
+        self.navigator.add_page(
+            "window-rules",
+            WindowRulesPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "window-rules", "appearance",
+            "Reglas de ventana", "Opacidad, flotantes, esquinas, blur",
+            "window_rules.svg"
+        )
+
+        self.navigator.add_page(
+            "shortcuts",
+            ShortcutsPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "shortcuts", "appearance",
+            "Atajos de teclado", "Keybindings de Niri",
+            "shortcuts.svg"
         )
 
         #
