@@ -2,10 +2,24 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 
 class Navigator(Gtk.Stack):
+
+    __gsignals__ = {
+
+        "navigated": (
+
+            GObject.SignalFlags.RUN_FIRST,
+
+            None,
+
+            (str,)
+
+        )
+
+    }
 
     def __init__(self):
 
@@ -54,6 +68,11 @@ class Navigator(Gtk.Stack):
             name
         )
 
+        self.emit(
+            "navigated",
+            name
+        )
+
     def back(self):
 
         if not self.history:
@@ -63,6 +82,11 @@ class Navigator(Gtk.Stack):
         page = self.history.pop()
 
         self.set_visible_child_name(
+            page
+        )
+
+        self.emit(
+            "navigated",
             page
         )
 

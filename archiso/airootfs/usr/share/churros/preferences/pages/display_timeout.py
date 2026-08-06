@@ -13,7 +13,7 @@ class DisplayTimeoutPage(Page):
             navigator,
             "Apagar pantalla",
             "Tiempo de inactividad antes de apagar la pantalla",
-            parent_page="power"
+            parent_page="display"
         )
 
         group = Group("Tiempo de espera")
