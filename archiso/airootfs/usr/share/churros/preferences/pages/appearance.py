@@ -292,6 +292,42 @@ class AppearancePage(Page):
 
         )
 
+        personalization.add(
+
+            NavigationRow(
+
+                navigator=navigator,
+
+                title="Reglas de ventana",
+
+                subtitle="Opacidad, floatantes, esquinas, blur",
+
+                icon="window_rules.svg",
+
+                page_name="window-rules"
+
+            )
+
+        )
+
+        personalization.add(
+
+            NavigationRow(
+
+                navigator=navigator,
+
+                title="Atajos de teclado",
+
+                subtitle="Keybindings de Niri",
+
+                icon="shortcuts.svg",
+
+                page_name="shortcuts"
+
+            )
+
+        )
+
         self.add(
 
             personalization

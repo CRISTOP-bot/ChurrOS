@@ -226,6 +226,16 @@ class SystemPage(Page):
             )
         )
 
+        actions.add(
+            NavigationRow(
+                navigator=navigator,
+                title="Logs de Niri",
+                subtitle="Registros del compositor y validacion de config",
+                icon="logs.svg",
+                page_name="logs"
+            )
+        )
+
         self.add(actions)
 
     def _update_system(self):
