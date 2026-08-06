@@ -44,6 +44,7 @@ class NiriPage(Page):
                 "border": NiriConfig.get_border(),
                 "focus_ring": NiriConfig.get_focus_ring(),
                 "blur": NiriConfig.get_blur(),
+                "animations": NiriConfig.get_animations(),
             }
 
         except Exception:
@@ -63,7 +64,8 @@ class NiriPage(Page):
                     "offset": 2,
                     "noise": 0,
                     "saturation": 1.2
-                }
+                },
+                "animations": True
             }
 
         self._build()
@@ -212,6 +214,23 @@ class NiriPage(Page):
         self.add(blur_group)
 
         #
+        # Animaciones
+        #
+
+        animations_group = Group("Animaciones")
+
+        self.animations_switch = SwitchRow(
+            title="Animaciones",
+            subtitle="Desactiva todas las transiciones de niri (mas agil en hardware modesto)",
+            active=self.values["animations"],
+            callback=lambda v: self._on_animations_toggle(v)
+        )
+
+        animations_group.add(self.animations_switch)
+
+        self.add(animations_group)
+
+        #
         # Ventanas
         #
 
@@ -271,6 +290,14 @@ class NiriPage(Page):
         self.values["prefer_no_csd"] = value
 
         NiriConfig.set_prefer_no_csd(value)
+
+        NiriConfig.reload()
+
+    def _on_animations_toggle(self, value):
+
+        self.values["animations"] = value
+
+        NiriConfig.set_animations(value)
 
         NiriConfig.reload()
 
