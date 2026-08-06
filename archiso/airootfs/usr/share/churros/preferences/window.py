@@ -158,6 +158,21 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             self.navigator
         )
 
+        #
+        # Sidebar: cuando el navigator cambia (alta o back)
+        #
+
+        def on_navigated(navigator, name):
+            if name in self.sidebar.buttons:
+                self.sidebar.select(name)
+            elif name in self.sidebar._catalog:
+                for pid, parent_id, _, _, _ in self.sidebar._catalog:
+                    if pid == name and parent_id in self.sidebar.buttons:
+                        self.sidebar.select(parent_id)
+                        break
+
+        self.navigator.connect("navigated", on_navigated)
+
         root.append(
             nav_box
         )
