@@ -66,8 +66,18 @@ class ColorPickerRow(Gtk.Box):
         self._button.set_valign(Gtk.Align.CENTER)
         self._button.connect("clicked", self._on_pick)
 
+        self._entry = Gtk.Entry()
+        self._entry.set_text(value)
+        self._entry.set_width_chars(8)
+        self._entry.set_max_length(7)
+        self._entry.set_valign(Gtk.Align.CENTER)
+        self._entry.add_css_class("color-entry")
+        self._entry.connect("changed", self._on_entry_changed)
+        self._entry.connect("activate", self._on_entry_activate)
+
         self.append(self._label)
         self.append(self._swatch)
+        self.append(self._entry)
         self.append(self._value_label)
         self.append(self._button)
 
@@ -120,6 +130,55 @@ class ColorPickerRow(Gtk.Box):
             )
         except Exception as exc:
             print("[color-picker] dialog fallo:", exc)
+
+    def _on_entry_changed(self, entry):
+
+        text = entry.get_text().strip()
+
+        if not text:
+            return
+
+        if not text.startswith("#"):
+            text = "#" + text
+
+        if len(text) != 7:
+            return
+
+        try:
+
+            int(text[1:], 16)
+
+        except ValueError:
+            return
+
+        self.color = text
+        self._value_label.set_label(self.color)
+        self._swatch.queue_draw()
+
+    def _on_entry_activate(self, entry):
+
+        text = entry.get_text().strip()
+
+        if not text.startswith("#"):
+            text = "#" + text
+
+        if len(text) != 7:
+            entry.set_text(self.color)
+            return
+
+        try:
+            int(text[1:], 16)
+        except ValueError:
+            entry.set_text(self.color)
+            return
+
+        self.color = text
+        entry.set_text(self.color)
+        self._value_label.set_label(self.color)
+        self._swatch.queue_draw()
+
+        if self.callback is not None:
+            self.callback(self.color)
 
     def get_value(self):
 

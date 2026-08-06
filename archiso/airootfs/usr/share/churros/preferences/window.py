@@ -107,9 +107,40 @@ class PreferencesWindow(Gtk.ApplicationWindow):
 
         self.sidebar = Sidebar()
 
-        root.append(
-            self.sidebar
+        self.sidebar_revealer = Gtk.Revealer()
+        self.sidebar_revealer.set_transition_type(
+            Gtk.RevealerTransitionType.SLIDE_RIGHT
         )
+        self.sidebar_revealer.set_reveal_child(True)
+        self.sidebar_revealer.set_child(self.sidebar)
+
+        root.append(
+            self.sidebar_revealer
+        )
+
+        #
+        # Navegador con boton de toggle para modo estrecho
+        #
+
+        nav_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL
+        )
+
+        self._toggle_button = Gtk.Button.new_from_icon_name(
+            "open-menu-symbolic"
+        )
+        self._toggle_button.add_css_class("flat")
+        self._toggle_button.set_halign(Gtk.Align.END)
+        self._toggle_button.set_margin_start(12)
+        self._toggle_button.set_margin_end(12)
+        self._toggle_button.set_margin_top(12)
+        self._toggle_button.set_visible(False)
+        self._toggle_button.connect(
+            "clicked",
+            lambda *_: self._toggle_sidebar()
+        )
+
+        nav_box.append(self._toggle_button)
 
         #
         # Navigator
@@ -117,8 +148,30 @@ class PreferencesWindow(Gtk.ApplicationWindow):
 
         self.navigator = Navigator()
 
-        root.append(
+        self.navigator.set_hexpand(True)
+        self.navigator.set_vexpand(True)
+
+        nav_box.append(
             self.navigator
+        )
+
+        root.append(
+            nav_box
+        )
+
+        #
+        # Responsive: en ventanas estrechas oculta el sidebar
+        #
+
+        self._narrow_threshold = 760
+        self._is_narrow = False
+
+        self.connect(
+            "map",
+            lambda *_: GLib.timeout_add(
+                250,
+                self._check_narrow
+            )
         )
 
         #
@@ -128,11 +181,6 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         self.navigator.add_page(
             "system",
             SystemPage(self.navigator)
-        )
-
-        self.navigator.add_page(
-            "backup",
-            BackupPage(self.navigator)
         )
 
         self.navigator.add_page(
@@ -203,50 +251,100 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             "accent",
             AccentPage(self.navigator)
         )
+        self.sidebar.register_subpage(
+            "accent", "appearance",
+            "Colores", "Color de acento del sistema",
+            "palette.svg"
+        )
 
         self.navigator.add_page(
             "icons",
             IconsPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "icons", "appearance",
+            "Iconos", "Tema de iconos",
+            "icons.svg"
         )
 
         self.navigator.add_page(
             "cursor",
             CursorPage(self.navigator)
         )
+        self.sidebar.register_subpage(
+            "cursor", "appearance",
+            "Cursor", "Tema y tamano del cursor",
+            "cursor.svg"
+        )
 
         self.navigator.add_page(
             "fonts",
             FontsPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "fonts", "appearance",
+            "Fuentes", "Familia y tamano de fuente",
+            "font.svg"
         )
 
         self.navigator.add_page(
             "waybar",
             WaybarPage(self.navigator)
         )
+        self.sidebar.register_subpage(
+            "waybar", "appearance",
+            "Waybar", "Barra: posicion, colores, modulos",
+            "waybar.svg"
+        )
 
         self.navigator.add_page(
             "niri",
             NiriPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "niri", "appearance",
+            "Niri", "Compositor: disposicion, bordes, blur",
+            "niri.svg"
         )
 
         self.navigator.add_page(
             "foot",
             FootPage(self.navigator)
         )
+        self.sidebar.register_subpage(
+            "foot", "appearance",
+            "Foot", "Terminal: fuente, cursor, padding, bell",
+            "terminal.svg"
+        )
 
         self.navigator.add_page(
             "fuzzel",
             FuzzelPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "fuzzel", "appearance",
+            "Fuzzel", "Launcher: fuente, layout, iconos",
+            "applications.svg"
         )
 
         self.navigator.add_page(
             "mako",
             MakoPage(self.navigator)
         )
+        self.sidebar.register_subpage(
+            "mako", "appearance",
+            "Mako", "Notificaciones: fuente, colores, posicion, DND",
+            "mako.svg"
+        )
 
         self.navigator.add_page(
             "wallpaper",
             WallpaperPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "wallpaper", "appearance",
+            "Fondo", "Cambiar el fondo de pantalla",
+            "wallpaper.svg"
         )
 
         #
@@ -257,20 +355,51 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             "power-profile",
             PowerProfilePage(self.navigator)
         )
+        self.sidebar.register_subpage(
+            "power-profile", "power",
+            "Perfiles de energia", "Performance, balanced o power-saver"
+        )
 
         self.navigator.add_page(
             "battery",
             BatteryPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "battery", "power",
+            "Bateria", "Estado, nivel y opciones de bateria"
         )
 
         self.navigator.add_page(
             "display-timeout",
             DisplayTimeoutPage(self.navigator)
         )
+        self.sidebar.register_subpage(
+            "display-timeout", "display",
+            "Apagado de pantalla", "Tiempo antes de apagar la pantalla"
+        )
 
         self.navigator.add_page(
             "sleep",
             SleepPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "sleep", "power",
+            "Suspension", "Tiempo antes de suspender el sistema"
+        )
+
+        #
+        # Otros
+        #
+
+        self.navigator.add_page(
+            "backup",
+            BackupPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "backup", "system",
+            "Copia de seguridad",
+            "Exportar, importar o restablecer la configuracion",
+            "backup.svg"
         )
 
         #
@@ -313,6 +442,10 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         self.navigator.show_page(
             page
         )
+
+        if self._is_narrow:
+
+            self.sidebar_revealer.set_reveal_child(False)
 
     def _apply_theme_class(self):
         """Cambia la clase CSS .light segun el modo del ThemeService."""
@@ -479,4 +612,46 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         except Exception as exc:
 
             print("[preferences] _reload_css_providers:", exc)
+
+    def _check_narrow(self):
+
+        try:
+
+            width = self.get_width()
+
+        except Exception:
+
+            return True
+
+        new_narrow = width < self._narrow_threshold
+
+        if new_narrow == self._is_narrow:
+
+            return True
+
+        self._is_narrow = new_narrow
+
+        if new_narrow:
+
+            self.sidebar_revealer.set_reveal_child(False)
+
+            self._toggle_button.set_visible(True)
+
+            self.sidebar_revealer.set_transition_type(
+                Gtk.RevealerTransitionType.SLIDE_RIGHT
+            )
+
+        else:
+
+            self.sidebar_revealer.set_reveal_child(True)
+
+            self._toggle_button.set_visible(False)
+
+        return True
+
+    def _toggle_sidebar(self):
+
+        revealed = self.sidebar_revealer.get_reveal_child()
+
+        self.sidebar_revealer.set_reveal_child(not revealed)
 

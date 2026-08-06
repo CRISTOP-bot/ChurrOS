@@ -42,6 +42,12 @@ class Sidebar(Gtk.Box):
 
         self.buttons = {}
 
+        self._catalog = []
+
+        self._popover = None
+        self._popover_results = None
+        self._popover_matches = []
+
         #
         # Logo
         #
@@ -79,6 +85,8 @@ class Sidebar(Gtk.Box):
         self.append(
             self.search
         )
+
+        self._build_popover()
 
         #
         # Lista
@@ -180,6 +188,10 @@ class Sidebar(Gtk.Box):
 
         for page, icon, title in self.pages:
 
+            self._catalog.append(
+                (page, None, title, "", icon)
+            )
+
             item = SidebarItem(
 
                 page,
@@ -215,6 +227,38 @@ class Sidebar(Gtk.Box):
             "system"
         )
 
+    def _build_popover(self):
+
+        self._popover = Gtk.Popover()
+        self._popover.set_parent(self.search)
+        self._popover.set_position(Gtk.PositionType.BOTTOM)
+        self._popover.set_autohide(True)
+
+        self._popover_results = Gtk.ListBox()
+        self._popover_results.set_selection_mode(Gtk.SelectionMode.SINGLE)
+        self._popover_results.add_css_class("search-results")
+        self._popover_results.set_size_request(260, -1)
+
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_child(self._popover_results)
+        scrolled.set_max_content_height(360)
+        scrolled.set_propagate_natural_height(True)
+
+        self._popover.set_child(scrolled)
+
+    def register_subpage(
+        self,
+        page_id,
+        parent_id,
+        title,
+        subtitle,
+        icon=None
+    ):
+
+        self._catalog.append(
+            (page_id, parent_id, title, subtitle, icon)
+        )
+
     def on_search(
         self,
         search,
@@ -237,6 +281,8 @@ class Sidebar(Gtk.Box):
             item.set_visible(
                 visible
             )
+
+        self._update_popover(query)
 
     def on_clicked(
         self,
@@ -265,3 +311,126 @@ class Sidebar(Gtk.Box):
         if page in self.buttons:
 
             self.buttons[page].activate()
+
+    def _update_popover(
+        self,
+        query
+    ):
+
+        if self._popover is None:
+
+            return
+
+        while self._popover_results.get_first_child() is not None:
+
+            self._popover_results.remove(
+                self._popover_results.get_first_child()
+            )
+
+        self._popover_matches = []
+
+        if not query:
+
+            self._popover.popdown()
+
+            return
+
+        matches = []
+
+        for entry in self._catalog:
+
+            page_id, parent_id, title, subtitle, icon = entry
+
+            haystack = (
+                title + " " + (subtitle or "")
+            ).lower()
+
+            if query in haystack:
+
+                matches.append(entry)
+
+        if not matches:
+
+            self._popover.popdown()
+
+            return
+
+        for idx, entry in enumerate(matches):
+
+            row = self._build_result_row(entry)
+
+            row.connect(
+                "activated",
+                self._on_popover_row,
+                idx
+            )
+
+            self._popover_results.append(row)
+
+        self._popover_matches = matches
+        self._popover.popup()
+
+    def _build_result_row(
+        self,
+        entry
+    ):
+
+        page_id, parent_id, title, subtitle, icon = entry
+
+        row = Gtk.ListBoxRow()
+        row.add_css_class("search-result")
+
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=2
+        )
+
+        box.set_margin_top(8)
+        box.set_margin_bottom(8)
+        box.set_margin_start(12)
+        box.set_margin_end(12)
+
+        title_label = Gtk.Label(
+            label=title
+        )
+        title_label.set_xalign(0)
+        title_label.set_hexpand(True)
+        title_label.add_css_class("row-title")
+
+        box.append(title_label)
+
+        if subtitle:
+
+            sub_label = Gtk.Label(
+                label=subtitle
+            )
+            sub_label.set_xalign(0)
+            sub_label.set_hexpand(True)
+            sub_label.add_css_class("row-subtitle")
+
+            box.append(sub_label)
+
+        row.set_child(box)
+
+        return row
+
+    def _on_popover_row(
+        self,
+        row,
+        idx
+    ):
+
+        if idx >= len(self._popover_matches):
+
+            return
+
+        page_id, parent_id, _, _, _ = self._popover_matches[idx]
+
+        self._popover.popdown()
+
+        self.search.set_text("")
+
+        self.emit(
+            "page-selected",
+            page_id
+        )
