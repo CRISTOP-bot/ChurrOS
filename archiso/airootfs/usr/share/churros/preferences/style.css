@@ -366,6 +366,25 @@ popover contents listview row:selected {
     color: var(--accent-text);
 }
 
+popover.search-results list {
+    background: var(--popover-bg, rgba(26,26,28,.96));
+    backdrop-filter: blur(20px);
+}
+
+popover.search-results row {
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+popover.search-results row:hover {
+    background: var(--accent-bg-hover);
+}
+
+popover.search-results row:selected {
+    background: var(--accent);
+    color: var(--accent-text);
+}
+
 /* ── Scrollbar ───────────────────────────────────────── */
 scrollbar {
     border: none;
@@ -582,4 +601,16 @@ entry:focus {
 
 .color-pick-button:hover {
     background: linear-gradient(135deg, var(--accent-soft), var(--accent));
+}
+
+.color-entry {
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-family: monospace;
+}
+
+.toggle-button.flat {
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 8px;
 }
