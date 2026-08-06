@@ -25,7 +25,6 @@ from pages.mako import MakoPage
 from pages.backup import BackupPage
 from pages.logs import LogsPage
 from pages.window_rules import WindowRulesPage
-from pages.shortcuts import ShortcutsPage
 
 from pages.audio import AudioPage
 from pages.connectivity import ConnectivityPage
@@ -438,16 +437,6 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             "window-rules", "appearance",
             "Reglas de ventana", "Opacidad, flotantes, esquinas, blur",
             "window_rules.svg"
-        )
-
-        self.navigator.add_page(
-            "shortcuts",
-            ShortcutsPage(self.navigator)
-        )
-        self.sidebar.register_subpage(
-            "shortcuts", "appearance",
-            "Atajos de teclado", "Keybindings de Niri",
-            "shortcuts.svg"
         )
 
         #
