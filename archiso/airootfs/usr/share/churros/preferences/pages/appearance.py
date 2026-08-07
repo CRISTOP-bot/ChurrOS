@@ -310,6 +310,24 @@ class AppearancePage(Page):
 
         )
 
+        personalization.add(
+
+            NavigationRow(
+
+                navigator=navigator,
+
+                title="Luz nocturna",
+
+                subtitle="Temperatura de color y filtro de luz azul",
+
+                icon="appearance.svg",
+
+                page_name="night-light"
+
+            )
+
+        )
+
         self.add(
 
             personalization

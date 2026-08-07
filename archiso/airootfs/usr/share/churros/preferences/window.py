@@ -25,6 +25,7 @@ from pages.mako import MakoPage
 from pages.backup import BackupPage
 from pages.logs import LogsPage
 from pages.window_rules import WindowRulesPage
+from pages.night_light import NightLightPage
 
 from pages.audio import AudioPage
 from pages.connectivity import ConnectivityPage
@@ -404,6 +405,17 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             "wallpaper", "appearance",
             "Fondo", "Cambiar el fondo de pantalla",
             "wallpaper.svg"
+        )
+
+        self.navigator.add_page(
+            "night-light",
+            NightLightPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "night-light", "appearance",
+            "Luz nocturna",
+            "Temperatura de color y filtro de luz azul",
+            "night_light.svg"
         )
 
         #
