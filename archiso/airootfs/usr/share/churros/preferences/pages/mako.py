@@ -351,6 +351,118 @@ class MakoPage(Page):
 
         self.add(actions_group)
 
+        #
+        # Estado de notificaciones (Do Not Disturb)
+        #
+
+        state_group = Group("Estado actual")
+
+        self.dnd_switch = SwitchRow(
+            title="No molestar",
+            subtitle="Silencia todas las notificaciones entrantes",
+            active=self._is_dnd_active(),
+            callback=lambda v: self._on_dnd_toggle(v)
+        )
+
+        state_group.add(self.dnd_switch)
+
+        self.dnd_status = Row(
+            title="Estado de makoctl",
+            subtitle=self._dnd_status_text(),
+            icon="mako.svg",
+            value=None
+        )
+
+        state_group.add(self.dnd_status)
+
+        self.add(state_group)
+
+    def _is_dnd_active(self):
+
+        try:
+
+            import subprocess
+
+            r = subprocess.run(
+                ["makoctl", "mode"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                timeout=2
+            )
+
+            output = r.stdout.decode("utf-8", errors="replace")
+
+            return "do-not-disturb" in output
+
+        except Exception:
+
+            return False
+
+    def _dnd_status_text(self):
+
+        try:
+
+            import subprocess
+
+            r = subprocess.run(
+                ["makoctl", "mode"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                timeout=2
+            )
+
+            output = r.stdout.decode("utf-8", errors="replace").strip()
+
+            if output:
+                return "Modos activos: " + output
+
+            return "Sin modos activos"
+
+        except Exception as exc:
+
+            return "makoctl no disponible: " + str(exc)
+
+    def _on_dnd_toggle(self, active):
+
+        try:
+
+            import subprocess
+
+            r = subprocess.run(
+                ["makoctl", "mode"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                timeout=2
+            )
+
+            current = r.stdout.decode("utf-8", errors="replace")
+
+            is_active = "do-not-disturb" in current
+
+            if active and not is_active:
+
+                subprocess.Popen(
+                    ["makoctl", "mode", "-a", "do-not-disturb"]
+                )
+
+            elif not active and is_active:
+
+                subprocess.Popen(
+                    ["makoctl", "mode", "-r", "do-not-disturb"]
+                )
+
+            GLib.timeout_add(
+                300,
+                lambda: (
+                    self.dnd_status.set_subtitle(self._dnd_status_text()),
+                    False
+                )[-1]
+            )
+
+        except Exception as exc:
+
+            print("[mako] DND toggle fallo:", exc)
+
     def _schedule_apply(self):
 
         if self._pending:
