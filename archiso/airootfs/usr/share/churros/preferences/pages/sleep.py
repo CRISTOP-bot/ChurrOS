@@ -1,6 +1,7 @@
 from widgets.page import Page
 from widgets.group import Group
 from widgets.combo_row import ComboRow
+from widgets.row import Row
 
 from services.power import PowerService
 
@@ -11,12 +12,63 @@ class SleepPage(Page):
 
         super().__init__(
             navigator,
-            "Suspensión",
-            "Suspensión automática y actions de tapa",
+            "Suspension",
+            "Suspension automatica y acciones de tapa",
             parent_page="power"
         )
 
-        group = Group("Suspensión automática")
+        #
+        # Estado de bateria
+        #
+
+        try:
+            has_battery = PowerService.battery_present()
+        except Exception:
+            has_battery = False
+
+        if has_battery:
+
+            try:
+                pct = PowerService.battery_percentage()
+            except Exception:
+                pct = -1
+
+            try:
+                state = PowerService.battery_state()
+            except Exception:
+                state = ""
+
+            state_desc = ""
+
+            if "charging" in state:
+                state_desc = "Cargando"
+            elif "discharging" in state:
+                state_desc = "Descargando"
+
+            battery_group = Group("Estado de la bateria")
+
+            if pct >= 0:
+                value = "{:.0f}%  ({})".format(pct, state_desc) \
+                    if state_desc else "{:.0f}%".format(pct)
+            else:
+                value = "Desconocido"
+
+            battery_group.add(
+                Row(
+                    title="Nivel de carga",
+                    subtitle="El estado actual influye en el comportamiento de suspension",
+                    icon="power.svg",
+                    value=value
+                )
+            )
+
+            self.add(battery_group)
+
+        #
+        # Suspension automatica
+        #
+
+        group = Group("Suspension automatica")
 
         options = [
             ("5 minutos", 300),
@@ -40,6 +92,7 @@ class SleepPage(Page):
 
         self.combo = ComboRow(
             title="Suspender tras",
+            subtitle="Inactividad antes de que el sistema entre en suspension",
             values=labels,
             selected=selected,
             callback=self.on_timeout_changed
@@ -48,6 +101,10 @@ class SleepPage(Page):
         group.add(self.combo)
 
         self.add(group)
+
+        #
+        # Cierre de tapa
+        #
 
         lid = Group("Cierre de tapa")
 

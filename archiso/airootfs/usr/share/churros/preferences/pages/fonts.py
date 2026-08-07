@@ -3,6 +3,12 @@ from widgets.group import Group
 from widgets.row import Row
 from widgets.slider_row import SliderRow
 
+import gi
+
+gi.require_version("Gtk", "4.0")
+
+from gi.repository import Gtk, GLib
+
 from services.fonts import FontService
 
 
@@ -19,6 +25,29 @@ class FontsPage(Page):
 
         self.navigator = navigator
 
+        self._pending = False
+
+        #
+        # Preview
+        #
+
+        current = FontService.current()
+
+        preview_group = Group("Vista previa")
+
+        self.preview_label = Gtk.Label(
+            label="La zorra marrona salta sobre el perro perezoso"
+        )
+        self.preview_label.add_css_class("fonts-preview")
+        self.preview_label.set_margin_top(10)
+        self.preview_label.set_margin_bottom(10)
+        self.preview_label.set_margin_start(14)
+        self.preview_label.set_margin_end(14)
+
+        preview_group.add(self.preview_label)
+
+        self.add(preview_group)
+
         #
         # Escala
         #
@@ -34,7 +63,7 @@ class FontsPage(Page):
             minimum=80.0,
             maximum=150.0,
             step=5.0,
-            callback=self.on_scale_changed
+            callback=lambda *_: self._schedule_apply()
         )
 
         scale_group.add(self.scale_slider)
@@ -48,8 +77,6 @@ class FontsPage(Page):
         group = Group(
             "Fuentes instaladas"
         )
-
-        current = FontService.current()
 
         fonts = FontService.available()
 
@@ -86,10 +113,34 @@ class FontsPage(Page):
 
         FontService.set(font)
 
+        self._refresh_preview()
+
         self.navigator.show_page("appearance")
 
-    def on_scale_changed(self, slider):
+    def _refresh_preview(self):
 
-        FontService.set_scale(
-            slider.get_value() / 100.0
-        )
+        scale = FontService.scale()
+        self.preview_label.set_opacity(1.0)
+
+    def _schedule_apply(self):
+
+        if self._pending:
+            return
+
+        self._pending = True
+
+        def apply():
+
+            self._pending = False
+
+            try:
+
+                FontService.set_scale(
+                    self.scale_slider.get_value() / 100.0
+                )
+
+            except Exception as exc:
+
+                print("[fonts] apply fallo:", exc)
+
+        GLib.timeout_add(400, apply)
