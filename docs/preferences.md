@@ -18,73 +18,95 @@ La app tiene sidebar (páginas principales) + stack de páginas (con subpáginas
 
 ```text
 preferences/
-├── main.py                  # PreferencesApplication
-├── window.py                # PreferencesWindow (Gtk.ApplicationWindow)
+├── main.py                  # PreferencesApplication (try/except en cada bloque)
+├── window.py                # PreferencesWindow (Gtk.ApplicationWindow + sidebar + stack)
 ├── i18n.py                  # gettext wrapper (copia central)
 ├── style.css                # CSS con variables (dark/light + accent)
+├── churros.css              # Stylesheet compartido (también usado por control-center y popups)
 ├── assets/
 │   └── icons/               # SVGs del sidebar
 ├── widgets/                 # Widgets base
 │   ├── page.py              # Page (ScrolledWindow + botón atrás opcional)
 │   ├── sidebar.py           # Sidebar con search + lista
-│   ├── navigator.py         # Navigator (Gtk.Stack con history)
-│   ├── row.py               # Row (Gtk.Button base)
+│   ├── navigator.py         # Navigator (Gtk.Stack con history, signal 'navigated')
+│   ├── row.py               # Row (Gtk.Button base, set_title/set_subtitle API)
 │   ├── group.py             # Group (card con separadores)
-│   ├── combo_row.py         # ComboRow (DropDown)
-│   ├── slider_row.py        # SliderRow (Gtk.Scale)
+│   ├── combo_row.py         # ComboRow (Gtk.Box — NO hereda de Button, evita capturar clicks)
+│   ├── slider_row.py        # SliderRow (Gtk.Scale + debounce opcional)
 │   ├── switch_row.py        # SwitchRow (Gtk.Switch)
-│   ├── select_row.py        # SelectRow (CheckButton group)
+│   ├── select_row.py        # SelectRow (CheckButton group single-mutual)
+│   ├── color_picker.py      # ColorPickerRow (Acepta title, value, callback, subtitle)
+│   ├── search.py            # SearchEntry wrapper
+│   ├── dialog.py            # Dialogs genéricos (confirmación destructiva)
+│   ├── action_row.py        # ActionRow (botón derecho alineado)
 │   └── navigation_row.py    # NavigationRow (row con flecha a subpágina)
 ├── services/                # Services (lógica del sistema)
 │   ├── settings.py          # SettingsService (JSON en ~/.config/churros/settings.json)
-│   ├── theme.py             # ThemeService (dark/light + wallpaper連動)
+│   ├── theme.py             # ThemeService (dark/light + recargas)
 │   ├── accent.py            # AccentService (genera accent.css con --accent-glow)
 │   ├── fonts.py             # FontService (gsettings + Gtk.Settings)
 │   ├── cursor.py            # CursorService (gsettings cursor-theme/size en vivo)
 │   ├── icons.py             # IconsService (gsettings icon-theme en vivo)
 │   ├── wallpaper.py         # WallpaperService (swaybg primero, awww fallback)
-│   ├── waybar.py            # WallpaperService (genera config.jsonc + style.css liquid glass)
+│   ├── waybar.py            # WaybarService (config.jsonc + style.css liquid glass)
 │   ├── keyboard.py          # KeyboardService (parsea y edita binds de niri)
 │   ├── audio.py             # AudioService (wpctl/PipeWire)
 │   ├── power.py             # PowerService (powerprofilesctl, upower, gsettings)
-│   ├── display.py           # DisplayService + backends (niri/hyprland)
-│   ├── datetime.py          # DateTime helpers (timedatectl wrapper)
-│   ├── connectivity.py
+│   ├── display.py           # DisplayService + backends (niri/hyprland) + set_vrr()
+│   ├── datetime.py          # DatetimeService (timedatectl + churros-pkexec)
+│   ├── connectivity.py      # Wi-Fi + Bluetooth
 │   ├── about.py
 │   ├── system.py
 │   ├── users.py
-│   ├── applications.py
 │   ├── privacy.py
+│   ├── pywal.py             # Integración con python-pywal
+│   ├── lock_screen.py       # swaylock + swayidle
+│   ├── night_light.py       # wlsunset
+│   ├── mako.py              # MakoService (config + reload + DND)
+│   ├── dotfiles/            # Editores de dotfiles (parseo KDL/JSONC)
+│   │   ├── niri_config.py   # NiriConfig (parser KDL path-based + reload())
+│   │   ├── foot_config.py
+│   │   ├── fuzzel_config.py
+│   │   └── ...
 │   └── backends/            # Backends de display
 │       ├── base.py
 │       ├── niri.py          # niri msg outputs/action
 │       └── hyprland.py      # hyprctl
 └── pages/                   # Páginas de la UI
     ├── system.py
-    ├── appearance.py         # Padre de accent/icons/cursor/fonts/wallpaper/waybar
+    ├── appearance.py         # Padre con 9 grupos temáticos
     ├── audio.py
-    ├── display.py
+    ├── display.py            # VRR, resolución, brillo, scale
     ├── connectivity.py
     ├── power.py              # Padre de power-profile/battery/display-timeout/sleep
-    ├── applications.py
     ├── users.py
     ├── privacy.py
     ├── about.py
     ├── input.py              # Teclado/ratón
-    ├── datetime.py          # Fecha y hora (timedatectl)
-    ├── keyboard.py          # Editor visual de atajos de Niri
+    ├── datetime.py           # Fecha, hora, zona horaria (selector integrado), NTP
+    ├── keyboard.py           # Editor visual de atajos de Niri
+    ├── niri.py               # Animaciones, durations, toggles
+    ├── mako.py               # Notificaciones (DND, fuentes, bordes, disposición)
+    ├── night_light.py        # wlsunset (temperatura, gamma, automático)
+    ├── lock_screen.py        # swaylock/swayidle
+    ├── window_rules.py       # Reglas de ventana (window-rule blocks en KDL)
+    ├── logs.py               # Ver logs del sistema
+    ├── backup.py             # Exportar/importar/reset configuración
     # Subpáginas de appearance
     ├── accent.py
     ├── icons.py
     ├── cursor.py
     ├── fonts.py
     ├── wallpaper.py
-    └── waybar.py             # Editor de barra superior
+    └── waybar.py
     # Subpáginas de power
     ├── power_profile.py
     ├── battery.py
     ├── display_timeout.py
     └── sleep.py
+    # Subpáginas de input
+    ├── foot.py               # Terminal
+    └── fuzzel.py             # Launcher
 ```
 
 ---
@@ -456,6 +478,97 @@ Sin reglas duplicadas, sin hardcodes fuera de los tokens.
 CSS reload tras cambio de accent:
 
 - `AccentPage._reload_accent_css()` crea un provider nuevo con prioridad `Gtk.STYLE_PROVIDER_PRIORITY_USER + 1` (aún mayor) para que las nuevas variables ganen.
+
+---
+
+# Atajos globales de teclado
+
+`PreferencesWindow` registra atajos globales en `window.py` (vía `Gtk.EventControllerKey`):
+
+| Atajo | Acción |
+|-------|--------|
+| `Ctrl+F` | Foco al search del sidebar |
+| `Ctrl+B` | Toggle sidebar narrow (sólo iconos) |
+| `Shift+Ctrl+N` | Toggle sidebar narrow (alias) |
+
+El sidebar narrow oculta los labels dejando sólo los iconos — útil para pantallas pequeñas.
+
+---
+
+# Robustez y logs
+
+La app está blindada contra fallos:
+
+- `churros-settings` (script bash): redirige output a log en `$XDG_RUNTIME_DIR/churros-settings.log` (fallback `/tmp/churros-settings.log`). Autodetecta `WAYLAND_DISPLAY` si no está exportado. Si `churros-settings` falla por completo, no aborta la sesión del usuario — el último error queda en el log.
+- `main.py`: cada bloque crítico (`_build_wallpaper`, constructores de páginas) envuelto en try/except. Los errores se loguean con stack trace completo a `$XDG_RUNTIME_DIR/churros-settings.log`.
+- `ColorPickerRow` (`e517f4f`): ahora acepta el kwarg `subtitle` para integrarse en `LockScreenPage` y otras páginas donde el color picker vive dentro de un Row con descripción secundaria.
+- `ComboRow` (`e1c2477`): reescrito como `Gtk.Box` directo. Antes heredaba de `Gtk.Button` que capturaba los clicks del dropdown. Bug se manifestaba al pulsar la flecha del combo — el botón padre absorbía el evento.
+
+Reload sin reinicio:
+
+- `NiriConfig.reload()` envía `pkill -HUP niri` (SIGUSR2 re-reload completo; SIGUSR1 sólo para la config de monitor). Algunos cambios de Niri (animations toggle, durations) ya no requieren cerrar la app — se aplican al instante.
+- `MakoService.reload()` ejecuta `makoctl reload` tras modificar el config.
+- `WaybarService.reload()` envía `SIGUSR1` a waybar (recarga sin perder estado).
+- `ThemeService` y `AccentService` regeneran CSS y notifican a niri/waybar/foot.
+
+---
+
+# Servicios extra
+
+- **`PywalService`** (`services/pywal.py`) — Hook para `python-pywal`. Cuando está activo en `Apariencia`, genera paleta de 16 colores desde el wallpaper actual y los aplica como `--accent` y variables derivadas. Se desactiva con un click.
+- **`LockScreenService`** (`services/lock_screen.py`) — Wrapper sobre `swaylock` y `swayidle`. Habilita/deshabilita el lock automático con timeout configurable, lock al suspender, comandos previos al lock (v.gr. `wlsunset -t 3500`).
+- **`NightLightService`** (`services/night_light.py`) — Wrapper sobre `wlsunset`. Control de temperatura (3000K–6000K), gamma, modo automático basado en latitud/horario.
+- **`MakoService`** (`services/mako.py`) — Lee/escribe `~/.config/mako/config`, ejecuta `makoctl reload` tras cambios, toggle DND (`makoctl mode -a/-r do-not-disturb`).
+
+---
+
+# Páginas — referencia rápida
+
+Cada página de `churros-settings` se registra en `window.py` y se mapea a un archivo en `pages/`. Las páginas se agrupan en la sidebar por sección. Las páginas marcadas con **(subpágina)** sólo son accesibles vía la página padre o el search global.
+
+| Página | Sección | Función |
+|--------|---------|---------|
+| `system.py` | Sistema | Nombre de host, kernel, OS info |
+| `appearance.py` | Apariencia | Padre con 9 grupos temáticos |
+| ↳ `accent.py` | (subpágina) | Selector de acento (8 colores + custom) |
+| ↳ `icons.py` | (subpágina) | Tema de iconos + tamaño |
+| ↳ `cursor.py` | (subpágina) | Tema de cursor + tamaño |
+| ↳ `fonts.py` | (subpágina) | Familia de fuentes + tamaño + preview |
+| ↳ `wallpaper.py` | (subpágina) | Selector de wallpaper (live preview) |
+| ↳ `waybar.py` | (subpágina) | Posición, módulos, colores, transparencia |
+| `display.py` | Pantalla | Resolución, brillo, scale, VRR |
+| `audio.py` | Sonido | Volumen, dispositivo, perfil |
+| `mako.py` | Notificaciones | DND, tipografía, colores, bordes, padding |
+| `night_light.py` | Pantalla | `wlsunset` (temperatura, gamma, auto) |
+| `lock_screen.py` | Pantalla | `swaylock`/`swayidle` (timeout, suspend lock, fondo) |
+| `connectivity.py` | Red | Wi-Fi, ethernet, bluetooth |
+| `power.py` | Energía | Padre de perfiles/timeout/sleep/batería |
+| ↳ `power_profile.py` | (subpágina) | `powerprofilesctl` (Performance/Balanced/Power-Saver) |
+| ↳ `battery.py` | (subpágina) | Umbrales de carga (charge thresholds) |
+| ↳ `display_timeout.py` | (subpágina) | Apagado automático de pantalla |
+| ↳ `sleep.py` | (subpágina) | Timeout de suspensión + lid close |
+| `datetime.py` | Sistema | Reloj vivo, zona horaria (selector integrado), NTP |
+| `niri.py` | Sistema | Animaciones toggle, durations |
+| `window_rules.py` | Sistema | Editor visual de `window-rule {}` blocks |
+| `keyboard.py` | Entrada | Editor de atajos de Niri |
+| `input.py` | Entrada | Teclado/ratón (repetición, velocidad) |
+| `foot.py` | Entrada | Editor de dotfile `foot.ini` |
+| `fuzzel.py` | Entrada | Editor de dotfile `fuzzel.ini` |
+| `users.py` | Sistema | Cuentas de usuario |
+| `privacy.py` | Sistema | Permisos y telemetría |
+| `backup.py` | Sistema | Export/import/reset de `~/.config/churros/` |
+| `logs.py` | Sistema | Visor de logs del sistema |
+| `about.py` | Sistema | Versión, créditos, licencia |
+
+### Búsqueda global
+
+`Ctrl+F` enfoca la búsqueda. Buscar por nombre de página ("waybar"), por acción ("modo oscuro", "DND"), por componente ("zsh", "firefox") salta a la página correspondiente. Si el término matchea dentro de una subpágina, navega al padre y resalta el row.
+
+### Navegación
+
+- `Navigator` (stack con history) emite `navigated` cuando cambia la página visible.
+- `PreferencesWindow` sincroniza el item del sidebar — si estás en `accent.py` (subpágina) el item resaltado es `Apariencia` (padre).
+- Click en `← Atrás` (en pages con history) o `Alt+Left` revierte.
 
 ---
 

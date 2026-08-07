@@ -264,6 +264,97 @@ Antes `preferences/i18n.py` era el único que existía; los popups lo referencia
 
 ---
 
+## 2026-08-07 — Preferences Brain (release v0.4.0)
+
+Sesión de 60 commits centrada en madurar el panel de preferencias, eliminar bugs latentes y ampliar la cobertura de la GUI.
+
+### Selector de zona horaria integrado
+
+- `services/datetime.py` nuevo: `DatetimeService` con `get_timezone()`, `get_ntp()`, `list_timezones()` (598 zonas), `set_timezone()`/`set_ntp()` vía `churros-pkexec`.
+- `pages/datetime.py` reescrito: reloj vivo (segundo a segundo), switch NTP integrado, **selector de zona con `Gtk.SearchEntry` que filtra en vivo** y abre un `Popover` con `ListBox` de resultados (max 200 visibles). Al hacer clic, aplica via `churros-pkexec` (polkit).
+- `50-churros-store.rules` añadida autorización para `timedatectl` junto a `pacman/flatpak/yay/paru`.
+- Eliminado el flujo anterior con `fzf`+`foot`; ahora todo se hace dentro de la GUI.
+
+### Nuevas páginas
+
+- **Mako** (`pages/mako.py`) — Tipografía, colores, bordes, disposición, padding, comportamiento + reload + **toggle DND**.
+- **Backup** (`pages/backup.py`) — Exportar/importar/resetear la config de `~/.config/churros/`.
+- **Night Light** (`pages/night_light.py`) — `wlsunset` (temperatura, gamma, automático).
+- **Lock Screen** (`pages/lock_screen.py`) — `swaylock` + `swayidle`.
+- **Window Rules** (`pages/window_rules.py`) — Editor visual de `window-rule {}` blocks en KDL.
+- **Logs** (`pages/logs.py`) — Ver logs del sistema.
+- **Niri** (`pages/niri.py`) — Toggle animaciones + sliders de duración de `window-open` y `workspace-switch`.
+
+### Bugs críticos resueltos
+
+- `NiriConfig.reload()` añadido (`f19966e`). Antes 11 sitios llamaban `NiriConfig.reload()` que no existía → `AttributeError`. Ahora envía `pkill -HUP niri`.
+- `DisplayService.set_vrr()` añadido (`f19966e`). Faltaba wrapper; backend base ya lo tenía.
+- `ComboRow` reescrito como `Gtk.Box` directo (`e1c2477`). Antes heredaba de `Gtk.Button` → el button capturaba el click del dropdown. Bug manifiesto: pulsar la flecha no abría el menú.
+- `Row.set_title()` / `Row.set_subtitle()` añadidos como API pública (`f19966e`).
+- `ColorPickerRow` acepta `subtitle` kwarg (`e517f4f`). Bug rompía `do_activate()` al construir `LockScreenPage`.
+- `display_timeout.py` — `parent_page` corregido de `"power"` a `"display"` (`18ac16a`).
+- `pages/shortcuts.py` borrada (`0b9bcd5`) — duplicaba `keyboard.py` (la única página de atajos).
+- `archiso/packages/` — 9 artefactos de pacman quitados del índice (`ed7ab08`).
+- `churros-settings` sin permisos de ejecución (`65c5f95`).
+- Screen negro al cambiar wallpaper + modo oscuro (`ecd4adc`).
+- OVMF_VARS.fd copia independiente (`dea9249`).
+
+### Robustez y logs
+
+- `churros-settings` (launcher bash) blindado (`677789f`):
+  - Output redirigido a `$XDG_RUNTIME_DIR/churros-settings.log` (fallback `/tmp/churros-settings.log`).
+  - Autodetección de `WAYLAND_DISPLAY` si no exportado.
+  - Si la app falla, no aborta la sesión del usuario.
+- `main.py` blindado (`677789f`):
+  - Cada bloque crítico envuelto en try/except.
+  - Errores se loguean con stack trace completo.
+  - `_build_wallpaper` ahora no muere si el wallpaper no existe.
+
+### Apariencia reorganizada
+
+`pages/appearance.py` reorganizada en 9 grupos temáticos (`053872d`):
+
+1. Tema (claro/oscuro)
+2. Color de acento
+3. Tipos de letra
+4. Cursor
+5. Iconos
+6. Fondo de pantalla
+7. Esquinas / forma
+8. Pywal (paleta dinámica)
+9. Waybar
+
+ThemeService y AccentService tienen **hooks pywal** — cuando pywal está activo, regenera paleta desde el wallpaper.
+
+### Búsqueda mejorada
+
+- Search global con subpáginas (`36d9b7e`) — buscar "modo oscuro" salta a `Apariencia → Tema` y resalta el row correspondiente.
+- Layout responsive — sidebar narrow en pantallas estrechas.
+- Color picker entry editable — pegar hex manualmente funciona.
+
+### Atajos globales
+
+`PreferencesWindow` registra (`2d7f7bf`):
+
+| Atajo | Acción |
+|-------|--------|
+| `Ctrl+F` | Foco al search del sidebar |
+| `Ctrl+B` | Toggle sidebar narrow |
+| `Shift+Ctrl+N` | Toggle sidebar narrow (alias) |
+
+### Pulido de páginas existentes
+
+- **Power profile** — descripciones + advertencias sobre rendimiento (`6b1c8a6`).
+- **Sleep** — estado batería integrado (`6b1c8a6`).
+- **Fonts** — preview en vivo + debounce (`6b1c8a6`).
+
+### CI
+
+- `./churros check` corre en GitHub Actions (`.github/workflows/ci.yml`) en cada push a `main` y PR.
+- Verifica: bash syntax, shellcheck error level, Python syntax, duplicate entries en `packages.x86_64`, Niri autostart commands resolvibles, `msgfmt --check` en `po/*.po`, repo hygiene (no generated files tracked).
+
+---
+
 ## 2026-07-16
 
 - Added `python-psutil` to `archiso/packages.x86_64` so `churros-welcome` can import `psutil` in the live image.

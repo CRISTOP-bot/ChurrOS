@@ -29,7 +29,8 @@ Construir la infraestructura principal del proyecto.
 - [x] Sistema de branding.
 - [x] Documentación oficial.
 - [x] Integración con QEMU.
-- [ ] Primera versión Alpha.
+- [x] CI con `./churros check` (GitHub Actions).
+- [x] Versión Alpha pública.
 
 ---
 
@@ -39,15 +40,15 @@ Dar personalidad propia a la distribución.
 
 ## Objetivos
 
-- [ ] Logo oficial.
-- [ ] Mascota oficial.
-- [ ] Wallpapers oficiales.
-- [ ] Fastfetch personalizado.
+- [x] Logo oficial.
+- [x] Mascota oficial.
+- [x] Wallpapers oficiales.
+- [x] Fastfetch personalizado.
 - [ ] Plymouth.
-- [ ] Tema de GRUB.
 - [ ] Tema / branding de greetd.
-- [ ] Iconos oficiales.
-- [ ] Cursor oficial.
+- [x] Iconos oficiales.
+- [x] Cursor oficial.
+- [ ] Tema de GRUB (no aplica: usamos systemd-boot).
 
 ---
 
@@ -57,14 +58,14 @@ Construir una experiencia de escritorio moderna.
 
 ## Objetivos
 
-- [ ] Niri configurado.
-- [ ] Waybar.
-- [ ] foot.
-- [ ] Fuzzel.
+- [x] Niri configurado.
+- [x] Waybar.
+- [x] foot.
+- [x] Fuzzel.
 - [ ] Wlogout.
-- [ ] Notificaciones.
-- [ ] Centro de control.
-- [ ] Tema oficial.
+- [x] Notificaciones (mako).
+- [x] Centro de control (churros-control-center).
+- [x] Tema oficial.
 
 ---
 
@@ -74,14 +75,14 @@ Desarrollar el instalador gráfico de ChurrOS.
 
 ## Objetivos
 
-- [ ] Interfaz gráfica.
-- [ ] Particionado automático.
-- [ ] Particionado manual.
-- [ ] Selección de idioma.
-- [ ] Selección de zona horaria.
-- [ ] Creación de usuario.
-- [ ] Instalación del bootloader.
-- [ ] Configuración inicial.
+- [x] Interfaz gráfica (Calamares con branding ChurrOS).
+- [x] Particionado automático.
+- [x] Particionado manual.
+- [x] Selección de idioma.
+- [x] Selección de zona horaria.
+- [x] Creación de usuario.
+- [x] Instalación del bootloader (systemd-boot UEFI + syslinux BIOS).
+- [x] Configuración inicial.
 
 ---
 
@@ -92,11 +93,13 @@ Crear herramientas propias.
 ## Objetivos
 
 - [ ] Repositorio oficial.
-- [ ] Paquetes propios.
-- [ ] ChurrOS CLI v2.
+- [ ] Paquetes propios (en desarrollo — Calamares se construye desde AUR local).
+- [x] ChurrOS CLI.
 - [ ] Actualizador.
-- [ ] Aplicación de bienvenida.
-- [ ] Herramienta de configuración.
+- [x] Aplicación de bienvenida (churros-welcome).
+- [x] Herramienta de configuración (churros-settings).
+- [x] Centro de control (churros-control-center).
+- [x] Popups integrados (audio, bluetooth, battery, brightness, network, power).
 
 ---
 
