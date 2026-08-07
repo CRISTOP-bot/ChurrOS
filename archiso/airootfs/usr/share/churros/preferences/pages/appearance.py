@@ -328,6 +328,24 @@ class AppearancePage(Page):
 
         )
 
+        personalization.add(
+
+            NavigationRow(
+
+                navigator=navigator,
+
+                title="Pantalla de bloqueo",
+
+                subtitle="swaylock + swayidle: estilo y bloqueo automatico",
+
+                icon="lock_screen.svg",
+
+                page_name="lock-screen"
+
+            )
+
+        )
+
         self.add(
 
             personalization
