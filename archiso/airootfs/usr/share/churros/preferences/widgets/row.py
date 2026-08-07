@@ -96,6 +96,8 @@ class Row(Gtk.Button):
             "row-title"
         )
 
+        self._title_label = title_label
+
         labels.append(
             title_label
         )
@@ -113,6 +115,8 @@ class Row(Gtk.Button):
             subtitle_label.add_css_class(
                 "row-subtitle"
             )
+
+            self._subtitle_label = subtitle_label
 
             labels.append(
                 subtitle_label
@@ -173,3 +177,27 @@ class Row(Gtk.Button):
         self.callback(
             self
         )
+
+    def set_subtitle(
+        self,
+        text
+    ):
+
+        if hasattr(
+            self,
+            "_subtitle_label"
+        ) and self._subtitle_label is not None:
+
+            self._subtitle_label.set_label(text)
+
+    def set_title(
+        self,
+        text
+    ):
+
+        if hasattr(
+            self,
+            "_title_label"
+        ) and self._title_label is not None:
+
+            self._title_label.set_label(text)
