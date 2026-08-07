@@ -45,7 +45,8 @@ polkit.addRule(function(action, subject) {
     if (matches("pacman")  ||
         matches("flatpak") ||
         matches("yay")     ||
-        matches("paru")) {
+        matches("paru")    ||
+        matches("timedatectl")) {
         return polkit.Result.YES;
     }
 
