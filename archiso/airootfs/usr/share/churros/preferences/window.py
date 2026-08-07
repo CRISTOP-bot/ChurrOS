@@ -172,6 +172,48 @@ class PreferencesWindow(Gtk.ApplicationWindow):
 
         self.navigator.connect("navigated", on_navigated)
 
+        #
+        # Atajos de teclado globales
+        #
+
+        key_ctrl = Gtk.EventControllerKey()
+        key_ctrl.set_propagation_phase(Gtk.PropagationPhase.BUBBLE)
+
+        def on_key(controller, keyval, keycode, state):
+
+            ctrl = (state & Gtk.GdkModifierType.CONTROL_MASK) != 0
+            shift = (state & Gtk.GdkModifierType.SHIFT_MASK) != 0
+
+            if ctrl and (keyval == ord('f') or keyval == ord('F')):
+
+                try:
+                    self.sidebar.search.grab_focus()
+                except Exception:
+                    pass
+
+                return True
+
+            if ctrl and (keyval == ord('b') or keyval == ord('B')):
+
+                if self._is_narrow:
+                    self._toggle_sidebar()
+
+                return True
+
+            if ctrl and shift and (
+                keyval == ord('N') or keyval == ord('n')
+            ):
+
+                self._toggle_sidebar()
+
+                return True
+
+            return False
+
+        key_ctrl.connect("key-pressed", on_key)
+
+        self.add_controller(key_ctrl)
+
         root.append(
             nav_box
         )
