@@ -1082,3 +1082,79 @@ class NiriConfig:
                 return True
 
         return False
+
+    @classmethod
+    def get_animation_duration(
+        cls,
+        name,
+        default
+    ):
+
+        content = cls._read()
+
+        val = cls._extract_value(
+            content,
+            ["animations", name],
+            "duration"
+        )
+
+        if val is None:
+            return default
+
+        try:
+            return int(val)
+        except ValueError:
+            return default
+
+    @classmethod
+    def set_animation_duration(
+        cls,
+        name,
+        duration
+    ):
+
+        content = cls._read()
+
+        result = cls._update_value_in_block(
+            content,
+            ["animations", name],
+            "duration",
+            str(int(duration))
+        )
+
+        if result is None:
+
+            parent_end = None
+
+            _, anim_end = cls._find_block(content, ["animations"])
+
+            if anim_end is not None:
+                parent_end = anim_end
+            else:
+
+                if content and not content.endswith("\n"):
+                    content += "\n"
+
+                content += (
+                    "animations {\n"
+                    "    " + name + " {\n"
+                    "        duration " + str(int(duration)) + "\n"
+                    "    }\n"
+                    "}\n"
+                )
+
+                cls._write_atomic(content)
+                return
+
+            lines = content.splitlines(True)
+            indent = "    "
+            block_str = (
+                indent + name + " {\n"
+                + indent + indent + "duration " + str(int(duration)) + "\n"
+                + indent + "}\n"
+            )
+            lines.insert(parent_end, block_str)
+            cls._write_atomic("".join(lines))
+            return
+
+        cls._write_atomic(result)

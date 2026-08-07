@@ -228,6 +228,30 @@ class NiriPage(Page):
 
         animations_group.add(self.animations_switch)
 
+        self.window_open_slider = SliderRow(
+            title="Apertura de ventanas",
+            subtitle="Duracion en ms (window-open)",
+            value=float(NiriConfig.get_animation_duration("window-open", 250)),
+            minimum=0,
+            maximum=1000,
+            step=50,
+            callback=lambda *_: self._schedule_apply()
+        )
+
+        animations_group.add(self.window_open_slider)
+
+        self.workspace_switch_slider = SliderRow(
+            title="Cambio de workspace",
+            subtitle="Duracion en ms (workspace-switch)",
+            value=float(NiriConfig.get_animation_duration("workspace-switch", 250)),
+            minimum=0,
+            maximum=1000,
+            step=50,
+            callback=lambda *_: self._schedule_apply()
+        )
+
+        animations_group.add(self.workspace_switch_slider)
+
         self.add(animations_group)
 
         #
