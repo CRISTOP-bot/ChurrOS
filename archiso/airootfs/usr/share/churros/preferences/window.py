@@ -26,6 +26,7 @@ from pages.backup import BackupPage
 from pages.logs import LogsPage
 from pages.window_rules import WindowRulesPage
 from pages.night_light import NightLightPage
+from pages.lock_screen import LockScreenPage
 
 from pages.audio import AudioPage
 from pages.connectivity import ConnectivityPage
@@ -416,6 +417,17 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             "Luz nocturna",
             "Temperatura de color y filtro de luz azul",
             "night_light.svg"
+        )
+
+        self.navigator.add_page(
+            "lock-screen",
+            LockScreenPage(self.navigator)
+        )
+        self.sidebar.register_subpage(
+            "lock-screen", "appearance",
+            "Pantalla de bloqueo",
+            "swaylock + swayidle: estilo y bloqueo automatico",
+            "lock_screen.svg"
         )
 
         #

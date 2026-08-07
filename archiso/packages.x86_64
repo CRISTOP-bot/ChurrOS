@@ -155,6 +155,8 @@ gvfs-mtp
 
 greetd
 greetd-agreety
+swaylock
+swayidle
 
 qt6-wayland
 qt5-wayland
