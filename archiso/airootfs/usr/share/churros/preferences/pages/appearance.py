@@ -94,17 +94,24 @@ class AppearancePage(Page):
 
         group = Group("Fondo de pantalla")
 
-        current = WallpaperService.current()
+        try:
 
-        if current and os.path.isfile(current):
+            current = WallpaperService.current()
 
-            subtitle = "Actual: " + current
-            value = None
+            if current and os.path.isfile(current):
 
-        else:
+                subtitle = "Actual: " + current
+                value = None
 
-            subtitle = "Sin wallpaper configurado"
-            value = "Sin fondo"
+            else:
+
+                subtitle = "Sin wallpaper configurado"
+                value = "Sin fondo"
+
+        except Exception as exc:
+
+            subtitle = "Error leyendo wallpaper: " + str(exc)
+            value = "Error"
 
         preview_row = Row(
             title="Wallpaper actual",
