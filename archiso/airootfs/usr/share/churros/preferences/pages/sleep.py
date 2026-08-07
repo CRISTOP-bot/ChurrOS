@@ -1,7 +1,6 @@
 from widgets.page import Page
 from widgets.group import Group
 from widgets.combo_row import ComboRow
-from widgets.switch_row import SwitchRow
 
 from services.power import PowerService
 

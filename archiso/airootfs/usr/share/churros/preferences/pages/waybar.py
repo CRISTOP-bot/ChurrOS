@@ -11,13 +11,12 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 
-from gi.repository import Gtk, GLib, Gdk
+from gi.repository import Gtk, GLib
 
 from widgets.page import Page
 from widgets.group import Group
 from widgets.combo_row import ComboRow
 from widgets.slider_row import SliderRow
-from widgets.switch_row import SwitchRow
 from widgets.row import Row
 from widgets.color_picker import ColorPickerRow
 
