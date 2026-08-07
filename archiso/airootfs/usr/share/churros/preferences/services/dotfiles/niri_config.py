@@ -80,6 +80,22 @@ class NiriConfig:
             raise
 
     @classmethod
+    def reload(cls):
+
+        try:
+
+            import subprocess
+
+            subprocess.Popen(
+                ["pkill", "-HUP", "niri"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+
+        except Exception:
+            pass
+
+    @classmethod
     def _replace_block(
         cls,
         content,
@@ -453,142 +469,6 @@ class NiriConfig:
                     "\n"
                 )
             )
-
-        cls._write_atomic(
-            new_content
-        )
-
-    @classmethod
-    def set_wallpaper_startup(
-        cls,
-        path
-    ):
-
-        content = cls._read()
-
-        pattern = re.compile(
-            r"^spawn-at-startup\s+\"swaybg\"[^\n]*\n",
-            re.MULTILINE
-        )
-
-        new_line = (
-            "spawn-at-startup \"swaybg\" \"-i\" \"" + path + "\" \"-m\" \"fill\"\n"
-        )
-
-        if pattern.search(
-            content
-        ):
-
-            new_content = pattern.sub(
-                new_line,
-                content,
-                count=1
-            )
-
-        else:
-
-            new_content = cls._append(
-                content,
-                new_line.rstrip(
-                    "\n"
-                )
-            )
-
-        cls._write_atomic(
-            new_content
-        )
-
-    @classmethod
-    def add_spawn_at_startup(
-        cls,
-        command
-    ):
-
-        content = cls._read()
-
-        pattern = re.compile(
-            r"^spawn-at-startup\s+\"" + re.escape(
-                command.split(
-                    "\""
-                )[0]
-            ) + "\"[^\n]*\n",
-            re.MULTILINE
-        )
-
-        new_line = "spawn-at-startup " + command + "\n"
-
-        if pattern.search(
-            content
-        ):
-
-            new_content = pattern.sub(
-                new_line,
-                content,
-                count=1
-            )
-
-        else:
-
-            new_content = cls._append(
-                content,
-                new_line.rstrip(
-                    "\n"
-                )
-            )
-
-        cls._write_atomic(
-            new_content
-        )
-
-    @classmethod
-    def add_keybind(
-        cls,
-        keybind,
-        action
-    ):
-
-        content = cls._read()
-
-        pattern = re.compile(
-            r"^[ \t]+" + re.escape(keybind) + r"[ \t]+\{[^\n]*\n",
-            re.MULTILINE
-        )
-
-        new_line = "    " + keybind + " { " + action + "; }\n"
-
-        if pattern.search(
-            content
-        ):
-
-            new_content = pattern.sub(
-                new_line,
-                content,
-                count=1
-            )
-
-        else:
-
-            binds_pattern = re.compile(
-                r"^binds\s*\{",
-                re.MULTILINE
-            )
-
-            if binds_pattern.search(
-                content
-            ):
-
-                new_content = binds_pattern.sub(
-                    "binds {\n" + new_line,
-                    content,
-                    count=1
-                )
-
-            else:
-
-                new_content = cls._append(
-                    content,
-                    "binds {\n" + new_line + "}\n"
-                )
 
         cls._write_atomic(
             new_content
@@ -1202,43 +1082,3 @@ class NiriConfig:
                 return True
 
         return False
-
-    @classmethod
-    def get_cursor_size(cls):
-
-        content = cls._read()
-
-        val = cls._extract_value(content, ["cursor"], "xcursor-size")
-
-        if val is None:
-            return 24
-
-        try:
-            return int(val)
-        except ValueError:
-            return 24
-
-    @classmethod
-    def get_keyboard_layout(cls):
-
-        content = cls._read()
-
-        start, end = cls._find_block(content, ["input", "keyboard", "xkb"])
-
-        if start is not None:
-
-            lines = content.splitlines(False)
-
-            for j in range(start + 1, end):
-
-                stripped = lines[j].strip()
-
-                if stripped.startswith("layout"):
-                    return stripped.split(None, 1)[1].strip().strip('"')
-
-        m = re.search(r'layout\s+"([^"]+)"', content)
-
-        if m:
-            return m.group(1)
-
-        return "us"

@@ -155,3 +155,15 @@ class DisplayService:
         cls.backend().set_brightness(
             value
         )
+
+    @classmethod
+    def set_vrr(
+        cls,
+        monitor,
+        enabled
+    ):
+
+        cls.backend().set_vrr(
+            monitor,
+            enabled
+        )
