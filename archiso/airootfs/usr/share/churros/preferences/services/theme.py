@@ -70,9 +70,9 @@ class ThemeService:
             return bool(cached)
 
         return True
-
     @classmethod
     def set(cls, dark):
+
         SettingsService.set("theme.dark", bool(dark))
         _write_gtk_settings(dark)
 
@@ -94,14 +94,22 @@ class ThemeService:
             except Exception:
                 pass
 
+        try:
+
+            from services.pywal_service import PywalService
+
+            if PywalService.enabled():
+
+                palette = PywalService.generate()
+
+                if palette is not None:
+
+                    PywalService.apply_accent(palette)
+
+        except Exception:
+
+            pass
+
     @classmethod
     def toggle(cls):
         cls.set(not cls.is_dark())
-
-    @classmethod
-    def ensure(cls):
-        cls.set(cls.is_dark())
-
-    @classmethod
-    def apply(cls):
-        cls.set(cls.is_dark())
