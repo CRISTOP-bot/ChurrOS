@@ -30,7 +30,7 @@ def rgba_to_hex(rgba):
 
 class ColorPickerRow(Gtk.Box):
 
-    def __init__(self, title, value, callback=None):
+    def __init__(self, title, value, callback=None, subtitle=None):
 
         super().__init__(
             orientation=Gtk.Orientation.HORIZONTAL,
@@ -52,10 +52,30 @@ class ColorPickerRow(Gtk.Box):
         self._swatch.set_valign(Gtk.Align.CENTER)
         self._swatch.add_css_class("color-swatch")
 
+        labels = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=2
+        )
+        labels.set_hexpand(True)
+
         self._label = Gtk.Label(label=title)
         self._label.set_xalign(0)
-        self._label.set_hexpand(True)
         self._label.add_css_class("row-title")
+
+        labels.append(self._label)
+
+        if subtitle:
+
+            self._subtitle_label = Gtk.Label(label=subtitle)
+            self._subtitle_label.set_xalign(0)
+            self._subtitle_label.set_wrap(True)
+            self._subtitle_label.add_css_class("row-subtitle")
+
+            labels.append(self._subtitle_label)
+
+        else:
+
+            self._subtitle_label = None
 
         self._value_label = Gtk.Label(label=value)
         self._value_label.set_xalign(1)
@@ -75,7 +95,7 @@ class ColorPickerRow(Gtk.Box):
         self._entry.connect("changed", self._on_entry_changed)
         self._entry.connect("activate", self._on_entry_activate)
 
-        self.append(self._label)
+        self.append(labels)
         self.append(self._swatch)
         self.append(self._entry)
         self.append(self._value_label)
