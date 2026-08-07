@@ -143,6 +143,22 @@ class AccentService:
 
         cls._write_accent_css(color)
 
+        try:
+
+            from services.pywal_service import PywalService
+
+            if PywalService.enabled():
+
+                palette = PywalService.generate()
+
+                if palette is not None:
+
+                    PywalService.apply_accent(palette)
+
+        except Exception:
+
+            pass
+
     @classmethod
     def set_hex(cls, hex_color):
 
