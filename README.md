@@ -32,7 +32,7 @@ Aunque actualmente utiliza Arch Linux como base, el objetivo a largo plazo es qu
 
 # Estado del proyecto
 
-Actualmente ChurrOS se encuentra en una etapa temprana de desarrollo.
+Actualmente ChurrOS se encuentra en una etapa temprana de desarrollo. La versión actual es **v0.4.0 — Preferences Brain**.
 
 Características implementadas:
 
@@ -43,6 +43,13 @@ Características implementadas:
 - Ejecución automática en QEMU.
 - Personalización del sistema Live.
 - Documentación oficial.
+- **Escritorio completo** — Niri + Waybar + foot + Fuzzel + Mako.
+- **Centro de control** — `churros-control-center`.
+- **App de bienvenida** — `churros-welcome`.
+- **Panel de preferencias** (`churros-settings`) — 30+ páginas GTK4.
+- **Popups integrados** — audio, bluetooth, batería, brillo, red, power.
+- **Instalador gráfico** — Calamares con branding ChurrOS.
+- **CI** — `./churros check` corre en GitHub Actions.
 
 ---
 
@@ -140,35 +147,13 @@ Toda la documentación oficial se encuentra en la carpeta `docs/`.
 
 # Roadmap
 
-## Fase 1
+El roadmap detallado con el progreso de cada fase está en `docs/roadmap.md`.
 
-- Sistema de compilación
-- Branding
-- CLI
-- Máquina virtual
-
-## Fase 2
-
-- Fastfetch personalizado
-- Wallpapers
-- Plymouth
-- Personalización del bootloader
-
-## Fase 3
-
-- Niri
-- Waybar
-- foot
-- Fuzzel
-- Temas
-
-## Fase 4
-
-- Instalador gráfico
-
-## Fase 5
-
-- Primera versión estable
+- **Fase 1 — Fundación**: completada (CI integrada).
+- **Fase 2 — Identidad**: completada (logo, mascot, wallpapers, fastfetch, iconos, cursor).
+- **Fase 3 — Escritorio**: completada (Niri, Waybar, foot, Fuzzel, Mako, Centro de control, Tema oficial).
+- **Fase 4 — Instalador**: completada (Calamares con branding ChurrOS).
+- **Fase 5 — Ecosistema**: en curso (preferencias completas, falta actualizador y repo oficial).
 
 ---
 
