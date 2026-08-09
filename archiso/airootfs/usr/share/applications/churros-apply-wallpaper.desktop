@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Aplicar como fondo de pantalla
+Name[en]=Set as wallpaper
+GenericName=ChurrOS Wallpaper
+Comment=Aplica la imagen seleccionada como fondo de pantalla
+Comment[en]=Apply selected image as wallpaper
+Icon=wallpaper
+Exec=churros-apply-wallpaper %f
+Terminal=false
+Categories=Utility;DesktopSettings;Settings;
+NoDisplay=true
+MimeType=image/jpeg;image/png;image/webp;image/gif;image/bmp;image/tiff;
