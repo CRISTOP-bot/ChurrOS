@@ -33,6 +33,10 @@ bash /root/scripts/users.sh
 echo "Enabling services..."
 bash /root/scripts/services.sh
 
+echo "Initializing pacman keyring..."
+pacman-key --init
+pacman-key --populate archlinux
+
 echo "Configuring desktop..."
 bash /root/scripts/desktop.sh
 
