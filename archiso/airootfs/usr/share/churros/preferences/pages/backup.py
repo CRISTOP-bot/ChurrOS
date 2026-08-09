@@ -114,133 +114,161 @@ class BackupPage(Page):
 
     def _on_export(self):
 
-        dialog = Gtk.FileDialog()
-        dialog.set_title("Guardar backup")
-
-        filter_tar = Gtk.FileFilter()
-        filter_tar.set_name("Archivo tar")
-        filter_tar.add_pattern("*.tar")
-        filter_tar.add_pattern("*.tar.gz")
-        filter_tar.add_pattern("*.tar.zst")
-
-        filters = Gio.ListStore.new(Gtk.FileFilter)
-        filters.append(filter_tar)
-        dialog.set_filters(filters)
-        dialog.set_default_filter(filter_tar)
+        try:
+            parent = self.get_root()
+            if parent is None:
+                self._set_status("Error: no se pudo abrir el dialog (pagina sin root).")
+                return
+        except Exception:
+            return
 
         try:
+            dialog = Gtk.FileDialog()
+            dialog.set_title("Guardar backup")
 
-            dialog.set_initial_name(
-                "churros-backup.tar"
-            )
+            filter_tar = Gtk.FileFilter()
+            filter_tar.set_name("Archivo tar")
+            filter_tar.add_pattern("*.tar")
+            filter_tar.add_pattern("*.tar.gz")
+            filter_tar.add_pattern("*.tar.zst")
 
-            dialog.set_initial_folder(
-                Gio.File.new_for_path(
-                    os.path.expanduser("~")
-                )
-            )
-
-        except Exception:
-            pass
-
-        def on_result(source, result, _user_data=None):
+            filters = Gio.ListStore.new(Gtk.FileFilter)
+            filters.append(filter_tar)
+            dialog.set_filters(filters)
+            dialog.set_default_filter(filter_tar)
 
             try:
+                dialog.set_initial_name(
+                    "churros-backup.tar"
+                )
 
-                file = dialog.save_finish(result)
+                dialog.set_initial_folder(
+                    Gio.File.new_for_path(
+                        os.path.expanduser("~")
+                    )
+                )
 
-            except GLib.Error:
-                return
+            except Exception:
+                pass
 
-            if file is None:
-                return
-
-            path = file.get_path() if hasattr(file, "get_path") else None
-
-            if not path:
-                return
-
-            self._set_status("Exportando...")
-
-            def worker():
+            def on_result(source, result, _user_data=None):
 
                 try:
+                    file = dialog.save_finish(result)
+                except GLib.Error:
+                    return
 
-                    BackupService.export_to(path)
+                if file is None:
+                    return
 
-                    GLib.idle_add(
-                        lambda: self._set_status(
-                            "Backup guardado en " + path
+                path = file.get_path() if hasattr(file, "get_path") else None
+
+                if not path:
+                    return
+
+                self._set_status("Exportando...")
+
+                def worker():
+
+                    try:
+
+                        BackupService.export_to(path)
+
+                        GLib.idle_add(
+                            lambda: self._set_status(
+                                "Backup guardado en " + path
+                            )
                         )
-                    )
 
-                except Exception as exc:
+                    except Exception as exc:
 
-                    GLib.idle_add(
-                        lambda: self._set_status(
-                            "Error al exportar: " + str(exc)
+                        GLib.idle_add(
+                            lambda: self._set_status(
+                                "Error al exportar: " + str(exc)
+                            )
                         )
-                    )
 
 
-            threading.Thread(
-                target=worker,
-                daemon=True
-            ).start()
+                threading.Thread(
+                    target=worker,
+                    daemon=True
+                ).start()
 
-        dialog.save(self.get_root(), None, on_result)
+            dialog.save(parent, None, on_result)
+
+        except Exception as exc:
+            try:
+                self._set_status("Error al abrir dialog: " + str(exc))
+            except Exception:
+                pass
 
     def _on_import(self):
 
-        dialog = Gtk.FileDialog()
-        dialog.set_title("Seleccionar backup de ChurrOS")
-
-        filter_tar = Gtk.FileFilter()
-        filter_tar.set_name("Archivo tar")
-        filter_tar.add_pattern("*.tar")
-        filter_tar.add_pattern("*.tar.gz")
-        filter_tar.add_pattern("*.tar.zst")
-
-        filters = Gio.ListStore.new(Gtk.FileFilter)
-        filters.append(filter_tar)
-        dialog.set_filters(filters)
-        dialog.set_default_filter(filter_tar)
+        try:
+            parent = self.get_root()
+            if parent is None:
+                self._set_status("Error: no se pudo abrir el dialog (pagina sin root).")
+                return
+        except Exception:
+            return
 
         try:
+            dialog = Gtk.FileDialog()
+            dialog.set_title("Seleccionar backup de ChurrOS")
 
-            dialog.set_initial_folder(
-                Gio.File.new_for_path(
-                    os.path.expanduser("~")
-                )
-            )
+            filter_tar = Gtk.FileFilter()
+            filter_tar.set_name("Archivo tar")
+            filter_tar.add_pattern("*.tar")
+            filter_tar.add_pattern("*.tar.gz")
+            filter_tar.add_pattern("*.tar.zst")
 
-        except Exception:
-            pass
-
-        def on_result(source, result, _user_data=None):
+            filters = Gio.ListStore.new(Gtk.FileFilter)
+            filters.append(filter_tar)
+            dialog.set_filters(filters)
+            dialog.set_default_filter(filter_tar)
 
             try:
+                dialog.set_initial_folder(
+                    Gio.File.new_for_path(
+                        os.path.expanduser("~")
+                    )
+                )
 
-                file = dialog.open_finish(result)
+            except Exception:
+                pass
 
-            except GLib.Error:
-                return
+            def on_result(source, result, _user_data=None):
+                try:
+                    file = dialog.open_finish(result)
+                except GLib.Error:
+                    return
 
-            if file is None:
-                return
+                if file is None:
+                    return
 
-            path = file.get_path() if hasattr(file, "get_path") else None
+                path = file.get_path() if hasattr(file, "get_path") else None
 
-            if not path or not os.path.isfile(path):
-                return
+                if not path or not os.path.isfile(path):
+                    return
 
-            self._set_status("Importando... recargando tras aplicar")
+                GLib.idle_add(lambda: self._confirm_import(path))
 
+            dialog.open(parent, None, on_result)
+
+        except Exception as exc:
+            try:
+                self._set_status("Error al abrir dialog: " + str(exc))
+            except Exception:
+                pass
+
+    def _confirm_import(self, path):
+
+        try:
             confirm = Gtk.AlertDialog()
             confirm.set_heading("Importar configuracion")
             confirm.set_message(
                 "Esto reemplazara tu configuracion actual "
-                "con la del archivo. ¿Continuar?"
+                "con la del archivo seleccionado. ¿Continuar?"
             )
             confirm.set_modal(True)
             confirm.set_buttons(["Cancelar", "Importar"])
@@ -254,6 +282,8 @@ class BackupPage(Page):
 
                 if response != 1:
                     return
+
+                self._set_status("Importando...")
 
                 def worker():
 
@@ -284,7 +314,8 @@ class BackupPage(Page):
 
             confirm.choose(self.get_root(), None, on_confirm)
 
-        dialog.open(self.get_root(), None, on_result)
+        except Exception as exc:
+            self._set_status("Error: " + str(exc))
 
     def _on_reset(self):
 

@@ -10,7 +10,7 @@
 
 /* ── Tokens → dark default ──────────────────────────── */
 window {
-    --bg-window:           rgba(15,15,16,.82);
+    --bg-window:           rgba(15,15,16,.96);
     --bg-sidebar:          rgba(26,26,28,.58);
     --bg-group:            rgba(255,255,255,.06);
     --bg-group-hover:      rgba(255,255,255,.10);
@@ -66,6 +66,19 @@ window {
     background: var(--bg-window);
     backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
     border-radius: 16px;
+}
+
+/*
+    Cuando la ventana esta maximizada o fullscreen, no aplicamos
+    backdrop-filter ni border-radius: el fondo del monitor ya es
+    visible detras, asi que mezclarlos hace la interfaz ilegible
+    y amplifica el brillo de wallpapers claros en dark mode.
+*/
+window.maximized,
+window.fullscreen {
+    background: var(--bg-window);
+    backdrop-filter: none;
+    border-radius: 0;
 }
 
 window.popup {

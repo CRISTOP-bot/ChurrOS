@@ -44,7 +44,7 @@ class WallpaperPage(Page):
         thunar_group = Group("Abrir carpeta")
         thunar_group.add(
             Row(
-                title="Abrir ~/Imagenes con Thunar",
+                title="Abrir carpeta de fondos",
                 subtitle="Arrastra fondos a ~/.local/share/churros/wallpapers",
                 icon="wallpaper.svg",
                 callback=lambda *_: self._open_pictures_folder()
@@ -132,11 +132,20 @@ class WallpaperPage(Page):
 
     def import_from_files(self):
 
-        win = self.get_root()
+        try:
+            win = self.get_root()
+            if win is None:
+                self._show_error("No se pudo abrir el selector",
+                                 "La pagina no tiene ventana root.")
+                return
+        except Exception:
+            self._open_pictures_folder()
+            return
 
         try:
             dialog = Gtk.FileDialog()
             dialog.set_title("Importar imagen de fondo")
+            dialog.set_modal(True)
 
             filter_any = Gtk.FileFilter()
             filter_any.set_name("Imagenes")
@@ -165,38 +174,55 @@ class WallpaperPage(Page):
             def on_result(source, result, _user_data=None):
                 try:
                     file = dialog.open_finish(result)
-                except GLib.Error:
+                except GLib.Error as e:
+                    print(f"[wallpaper] FileDialog error: {e}")
                     return
 
                 if file is None:
+                    print("[wallpaper] FileDialog: usuario cancelo o no selecciono archivo")
                     return
 
                 src = file.get_path() if hasattr(file, "get_path") else None
 
                 if not src or not os.path.isfile(src):
+                    print(f"[wallpaper] ruta invalida: {src}")
                     return
 
                 self._apply_wallpaper(src)
 
             dialog.open(win, None, on_result)
 
-        except Exception:
-            self._open_pictures_folder()
+        except Exception as exc:
+            print(f"[wallpaper] import_from_files fallo: {exc}")
+            try:
+                self._show_error("No se pudo abrir el selector",
+                                 str(exc))
+            except Exception:
+                self._open_pictures_folder()
 
     def _open_pictures_folder(self):
         import subprocess
 
-        pics_dir = os.path.expanduser("~/Imagenes")
-        if not os.path.isdir(pics_dir):
-            pics_dir = os.path.expanduser("~")
+        wp_dir = os.path.expanduser("~/.local/share/churros/wallpapers")
+        os.makedirs(wp_dir, exist_ok=True)
 
         try:
             subprocess.Popen(
-                ["thunar", pics_dir],
+                ["thunar", wp_dir],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 start_new_session=True,
             )
+        except FileNotFoundError:
+            try:
+                subprocess.Popen(
+                    ["xdg-open", wp_dir],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True,
+                )
+            except Exception:
+                pass
         except Exception:
             pass
 

@@ -235,6 +235,16 @@ class PreferencesWindow(Gtk.ApplicationWindow):
             )
         )
 
+        self._is_maximized = False
+
+        self.connect(
+            "map",
+            lambda *_: GLib.timeout_add(
+                500,
+                self._check_maximized
+            )
+        )
+
         #
         # Registrar páginas principales
         #
@@ -757,4 +767,33 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         revealed = self.sidebar_revealer.get_reveal_child()
 
         self.sidebar_revealer.set_reveal_child(not revealed)
+
+    def _check_maximized(self):
+
+        try:
+
+            maximized = self.is_maximized()
+            fullscreen = self.is_fullscreen()
+
+            active = maximized or fullscreen
+
+            if active == self._is_maximized:
+
+                return True
+
+            self._is_maximized = active
+
+            if active:
+
+                self.add_css_class("maximized")
+
+            else:
+
+                self.remove_css_class("maximized")
+
+        except Exception:
+
+            pass
+
+        return True
 
