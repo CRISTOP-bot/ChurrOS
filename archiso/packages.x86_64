@@ -102,6 +102,8 @@ smartmontools
 sof-firmware
 squashfs-tools
 sudo
+pacman-mirrorlist
+archlinux-keyring
 syslinux
 systemd-resolvconf
 tcpdump
