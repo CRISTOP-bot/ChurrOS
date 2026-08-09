@@ -10,32 +10,52 @@ set -e
 
 log() { printf '[churros-portal] %s\n' "$*" >&2; }
 
+# Actualizar entorno de activación D-Bus para que el portal tenga acceso
+# a WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS, etc.
+# Sin esto, xdg-desktop-portal no puede mostrar diálogos bajo Wayland.
+if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+    dbus-update-activation-environment --systemd \
+        WAYLAND_DISPLAY \
+        DBUS_SESSION_BUS_ADDRESS \
+        XDG_SESSION_TYPE \
+        XDG_CURRENT_DESKTOP \
+        XDG_SESSION_DESKTOP \
+        2>/dev/null || true
+fi
+
 # Configurar thunar como file manager predeterminado
+# para cuando el usuario abre carpetas (click derecho -> abrir).
+# El portal FileChooser no se ve afectado por esto.
 if command -v thunar >/dev/null 2>&1; then
 
     if command -v xdg-mime >/dev/null 2>&1; then
 
         xdg-mime default thunar.desktop inode/directory >/dev/null 2>&1 || true
-        xdg-mime default thunar.desktop application/x-desktop >/dev/null 2>&1 || true
 
     fi
 
 fi
 
-# Crear config de xdg-desktop-portal-gtk si no existe
-PORTAL_GTK_DIR="$HOME/.config/xdg-desktop-portal"
-if [ ! -d "$PORTAL_GTK_DIR" ]; then
+# Crear config de xdg-desktop-portal si no existe
+# El portal-gtk necesita saber qué backend usar. Sin esta config,
+# el portal autodetecta por XDG_CURRENT_DESKTOP pero "niri" no es
+# reconocido, asi que el FileChooser nunca se abre.
+PORTAL_CONF_DIR="$HOME/.config/xdg-desktop-portal"
+mkdir -p "$PORTAL_CONF_DIR"
 
-    mkdir -p "$PORTAL_GTK_DIR"
-
-    cat > "$PORTAL_GTK_DIR/gtk-portal.conf" << 'EOF'
+# Forzar backend gtk para todas las interfaces del portal.
+# Esto hace que Gtk.FileDialog (GTK4) use el selector nativo
+# de portal-gtk (GTK3) que sí funciona bajo niri/wlroots.
+cat > "$PORTAL_CONF_DIR/portals.conf" << 'EOF'
 [preferred]
 default=gtk
+org.freedesktop.impl.portal.FileChooser=gtk
+org.freedesktop.impl.portal.Secret=gtk
+org.freedesktop.impl.portal.AppChooser=gtk
+org.freedesktop.impl.portal.Notification=gtk
 EOF
 
-    chown -R "${USER:-churros}:${USER:-churros}" "$PORTAL_GTK_DIR" 2>/dev/null || true
-
-fi
+chown -R "${USER:-churros}:${USER:-churros}" "$PORTAL_CONF_DIR" 2>/dev/null || true
 
 # Iniciar portal general
 if ! pgrep -x xdg-desktop-portal >/dev/null 2>&1; then
@@ -58,7 +78,7 @@ if ! pgrep -x xdg-desktop-portal >/dev/null 2>&1; then
 
 fi
 
-# Iniciar backend GTK (usa thunar como file picker)
+# Iniciar backend GTK (fallback para Secret, etc.)
 if ! pgrep -x xdg-desktop-portal-gtk >/dev/null 2>&1; then
 
     if command -v xdg-desktop-portal-gtk >/dev/null 2>&1; then
