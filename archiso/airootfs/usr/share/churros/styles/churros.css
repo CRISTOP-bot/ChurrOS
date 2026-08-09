@@ -11,28 +11,28 @@
 /* ── Tokens → dark default ──────────────────────────── */
 window {
     --bg-window:           rgba(15,15,16,.96);
-    --bg-sidebar:          rgba(26,26,28,.58);
-    --bg-group:            rgba(255,255,255,.06);
-    --bg-group-hover:      rgba(255,255,255,.10);
+    --bg-sidebar:          rgba(18,18,20,.92);
+    --bg-group:            rgba(22,22,24,.88);
+    --bg-group-hover:      rgba(30,30,34,.92);
     --row-bg:              transparent;
-    --row-bg-hover:        rgba(255,255,255,.06);
-    --row-bg-active:       rgba(255,255,255,.10);
+    --row-bg-hover:        rgba(255,255,255,.04);
+    --row-bg-active:       rgba(255,255,255,.08);
     --text-primary:        rgba(255,255,255,.96);
-    --text-secondary:      rgba(255,255,255,.55);
-    --text-tertiary:       rgba(255,255,255,.40);
-    --border-soft:         rgba(255,255,255,.08);
-    --border-strong:       rgba(255,255,255,.16);
-    --glass-blur:          24px;
-    --glass-shadow:        0 8px 32px rgba(0,0,0,.52);
-    --glass-inset:         0 1px 0 rgba(255,255,255,.06) inset;
+    --text-secondary:      rgba(255,255,255,.65);
+    --text-tertiary:       rgba(255,255,255,.45);
+    --border-soft:         rgba(255,255,255,.06);
+    --border-strong:       rgba(255,255,255,.12);
+    --glass-blur:          16px;
+    --glass-shadow:        0 8px 32px rgba(0,0,0,.60);
+    --glass-inset:         0 1px 0 rgba(255,255,255,.03) inset;
     --accent:              #F97316;
     --accent-soft:         #FB923C;
     --accent-strong:       #C2410C;
     --accent-text:         #ffffff;
-    --accent-bg-hover:     rgba(249,115,22,.16);
-    --accent-glow:         0 0 20px rgba(249,115,22,.25);
-    --scroller-thumb:      rgba(255,255,255,.12);
-    --popover-bg:          rgba(26,26,30,.96);
+    --accent-bg-hover:     rgba(249,115,22,.14);
+    --accent-glow:         0 0 20px rgba(249,115,22,.20);
+    --scroller-thumb:      rgba(255,255,255,.10);
+    --popover-bg:          rgba(18,18,20,.96);
 }
 
 /* Light override */
