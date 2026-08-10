@@ -59,7 +59,11 @@ def _read_jsonc(path):
             if ch == '"':
                 in_string = True
             cleaned.append(ch)
-        return json.loads("".join(cleaned))
+        text = "".join(cleaned)
+        # Eliminar trailing commas: ,} -> } y ,] -> ]
+        import re
+        text = re.sub(r',(\s*[}\]])', r'\1', text)
+        return json.loads(text)
     except Exception:
         return {}
 
