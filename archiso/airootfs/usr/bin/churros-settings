@@ -2,55 +2,84 @@
 # Churros Preferences launcher.
 # Logs a $XDG_RUNTIME_DIR/churros-settings.log o /tmp/churros-settings.log.
 # Si no puede escribir log, sigue adelante (no aborta).
+# Reintenta automáticamente si la app crashea (máx 3 veces).
 
 LOG="${XDG_RUNTIME_DIR:-/tmp}/churros-settings.log"
 
 mkdir -p "$(dirname "$LOG")" 2>/dev/null || LOG="/tmp/churros-settings.log"
 
-{
-    echo ""
-    echo "=== churros-settings start $(date) ==="
-    echo "WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
-    echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR"
-    echo "DISPLAY=$DISPLAY"
-    echo "USER=$USER HOME=$HOME"
-    echo "PATH=$PATH"
-    echo "PWD=$(pwd)"
-    echo "log target: $LOG"
-} >> "$LOG" 2>/dev/null || true
+MAX_RETRIES=3
+RETRY_COUNT=0
 
-if [ ! -d /usr/share/churros/preferences ]; then
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     {
-        echo "FATAL: /usr/share/churros/preferences no existe"
-    } >> "$LOG" 2>/dev/null
-    if [ -n "$WAYLAND_DISPLAY" ]; then
-        notify-send "ChurOS Settings" "Directorio de la aplicacion no encontrado" 2>/dev/null || true
-    fi
-    exit 1
-fi
+        echo ""
+        echo "=== churros-settings start $(date) (intento $((RETRY_COUNT + 1))/$MAX_RETRIES) ==="
+        echo "WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
+        echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR"
+        echo "DISPLAY=$DISPLAY"
+        echo "USER=$USER HOME=$HOME"
+        echo "PATH=$PATH"
+        echo "PWD=$(pwd)"
+        echo "log target: $LOG"
+    } >> "$LOG" 2>/dev/null || true
 
-cd /usr/share/churros/preferences || {
-    echo "FATAL: no se pudo cd a /usr/share/churros/preferences" >> "$LOG" 2>/dev/null
-    exit 1
-}
-
-export GDK_BACKEND="${GDK_BACKEND:-wayland,x11}"
-export PYTHONUNBUFFERED=1
-export NO_AT_BRIDGE=1
-
-# Si no hay WAYLAND_DISPLAY, intenta encontrar el socket wayland del usuario
-if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_RUNTIME_DIR" ] && [ -d "$XDG_RUNTIME_DIR" ]; then
-    for sock in "$XDG_RUNTIME_DIR"/wayland-*; do
-        if [ -S "$sock" ]; then
-            export WAYLAND_DISPLAY="$(basename "$sock")"
-            break
+    if [ ! -d /usr/share/churros/preferences ]; then
+        {
+            echo "FATAL: /usr/share/churros/preferences no existe"
+        } >> "$LOG" 2>/dev/null
+        if [ -n "$WAYLAND_DISPLAY" ]; then
+            notify-send "ChurOS Settings" "Directorio de la aplicacion no encontrado" 2>/dev/null || true
         fi
-    done
-fi
+        exit 1
+    fi
 
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "FATAL: python3 no encontrado en PATH" >> "$LOG" 2>/dev/null
-    exit 1
-fi
+    cd /usr/share/churros/preferences || {
+        echo "FATAL: no se pudo cd a /usr/share/churros/preferences" >> "$LOG" 2>/dev/null
+        exit 1
+    }
 
-exec python3 -u main.py >> "$LOG" 2>&1
+    export GDK_BACKEND="${GDK_BACKEND:-wayland,x11}"
+    export PYTHONUNBUFFERED=1
+    export NO_AT_BRIDGE=1
+
+    # Si no hay WAYLAND_DISPLAY, intenta encontrar el socket wayland del usuario
+    if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_RUNTIME_DIR" ] && [ -d "$XDG_RUNTIME_DIR" ]; then
+        for sock in "$XDG_RUNTIME_DIR"/wayland-*; do
+            if [ -S "$sock" ]; then
+                export WAYLAND_DISPLAY="$(basename "$sock")"
+                break
+            fi
+        done
+    fi
+
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "FATAL: python3 no encontrado en PATH" >> "$LOG" 2>/dev/null
+        exit 1
+    fi
+
+    python3 -u main.py >> "$LOG" 2>&1
+    EXIT_CODE=$?
+
+    if [ $EXIT_CODE -eq 0 ]; then
+        # Salida limpia
+        break
+    elif [ $EXIT_CODE -eq 130 ]; then
+        # Ctrl+C / SIGINT
+        break
+    else
+        # Crash - reintentar
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+            echo "=== CRASH detectado (exit=$EXIT_CODE), reintentando en 1s... ($RETRY_COUNT/$MAX_RETRIES) ===" >> "$LOG" 2>/dev/null
+            sleep 1
+        else
+            echo "=== CRASH: max reintentos alcanzados ($MAX_RETRIES), abortando ===" >> "$LOG" 2>/dev/null
+            if [ -n "$WAYLAND_DISPLAY" ]; then
+                notify-send "ChurOS Settings" "La aplicacion fallo tras $MAX_RETRIES intentos. Revisa $LOG" 2>/dev/null || true
+            fi
+        fi
+    fi
+done
+
+exit 0
