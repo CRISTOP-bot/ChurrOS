@@ -182,7 +182,6 @@ class WaybarService:
         )
         with open(COLORS_PATH, "w") as f:
             f.write(content)
-        cls._write_style(values)
 
     @classmethod
     def _write_style(cls, values):
@@ -383,27 +382,17 @@ tooltip {{
     @classmethod
     def reload(cls, full_restart=True):
 
-        env = _build_env()
-
-        # Waybar soporta SIGUSR2 para recargar config y style SIN morir.
-        # Antes haciamos pkill + relanzar, lo que hacia que waybar
-        # desapareciera por 1-2 segundos y a veces no volvia.
         try:
+            env = _build_env()
 
+            # Waybar soporta SIGUSR2 para recargar config + style SIN morir.
             subprocess.run(
                 ["pkill", "-SIGUSR2", "waybar"],
                 capture_output=True, timeout=2, env=env,
             )
 
-        except Exception:
-
-            pass
-
-        # Si waybar no esta corriendo (SIGUSR2 no tiene efecto),
-        # lanzarla nueva.
-        time.sleep(0.3)
-
-        try:
+            # Verificar si waybar sigue corriendo; si no, lanzarla.
+            time.sleep(0.3)
 
             pg = subprocess.run(
                 ["pgrep", "-x", "waybar"],
