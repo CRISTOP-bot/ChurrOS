@@ -149,7 +149,12 @@ class WaybarService:
         _write_jsonc(CONFIG_PATH, cfg)
         cls._write_colors(values)
         cls._write_style(values)
-        cls.reload(full_restart=True)
+
+        # NO recargar waybar automáticamente. El usuario debe pulsar
+        # el botón "Recargar waybar" o cerrar/reabrir la sesion.
+        # Razón: recargar SIGUSR2 hace que waybar desaparezca
+        # temporalmente y en algunas builds la mata, lo que cerraba
+        # la app de preferencias con ella.
 
     @classmethod
     def _read_colors(cls):
