@@ -8,60 +8,73 @@
 
 /* ── Tokens (dark default) ─────────────────────────────── */
 window {
-    --bg-window:        rgba(15,15,16,.72);
-    --bg-sidebar:       rgba(26,26,28,.55);
-    --bg-group:         rgba(255,255,255,.06);
-    --bg-group-hover:   rgba(255,255,255,.10);
+    --bg-window:        rgba(15,15,16,.96);
+    --bg-sidebar:       rgba(18,18,20,.92);
+    --bg-group:         rgba(22,22,24,.88);
+    --bg-group-hover:   rgba(30,30,34,.92);
     --row-bg:           transparent;
-    --row-bg-hover:     rgba(255,255,255,.06);
-    --row-bg-active:    rgba(255,255,255,.10);
+    --row-bg-hover:     rgba(255,255,255,.04);
+    --row-bg-active:    rgba(255,255,255,.08);
     --text-primary:     rgba(255,255,255,.96);
-    --text-secondary:   rgba(255,255,255,.55);
-    --text-tertiary:    rgba(255,255,255,.40);
-    --border-soft:      rgba(255,255,255,.10);
-    --border-strong:    rgba(255,255,255,.18);
-    --glass-blur:       24px;
-    --glass-shadow:     0 8px 32px rgba(0,0,0,.45);
-    --glass-inset:      0 1px 0 rgba(255,255,255,.08) inset;
+    --text-secondary:   rgba(255,255,255,.65);
+    --text-tertiary:    rgba(255,255,255,.45);
+    --border-soft:      rgba(255,255,255,.06);
+    --border-strong:    rgba(255,255,255,.12);
+    --glass-blur:       16px;
+    --glass-shadow:     0 8px 32px rgba(0,0,0,.60);
+    --glass-inset:      0 1px 0 rgba(255,255,255,.03) inset;
     --accent:           #F97316;
     --accent-soft:      #FB923C;
     --accent-strong:    #C2410C;
     --accent-text:      #ffffff;
-    --accent-bg-hover:  rgba(249,115,22,.18);
-    --accent-glow:      0 0 20px rgba(249,115,22,.25);
-    --scroller-thumb:   rgba(255,255,255,.12);
+    --accent-bg-hover:  rgba(249,115,22,.14);
+    --accent-glow:      0 0 20px rgba(249,115,22,.20);
+    --scroller-thumb:   rgba(255,255,255,.10);
 }
 
 /* Light override */
 window.light {
-    --bg-window:        rgba(242,242,245,.78);
-    --bg-sidebar:       rgba(255,255,255,.55);
-    --bg-group:         rgba(255,255,255,.65);
-    --bg-group-hover:   rgba(0,0,0,.06);
+    --bg-window:        rgba(242,242,245,.88);
+    --bg-sidebar:       rgba(255,255,255,.58);
+    --bg-group:         rgba(255,255,255,.72);
+    --bg-group-hover:   rgba(0,0,0,.04);
     --row-bg:           transparent;
     --row-bg-hover:     rgba(0,0,0,.04);
     --row-bg-active:    rgba(0,0,0,.08);
     --text-primary:     rgba(28,28,30,.96);
-    --text-secondary:   rgba(28,28,30,.60);
-    --text-tertiary:    rgba(28,28,30,.45);
+    --text-secondary:   rgba(28,28,30,.58);
+    --text-tertiary:    rgba(28,28,30,.40);
     --border-soft:      rgba(0,0,0,.08);
     --border-strong:    rgba(0,0,0,.14);
-    --glass-blur:       24px;
+    --glass-blur:       16px;
     --glass-shadow:     0 8px 32px rgba(0,0,0,.12);
     --glass-inset:      0 1px 0 rgba(255,255,255,.45) inset;
     --accent:           #EA580C;
     --accent-soft:      #F97316;
     --accent-strong:    #9A3412;
     --accent-text:      #ffffff;
-    --accent-bg-hover:  rgba(234,88,12,.14);
-    --accent-glow:      0 0 20px rgba(234,88,12,.20);
-    --scroller-thumb:   rgba(0,0,0,.18);
+    --accent-bg-hover:  rgba(234,88,12,.12);
+    --accent-glow:      0 0 20px rgba(234,88,12,.18);
+    --scroller-thumb:   rgba(0,0,0,.16);
 }
 
 /* ── Window base (glass) ───────────────────────────────── */
 window {
     background: var(--bg-window);
     backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+}
+
+/*
+    Cuando la ventana esta maximizada o fullscreen, no aplicamos
+    backdrop-filter ni border-radius: el fondo del monitor ya es
+    visible detras, asi que mezclarlos hace la interfaz ilegible
+    y amplifica el brillo de wallpapers claros en dark mode.
+*/
+window.maximized,
+window.fullscreen {
+    background: var(--bg-window);
+    backdrop-filter: none;
+    border-radius: 0;
 }
 
 .preferences {
@@ -171,7 +184,7 @@ searchentry image {
 
 /* ── Section title ────────────────────────────────────── */
 .section-title {
-    color: var(--accent);
+    color: var(--text-secondary);
     font-size: 12px;
     font-weight: 700;
     letter-spacing: .08em;
