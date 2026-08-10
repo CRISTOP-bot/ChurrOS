@@ -201,7 +201,9 @@ apply() {
 _niri_refresh() {
 
     if command -v niri >/dev/null 2>&1; then
-        niri msg action do-screen-transition 2>/dev/null || true
+        # No forzamos screen-transition: el wallpaper cambia sin animación
+        # de niri para evitar el "parpadeo" que parece reinicio.
+        :
     fi
 }
 
