@@ -584,15 +584,15 @@ class PreferencesWindow(Gtk.ApplicationWindow):
 
     def refresh_theme(self):
 
-        """Recarga CSS desde disco y re-aplica la clase .light.
+        """Aplica la clase .light/.dark segun el modo.
 
-        GTK4 con variables CSS en runtime requiere recargar el provider
-        completo para que las variables se re-evaluen en todo el arbol.
+        Las variables CSS ya estan definidas en churros.css y style.css
+        con selectores window (dark) y window.light (light).
+        Cambiar la clase en la ventana re-evalua todas las variables
+        automaticamente, SIN recargar los archivos CSS (que crashea GTK4).
         """
 
         self._apply_theme_class()
-
-        self._reload_css_providers()
 
         try:
 
@@ -615,116 +615,6 @@ class PreferencesWindow(Gtk.ApplicationWindow):
         except Exception:
 
             pass
-
-    def _reload_css_providers(self):
-
-        """Re-carga style.css y accent.css en providers ya registrados.
-
-        Antes iterabamos list_providers() y le haciamos load_from_path(style.css)
-        sobre cada uno, lo que pisaba el contenido de accent.css en su propio
-        provider. Ademas cargabamos un CssProvider nuevo para accent.css en
-        cada refresh_theme(), acumulando providers con el mismo contenido pero
-        prioridad USER+1; tras varios toggles de modo oscuro la cascada se
-        corrompia y la ventana quedaba en negro.
-
-        Ahora mantenemos dos providers singleton y solo los recargamos.
-        """
-
-        import os
-
-        try:
-
-            gi = __import__("gi")
-
-            gi.require_version("Gtk", "4.0")
-
-            from gi.repository import Gtk, Gdk
-
-        except Exception:
-
-            return
-
-        try:
-
-            display = Gdk.Display.get_default()
-
-            if display is None:
-
-                return
-
-            style_path = os.path.join(
-
-                os.path.dirname(os.path.abspath(__file__)),
-
-                "style.css"
-
-            )
-
-            accent_path = os.path.expanduser(
-
-                "~/.config/churros/accent.css"
-
-            )
-
-            if not hasattr(self, "_style_provider") or self._style_provider is None:
-
-                self._style_provider = Gtk.CssProvider()
-
-                Gtk.StyleContext.add_provider_for_display(
-
-                    display,
-
-                    self._style_provider,
-
-                    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-
-                )
-
-            if not hasattr(self, "_accent_provider") or self._accent_provider is None:
-
-                self._accent_provider = Gtk.CssProvider()
-
-                Gtk.StyleContext.add_provider_for_display(
-
-                    display,
-
-                    self._accent_provider,
-
-                    Gtk.STYLE_PROVIDER_PRIORITY_USER
-
-                )
-
-            try:
-
-                self._style_provider.load_from_path(style_path)
-
-            except Exception as exc:
-
-                print("[preferences] reload style.css:", exc)
-
-            if os.path.exists(accent_path):
-
-                try:
-
-                    self._accent_provider.load_from_path(accent_path)
-
-                except Exception as exc:
-
-                    print("[preferences] reload accent.css:", exc)
-
-            else:
-
-                try:
-
-                    self._accent_provider.load_from_data(b"")
-
-                except Exception:
-
-                    pass
-
-        except Exception as exc:
-
-            print("[preferences] _reload_css_providers:", exc)
 
     def _check_narrow(self):
 
