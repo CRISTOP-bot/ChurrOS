@@ -75,14 +75,12 @@ class WaybarPage(Page):
             title="Capa",
             values=["top", "overlay", "bottom"],
             selected=self.values["layer"],
-            callback=lambda *_: self._on_change("full")
         )
 
         self.position_combo = ComboRow(
             title="Posicion",
             values=["top", "bottom", "left", "right"],
             selected=self.values["position"],
-            callback=lambda *_: self._on_change("full")
         )
 
         self.height_slider = SliderRow(
@@ -91,7 +89,6 @@ class WaybarPage(Page):
             minimum=20,
             maximum=80,
             step=1,
-            callback=lambda *_: self._on_change("full")
         )
 
         self.spacing_slider = SliderRow(
@@ -101,7 +98,6 @@ class WaybarPage(Page):
             minimum=0,
             maximum=16,
             step=1,
-            callback=lambda *_: self._on_change("full")
         )
 
         layout_group.add(self.layer_combo)
@@ -119,7 +115,6 @@ class WaybarPage(Page):
             minimum=10,
             maximum=24,
             step=1,
-            callback=lambda *_: self._on_change("style")
         )
 
         font_families = [
@@ -136,7 +131,6 @@ class WaybarPage(Page):
             title="Familia tipografica",
             values=font_families,
             selected=self.values.get("font-family", font_families[0]),
-            callback=lambda *_: self._on_change("style")
         )
 
         typography_group.add(self.font_size_slider)
@@ -149,19 +143,16 @@ class WaybarPage(Page):
         self.bg_picker = ColorPickerRow(
             title="Fondo",
             value=self.values["background"],
-            callback=lambda c: self._on_change("style")
         )
 
         self.fg_picker = ColorPickerRow(
             title="Texto",
             value=self.values["foreground"],
-            callback=lambda c: self._on_change("style")
         )
 
         self.accent_picker = ColorPickerRow(
             title="Acento",
             value=self.values["accent"],
-            callback=lambda c: self._on_change("style")
         )
 
         self.bg_alpha_slider = SliderRow(
@@ -171,7 +162,6 @@ class WaybarPage(Page):
             minimum=0.0,
             maximum=1.0,
             step=0.05,
-            callback=lambda *_: self._on_change("style")
         )
 
         colors_group.add(self.bg_picker)
@@ -218,11 +208,11 @@ class WaybarPage(Page):
 
         actions_group = Group("Acciones")
 
-        reload_row = Row(
-            title="Recargar waybar",
-            subtitle="Aplica los cambios",
+        save_row = Row(
+            title="Guardar y aplicar",
+            subtitle="Escribe la configuracion y recarga waybar",
             icon="waybar.svg",
-            callback=lambda *_: WaybarService.reload()
+            callback=lambda *_: self._save_and_reload()
         )
 
         reset_row = Row(
@@ -232,7 +222,7 @@ class WaybarPage(Page):
             callback=lambda *_: self._reset_defaults()
         )
 
-        actions_group.add(reload_row)
+        actions_group.add(save_row)
         actions_group.add(reset_row)
 
         self.add(actions_group)
@@ -256,7 +246,6 @@ class WaybarPage(Page):
                 self.module_states[pos].remove(module)
                 break
 
-        self._on_change("full")
         self._rebuild_modules()
 
     def _rebuild_modules(self):
@@ -297,54 +286,37 @@ class WaybarPage(Page):
             if module not in self.module_states[target]:
                 self.module_states[target].append(module)
 
-        self._on_change("full")
-
-    def _on_change(self, reload_kind="style"):
-
-        if self._pending:
-            return
-
-        self._pending = True
-
-        def apply():
-
-            try:
-
-                self._pending = False
-
-                values = {
-                    "layer": self.layer_combo.value(),
-                    "position": self.position_combo.value(),
-                    "spacing": int(self.spacing_slider.get_value()),
-                    "height": int(self.height_slider.get_value()),
-                    "font-size": int(self.font_size_slider.get_value()),
-                    "font-family": self.font_family_combo.value(),
-                    "background": self.bg_picker.get_value(),
-                    "foreground": self.fg_picker.get_value(),
-                    "accent": self.accent_picker.get_value(),
-                    "background-alpha": self.bg_alpha_slider.get_value(),
-                    "modules-left": self.module_states["left"],
-                    "modules-center": self.module_states["center"],
-                    "modules-right": self.module_states["right"],
-                }
-
-                WaybarService.set(values, reload_kind=reload_kind)
-
-            except Exception as exc:
-
-                self._pending = False
-
-                print("[waybar] apply fallo:", exc, file=sys.stderr)
-
-            return False
+    def _save_and_reload(self):
 
         try:
+            values = {
+                "layer": self.layer_combo.value(),
+                "position": self.position_combo.value(),
+                "spacing": int(self.spacing_slider.get_value()),
+                "height": int(self.height_slider.get_value()),
+                "font-size": int(self.font_size_slider.get_value()),
+                "font-family": self.font_family_combo.value(),
+                "background": self.bg_picker.get_value(),
+                "foreground": self.fg_picker.get_value(),
+                "accent": self.accent_picker.get_value(),
+                "background-alpha": self.bg_alpha_slider.get_value(),
+                "modules-left": list(self.module_states["left"]),
+                "modules-center": list(self.module_states["center"]),
+                "modules-right": list(self.module_states["right"]),
+            }
+        except Exception as exc:
+            print("[waybar] captura fallo:", exc, file=sys.stderr)
+            return
 
-            GLib.timeout_add(400, apply)
+        def worker():
+            try:
+                WaybarService.set(values)
+                WaybarService.reload()
+            except Exception as exc:
+                print("[waybar] save fallo:", exc, file=sys.stderr)
 
-        except Exception:
-
-            self._pending = False
+        import threading
+        threading.Thread(target=worker, daemon=True).start()
 
     def _reset_defaults(self):
 
@@ -379,7 +351,5 @@ class WaybarPage(Page):
                 child = nxt
 
             self._build()
-
-            WaybarService.reload(full_restart=True)
 
         dialog.choose(self.get_root(), None, on_response)
