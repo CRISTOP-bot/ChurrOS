@@ -385,59 +385,56 @@ tooltip {{
 
         env = _build_env()
 
-        log_path = "/tmp/waybar.log"
-
+        # Waybar soporta SIGUSR2 para recargar config y style SIN morir.
+        # Antes haciamos pkill + relanzar, lo que hacia que waybar
+        # desapareciera por 1-2 segundos y a veces no volvia.
         try:
 
             subprocess.run(
-                ["pkill", "-x", "waybar"],
+                ["pkill", "-SIGUSR2", "waybar"],
                 capture_output=True, timeout=2, env=env,
             )
+
         except Exception:
+
             pass
 
-        time.sleep(1.0)
+        # Si waybar no esta corriendo (SIGUSR2 no tiene efecto),
+        # lanzarla nueva.
+        time.sleep(0.3)
 
         try:
+
             pg = subprocess.run(
                 ["pgrep", "-x", "waybar"],
                 capture_output=True, timeout=1, env=env,
             )
-            if pg.returncode == 0:
-                time.sleep(0.8)
-                subprocess.run(
-                    ["pkill", "-9", "-x", "waybar"],
-                    capture_output=True, timeout=2, env=env,
-                )
-                time.sleep(0.5)
-        except Exception:
-            pass
 
-        if shutil.which("waybar") is None:
-            print("[waybar] waybar no instalado, no recargo")
-            return
+            if pg.returncode != 0 and shutil.which("waybar") is not None:
 
-        try:
+                log_path = "/tmp/waybar.log"
 
-            with open(log_path, "a") as logf:
-                logf.write(
-                    "\n=== waybar reload {} ===\n".format(
-                        time.strftime("%H:%M:%S")
+                with open(log_path, "a") as logf:
+
+                    logf.write(
+                        "\n=== waybar launch {} ===\n".format(
+                            time.strftime("%H:%M:%S")
+                        )
                     )
-                )
-                logf.flush()
 
-                subprocess.Popen(
-                    ["waybar"],
-                    stdout=logf,
-                    stderr=subprocess.STDOUT,
-                    start_new_session=True,
-                    env=env,
-                )
+                    logf.flush()
 
-        except Exception as exc:
+                    subprocess.Popen(
+                        ["waybar"],
+                        stdout=logf,
+                        stderr=subprocess.STDOUT,
+                        start_new_session=True,
+                        env=env,
+                    )
 
-            print("[waybar] fallo al relanzar:", exc)
+        except Exception:
+
+            pass
 
     @classmethod
     def reset(cls):
