@@ -308,30 +308,43 @@ class WaybarPage(Page):
 
         def apply():
 
-            self._pending = False
-
-            values = {
-                "layer": self.layer_combo.value(),
-                "position": self.position_combo.value(),
-                "spacing": int(self.spacing_slider.get_value()),
-                "height": int(self.height_slider.get_value()),
-                "font-size": int(self.font_size_slider.get_value()),
-                "font-family": self.font_family_combo.value(),
-                "background": self.bg_picker.get_value(),
-                "foreground": self.fg_picker.get_value(),
-                "accent": self.accent_picker.get_value(),
-                "background-alpha": self.bg_alpha_slider.get_value(),
-                "modules-left": self.module_states["left"],
-                "modules-center": self.module_states["center"],
-                "modules-right": self.module_states["right"],
-            }
-
             try:
-                WaybarService.set(values, reload_kind=reload_kind)
-            except Exception as exc:
-                print("[waybar] apply fallo:", exc)
 
-        GLib.timeout_add(400, apply)
+                self._pending = False
+
+                values = {
+                    "layer": self.layer_combo.value(),
+                    "position": self.position_combo.value(),
+                    "spacing": int(self.spacing_slider.get_value()),
+                    "height": int(self.height_slider.get_value()),
+                    "font-size": int(self.font_size_slider.get_value()),
+                    "font-family": self.font_family_combo.value(),
+                    "background": self.bg_picker.get_value(),
+                    "foreground": self.fg_picker.get_value(),
+                    "accent": self.accent_picker.get_value(),
+                    "background-alpha": self.bg_alpha_slider.get_value(),
+                    "modules-left": self.module_states["left"],
+                    "modules-center": self.module_states["center"],
+                    "modules-right": self.module_states["right"],
+                }
+
+                WaybarService.set(values, reload_kind=reload_kind)
+
+            except Exception as exc:
+
+                self._pending = False
+
+                print("[waybar] apply fallo:", exc, file=sys.stderr)
+
+            return False
+
+        try:
+
+            GLib.timeout_add(400, apply)
+
+        except Exception:
+
+            self._pending = False
 
     def _reset_defaults(self):
 
