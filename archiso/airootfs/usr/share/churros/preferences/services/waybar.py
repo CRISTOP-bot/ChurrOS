@@ -394,41 +394,50 @@ tooltip {{
         try:
             env = _build_env()
 
-            # Waybar soporta SIGUSR2 para recargar config + style SIN morir.
+            # Matar waybar limpiamente y relanzar.
+            # SIGUSR2 es inestable en algunas builds (crasha/mata waybar).
             subprocess.run(
-                ["pkill", "-SIGUSR2", "waybar"],
+                ["pkill", "-x", "waybar"],
                 capture_output=True, timeout=2, env=env,
             )
 
-            # Verificar si waybar sigue corriendo; si no, lanzarla.
-            time.sleep(0.3)
+            time.sleep(0.5)
 
+            # Verificar que no queden procesos
             pg = subprocess.run(
                 ["pgrep", "-x", "waybar"],
                 capture_output=True, timeout=1, env=env,
             )
 
-            if pg.returncode != 0 and shutil.which("waybar") is not None:
+            if pg.returncode == 0:
+                subprocess.run(
+                    ["pkill", "-9", "-x", "waybar"],
+                    capture_output=True, timeout=2, env=env,
+                )
+                time.sleep(0.3)
 
-                log_path = "/tmp/waybar.log"
+            if shutil.which("waybar") is None:
+                return
 
-                with open(log_path, "a") as logf:
+            log_path = "/tmp/waybar.log"
 
-                    logf.write(
-                        "\n=== waybar launch {} ===\n".format(
-                            time.strftime("%H:%M:%S")
-                        )
+            with open(log_path, "a") as logf:
+
+                logf.write(
+                    "\n=== waybar reload {} ===\n".format(
+                        time.strftime("%H:%M:%S")
                     )
+                )
 
-                    logf.flush()
+                logf.flush()
 
-                    subprocess.Popen(
-                        ["waybar"],
-                        stdout=logf,
-                        stderr=subprocess.STDOUT,
-                        start_new_session=True,
-                        env=env,
-                    )
+                subprocess.Popen(
+                    ["waybar"],
+                    stdout=logf,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True,
+                    env=env,
+                )
 
         except Exception:
 

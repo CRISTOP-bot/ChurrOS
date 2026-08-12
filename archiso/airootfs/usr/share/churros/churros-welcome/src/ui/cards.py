@@ -26,23 +26,12 @@ def install_clicked(button):
     launch_installer(parent_window=window)
 
 
-def mpv_clicked(button):
-    import subprocess
-    subprocess.Popen(["mpv"], start_new_session=True)
-
-
 CARDS = [
     {
         "icon": "install.svg",
         "title": "Install ChurrOS",
         "description": "Instala ChurrOS en tu disco duro.",
         "callback": install_clicked,
-    },
-    {
-        "icon": "media-player.svg",
-        "title": "Reproductor multimedia",
-        "description": "Abre mpv para reproducir video/audio.",
-        "callback": mpv_clicked,
     },
     {
         "icon": "github.svg",
