@@ -10,10 +10,12 @@ ISO=$(find out -name "*.iso" | head -n1)
 
 FORCE_NOKVM=false
 FORCE_FRESH=false
+FORCE_CLEAN=false
 for arg in "$@"; do
     case "$arg" in
         --nokvm) FORCE_NOKVM=true ;;
         --fresh) FORCE_FRESH=true ;;
+        --clean) FORCE_CLEAN=true ;;
     esac
 done
 
@@ -27,6 +29,11 @@ if [ -z "$ISO" ]; then
 fi
 
 mkdir -p "$VM_DIR"
+
+if [ "$FORCE_CLEAN" = true ]; then
+    echo "Full clean (--clean): removing disk and EFI vars..."
+    rm -f "$DISK" "$VARS"
+fi
 
 if [ "$FORCE_FRESH" = true ] && [ -f "$VARS" ]; then
     echo "Resetting EFI vars (--fresh)..."
