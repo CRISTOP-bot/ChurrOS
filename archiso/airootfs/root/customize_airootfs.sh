@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+set -e
+
+echo "======================================="
+echo " Configuring ChurrOS Live ISO"
+echo "======================================="
+
+#
+# Branding
+#
+
+echo "Applying ChurrOS branding..."
+
+cp /root/branding/files/os-release /etc/os-release
+cp /root/branding/files/os-release /usr/lib/os-release
+cp /root/branding/files/issue /etc/issue
+cp /root/branding/files/motd /etc/motd
+
+chmod 644 /etc/os-release
+chmod 644 /usr/lib/os-release
+chmod 644 /etc/issue
+chmod 644 /etc/motd
+
+echo "✓ Branding applied."
+
+#
+# Live environment
+#
+
+echo "Creating live user..."
+bash /root/scripts/users.sh
+
+echo "Enabling services..."
+bash /root/scripts/services.sh
+
+echo "Initializing pacman keyring..."
+pacman-key --init
+pacman-key --populate archlinux
+
+echo "Configuring desktop..."
+bash /root/scripts/desktop.sh
+
+echo "Installing Calamares..."
+if ls /root/packages/calamares-[0-9]*.pkg.tar.zst 1>/dev/null 2>&1; then
+    pacman -Scc --noconfirm 2>/dev/null || true
+
+    bsdtar -xf /root/packages/calamares-*.pkg.tar.zst -C /
+
+    rm -f /root/packages/calamares-*.pkg.tar.zst
+
+    cat > /usr/share/applications/calamares.desktop << 'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Install ChurrOS
+Name[es]=Instalar ChurrOS
+GenericName=System Installer
+GenericName[es]=Instalador del Sistema
+Comment=Install ChurrOS on your computer
+Comment[es]=Instala ChurrOS en tu computadora
+TryExec=calamares
+Exec=sh -c "sudo -E calamares -d"
+Icon=calamares
+Terminal=false
+StartupNotify=true
+Categories=Qt;System;
+DESKTOP
+
+    echo "✓ Calamares installed."
+else
+    echo "  (not available — installer skipped)"
+fi
+
+if ls /root/packages/*.pkg.tar.zst 1>/dev/null 2>&1; then
+    echo "Configuring ChurrOS local repo..."
+    cat >> /etc/pacman.conf << 'REPO'
+
+[churros]
+SigLevel = Optional TrustAll
+Server = file:///root/packages
+REPO
+    echo "✓ Local repo configured."
+fi
+
+#
+# ChurroStore / Discover theme
+#
+
+echo "Applying ChurroOS theme to KDE/Discover..."
+
+if id "churros" &>/dev/null; then
+
+    USER_HOME="/home/churros"
+    mkdir -p "$USER_HOME/.config"
+
+    cat > "$USER_HOME/.config/kdeglobals" << 'KDEGLOBALS'
+[ColorScheme]
+ColorScheme=ChurroOSDark
+name=ChurroOSDark
+
+[General]
+ColorScheme=ChurroOSDark
+Name=Churros Dark
+font=Inter,10,-1,5,50,0,0,0,0,0
+fixed=Hack Nerd Font,9,-1,5,50,0,0,0,0,0
+
+[Icons]
+Theme=Papirus-Dark
+KDEGLOBALS
+
+    chown -R churros:churros "$USER_HOME/.config" 2>/dev/null || true
+
+    echo "✓ Theme applied to churros user"
+fi
+
+echo "Cleaning..."
+bash /root/scripts/cleanup.sh
+
+echo ""
+echo "======================================="
+echo " ChurrOS customization complete."
+echo "======================================="
