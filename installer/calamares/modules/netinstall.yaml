@@ -1,7 +1,6 @@
----
 groups:
-  - name: Extras AUR
-    description: Paquetes adicionales del repositorio local ChurrOS
+  - name: Extras ChurrOS
+    description: Paquetes adicionales opcionales (repositorio local + extra)
     packages:
       - name: yay
         description: AUR helper (instala paquetes AUR)
@@ -14,7 +13,4 @@ groups:
         selected: false
       - name: wlogout
         description: Menú de salida para Wayland (Mod+Shift+Q)
-        selected: false
-      - name: onlyoffice-bin
-        description: Suite ofimática compatible con formatos MS Office
         selected: false

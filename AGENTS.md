@@ -82,13 +82,14 @@ docs/                         Project documentation
 
 ## Calamares Sequence
 
-`installer/calamares/settings.conf` defines three `shellprocess` instances and the exec order. The exec sequence IS order-sensitive — keypin requirements:
+`installer/calamares/settings.conf` defines four `shellprocess` instances and the exec order. The exec sequence IS order-sensitive — keypin requirements:
 
-- `shellprocess@pacman-init` (keyring init) **MUST** come before `shellprocess@fix-boot` (kernel reinstall via pacman) — both already ordered this way; do not reorder.
-- `shellprocess@fix-boot` runs before `netinstall`/`packages` install additional packages.
-- `shellprocess@post-install` (cleanup) is the last exec step before `umount`.
+- `shellprocess@pacman-init` (keyring init) **MUST** come before `shellprocess@fix-boot` (mkinitcpio preset rewrite + kernel modules) — both already ordered this way; do not reorder.
+- `shellprocess@fix-boot` runs before `shellprocess@churros-repo`, which registers the build-time `[churros]` repo (`Server = file:///root/packages`) in the target's pacman.conf so `netinstall` can resolve yay/waypaper/python-pywal.
+- `shellprocess@churros-repo` **MUST** run before `netinstall`/`packages`; the repo is removed again by `shellprocess@post-install` (unanchored `sed /churros/d` is forbidden — use the anchored `[churros]` block removal).
+- `shellprocess@post-install` (cleanup: drops `[churros]`, `userdel -r churros`, removes live-only `/root` artifacts) is the last exec step before `umount`.
 
-Config files per instance: `shellprocess-pacman.conf`, `shellprocess-fixboot.conf`, `shellprocess-cleanup.conf`. Module IDs in `instances:` are `pacman-init`, `fix-boot`, `post-install`.
+Config files per instance: `shellprocess-pacman.conf`, `shellprocess-fixboot.conf`, `shellprocess-repo.conf`, `shellprocess-cleanup.conf`. Module IDs in `instances:` are `pacman-init`, `fix-boot`, `churros-repo`, `post-install`.
 
 ## Key Architecture
 
