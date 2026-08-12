@@ -37,6 +37,9 @@ echo "Initializing pacman keyring..."
 pacman-key --init
 pacman-key --populate archlinux
 
+echo "Populating package databases (incl. multilib para Steam)..."
+pacman -Sy --noconfirm
+
 echo "Configuring desktop..."
 bash /root/scripts/desktop.sh
 
@@ -71,14 +74,10 @@ else
 fi
 
 if ls /root/packages/*.pkg.tar.zst 1>/dev/null 2>&1; then
-    echo "Configuring ChurrOS local repo..."
-    cat >> /etc/pacman.conf << 'REPO'
-
-[churros]
-SigLevel = Optional TrustAll
-Server = file:///root/packages
-REPO
-    echo "✓ Local repo configured."
+    echo "Configuring ChurrOS local repo (build-time only)..."
+    # Solo para el build; no se agrega al live ISO porque /root/packages no existe ahí
+    # Calamares lo configurará en el sistema instalado
+    echo "  (skipped for live ISO — /root/packages no existe en runtime)"
 fi
 
 #
