@@ -75,12 +75,14 @@ class WaybarPage(Page):
             title="Capa",
             values=["top", "overlay", "bottom"],
             selected=self.values["layer"],
+            callback=lambda *_: self._on_change("full")
         )
 
         self.position_combo = ComboRow(
             title="Posicion",
             values=["top", "bottom", "left", "right"],
             selected=self.values["position"],
+            callback=lambda *_: self._on_change("full")
         )
 
         self.height_slider = SliderRow(
@@ -89,6 +91,7 @@ class WaybarPage(Page):
             minimum=20,
             maximum=80,
             step=1,
+            callback=lambda *_: self._on_change("full")
         )
 
         self.spacing_slider = SliderRow(
@@ -98,6 +101,7 @@ class WaybarPage(Page):
             minimum=0,
             maximum=16,
             step=1,
+            callback=lambda *_: self._on_change("full")
         )
 
         layout_group.add(self.layer_combo)
@@ -115,6 +119,7 @@ class WaybarPage(Page):
             minimum=10,
             maximum=24,
             step=1,
+            callback=lambda *_: self._on_change("style")
         )
 
         font_families = [
@@ -131,6 +136,7 @@ class WaybarPage(Page):
             title="Familia tipografica",
             values=font_families,
             selected=self.values.get("font-family", font_families[0]),
+            callback=lambda *_: self._on_change("style")
         )
 
         typography_group.add(self.font_size_slider)
@@ -143,16 +149,19 @@ class WaybarPage(Page):
         self.bg_picker = ColorPickerRow(
             title="Fondo",
             value=self.values["background"],
+            callback=lambda c: self._on_change("style")
         )
 
         self.fg_picker = ColorPickerRow(
             title="Texto",
             value=self.values["foreground"],
+            callback=lambda c: self._on_change("style")
         )
 
         self.accent_picker = ColorPickerRow(
             title="Acento",
             value=self.values["accent"],
+            callback=lambda c: self._on_change("style")
         )
 
         self.bg_alpha_slider = SliderRow(
@@ -162,6 +171,7 @@ class WaybarPage(Page):
             minimum=0.0,
             maximum=1.0,
             step=0.05,
+            callback=lambda *_: self._on_change("style")
         )
 
         colors_group.add(self.bg_picker)
