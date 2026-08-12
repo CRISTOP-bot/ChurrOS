@@ -214,6 +214,23 @@ papirus-icon-theme
 adwaita-icon-theme
 fastfetch
 
+# Multimedia base
+ffmpeg
+gst-plugins-good
+gst-plugins-bad
+gst-plugins-ugly
+gst-libav
+
+# Impresión
+cups
+system-config-printer
+
+# Visor PDF
+evince
+
+# Calculadora
+gnome-calculator
+
 # Calamares installer dependencies
 kcoreaddons
 kpmcore
