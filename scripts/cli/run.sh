@@ -97,5 +97,5 @@ qemu-system-x86_64 \
     -drive if=pflash,format=raw,file="$VARS" \
     -drive file="$DISK",format=qcow2,if=virtio \
     -cdrom "$ISO" \
-    -boot order=d \
+    -boot order=c \
     -serial file:vm_serial.log
