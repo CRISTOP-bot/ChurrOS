@@ -112,7 +112,13 @@ impl PreferencesWindow {
     fn register_pages(&mut self) {
         // Páginas principales (se añaden al sidebar + al stack)
         self.register_main_page("system", "system.svg", "Sistema", |n| pages::system::build(n));
+        self.register_main_page("appearance", "appearance.svg", "Apariencia", |n| {
+            pages::appearance::build(n)
+        });
         self.register_main_page("about", "about.svg", "Acerca de", |n| pages::about::build(n));
+
+        // Subpáginas con stack propio (accent portada; el resto según se porten)
+        self.register_subpage("accent", "appearance", |n| pages::accent::build(n));
 
         // Subpáginas registradas en el catálogo de búsqueda
         // (se añaden al stack según se porten)
@@ -157,6 +163,16 @@ impl PreferencesWindow {
             s.register_subpage(
                 "window-rules", "appearance", "Reglas de ventana", "Opacidad, flotantes, esquinas, blur", Some("window_rules.svg"));
         }
+    }
+
+    fn register_subpage(
+        &mut self,
+        id: &str,
+        _parent_id: &str,
+        builder: impl FnOnce(gtk::Stack) -> crate::widgets::page::Page,
+    ) {
+        let page = builder(self.navigator.clone());
+        self.navigator.add_named(page.widget(), Some(id));
     }
 
     fn register_main_page(
