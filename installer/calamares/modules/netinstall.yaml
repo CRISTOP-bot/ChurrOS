@@ -14,3 +14,15 @@ groups:
       - name: wlogout
         description: Menú de salida para Wayland (Mod+Shift+Q)
         selected: false
+  - name: Ofimática: LibreOffice
+    description: Suite ofimática completa (Writer, Calc, Impress...) desde los repos oficiales
+    packages:
+      - name: libreoffice-fresh
+        description: LibreOffice (requiere internet durante la instalación)
+        selected: false
+  - name: Ofimática: OnlyOffice
+    description: Suite compatible con formatos MS Office, incluida en el ISO
+    packages:
+      - name: onlyoffice-bin
+        description: OnlyOffice Desktop Editors (repositorio ChurrOS)
+        selected: false
