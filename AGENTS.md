@@ -54,6 +54,10 @@ Behaviour on the live system is verified in QEMU:
 churros                       Bash dispatcher -> scripts/cli/<cmd>.sh
 rust/                         Rust workspace (apps portadas a gtk4-rs/libadwaita)
   churros-welcome/            Crate de la app de bienvenida (port completo)
+  preferences/                Crate de ajustes (binario churros-settings)
+  services/                   Crate de servicios (wpctl, nmcli, bluetoothctl, brightnessctl…)
+  popups/                     Crate de los popups (binario churros-popup + toggle nativo)
+  control-center/             Crate del control center (binario churros-control-center)
 scripts/
   cli/                        build.sh, run.sh, clean.sh, doctor.sh, info.sh, version.sh, logo.sh
   build-calamares.sh          Produces archiso/packages/calamares-*.pkg.tar.zst
@@ -65,7 +69,7 @@ archiso/                      ArchISO profile root
   airootfs/                   Squashfs root overlay
     etc/skel/.config/          niri, waybar, foot, fuzzel — DO NOT MODIFY
     root/scripts/             Live-ISO runtime scripts (users, services, desktop, cleanup, greetd-config)
-    usr/share/churros/        Python GTK4/Libadwaita apps + scripts
+    usr/share/churros/        Assets runtime de las apps Rust (welcome, preferences, control-center) + i18n.py + scripts
 branding/                     Visual identity
   customize_airootfs.sh       Runs at live boot: applies os-release/issue/motd, creates live user, installs Calamares via bsdtar, configures local [churros] pacman repo
   files/                      os-release, issue, motd, logos, wallpapers
@@ -103,7 +107,7 @@ Config files per instance: `shellprocess-pacman.conf`, `shellprocess-fixboot.con
 - **Compositor**: Niri (Wayland scrollable-tiling). Requires 3D accel in QEMU (see Testing).
 - **Display Manager**: greetd with autologin to `churros` / `niri` session.
 - **Panel/Launcher/Terminal**: Waybar / Fuzzel / foot.
-- **Apps**: Python GTK4 + Libadwaita en `archiso/airootfs/usr/share/churros/` (`control-center`, `popups`, `preferences`, `services`), instaladas en `/usr/bin/churros-*` vía `profiledef.sh` perms. **`churros-welcome` está portada a Rust** (`rust/churros-welcome/`, gtk4-rs + libadwaita-rs) y su binario se despliega en `/usr/bin/churros-welcome` por `build-rust.sh`.
+- **Apps**: portadas a Rust (gtk4-rs + libadwaita-rs) en `rust/`: `churros-welcome`, `churros-settings` (preferences), `churros-popup` (6 popups en un binario con toggle nativo vía pidfiles en `/tmp/churros/`) y `churros-control-center`. Sus binarios se despliegan en `/usr/bin/churros-*` por `build-rust.sh` (crates con `deploy = true`); los assets runtime viven en `/usr/share/churros/<app>/` (los crates resuelven a `assets/` local en desarrollo). `usr/share/churros/i18n.py` (gettext) sigue en Python para las apps que lo usan.
 - **Installer**: Calamares with custom `churros` branding (slideshow, QSS stylesheet).
 - **Boot modes** (from `profiledef.sh`): `bios.syslinux` + `uefi.grub`. No systemd-boot, no Limine (mkarchiso del host no lo soporta).
 - **Audio**: PipeWire + WirePlumber.

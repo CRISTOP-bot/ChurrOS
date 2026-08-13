@@ -1,0 +1,120 @@
+/*
+    ChurrOS Control Center — Liquid Glass
+    Accent: #F97316  Fondo: #0f0f10
+*/
+
+window {
+    background: transparent;
+}
+
+.control-center {
+    background: rgba(15,15,16,.72);
+    backdrop-filter: blur(24px) saturate(1.4);
+    border-radius: 22px;
+    color: white;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 8px 40px rgba(0,0,0,.45),
+                0 1px 0 rgba(255,255,255,.06) inset;
+}
+
+/* ── HEADER ───────────────────────────────────────────── */
+
+.title {
+    font-size: 25px;
+    font-weight: 700;
+    color: white;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,.55);
+}
+
+/* ── CARDS (glass) ────────────────────────────────────── */
+
+.card {
+    background: rgba(255,255,255,.06);
+    backdrop-filter: blur(20px) saturate(1.3);
+    border-radius: 22px;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 4px 20px rgba(0,0,0,.30),
+                0 1px 0 rgba(255,255,255,.07) inset;
+    transition: 200ms cubic-bezier(.4,0,.2,1);
+}
+
+.card:hover {
+    border: 1px solid rgba(249,115,22,.35);
+    background: rgba(249,115,22,.08);
+    box-shadow: 0 6px 28px rgba(249,115,22,.20),
+                0 1px 0 rgba(255,255,255,.10) inset;
+    transform: translateY(-2px);
+}
+
+.card:active {
+    background: rgba(249,115,22,.14);
+    transform: translateY(0);
+}
+
+/* ── TEXT ─────────────────────────────────────────────── */
+
+.card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: white;
+}
+
+.card-subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,.75);
+}
+
+/* ── POWER ────────────────────────────────────────────── */
+
+.power-button {
+    background: transparent;
+    border: none;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 999px;
+    transition: 160ms ease;
+}
+
+.power-button:hover {
+    background: rgba(249,115,22,.14);
+    box-shadow: 0 0 20px rgba(249,115,22,.25);
+}
+
+/* ── AUDIO ────────────────────────────────────────────── */
+
+scale {
+    margin-top: 12px;
+}
+
+scale trough {
+    background: rgba(255,255,255,.10);
+    min-height: 8px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,.06);
+}
+
+scale highlight {
+    background: linear-gradient(90deg, #F97316, #FB923C);
+    border-radius: 100px;
+    box-shadow: 0 0 8px rgba(249,115,22,.30);
+}
+
+scale slider {
+    background: white;
+    min-width: 16px;
+    min-height: 16px;
+    border-radius: 100px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.45),
+                0 1px 0 rgba(255,255,255,.15) inset;
+}
+
+/* ── LABELS ───────────────────────────────────────────── */
+
+label {
+    color: white;
+}
