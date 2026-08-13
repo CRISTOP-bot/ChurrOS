@@ -13,24 +13,35 @@ use adw::prelude::*;
 const APP_ID: &str = "org.churros.Welcome";
 
 fn load_css() {
-    let provider = gtk::CssProvider::new();
-
-    // CSS compartido de ChurrOS (si existe en el sistema instalado)
+    // Cada archivo en su propio provider: load_from_path REEMPLAZA el
+    // contenido previo del provider, así que compartir provider perdería
+    // el churros.css (el style.css de welcome es autocontenido, pero el
+    // CSS compartido aporta tokens/paleta a la ISO).
     let shared = "/usr/share/churros/styles/churros.css";
     if std::path::Path::new(shared).exists() {
+        let provider = gtk::CssProvider::new();
         provider.load_from_path(shared);
+        if let Some(display) = gtk::gdk::Display::default() {
+            gtk::style_context_add_provider_for_display(
+                &display,
+                &provider,
+                gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+            );
+        }
     }
 
-    // CSS local de la app
+    // CSS local de la app (pisa al compartido)
     let local = assets::css_path();
-    provider.load_from_path(&local);
-
-    if let Some(display) = gtk::gdk::Display::default() {
-        gtk::style_context_add_provider_for_display(
-            &display,
-            &provider,
-            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
-        );
+    if local.exists() {
+        let provider = gtk::CssProvider::new();
+        provider.load_from_path(&local);
+        if let Some(display) = gtk::gdk::Display::default() {
+            gtk::style_context_add_provider_for_display(
+                &display,
+                &provider,
+                gtk::STYLE_PROVIDER_PRIORITY_APPLICATION + 1,
+            );
+        }
     }
 }
 
