@@ -103,3 +103,76 @@ QGroupBox::title {
     left: 12px;
     padding: 0 6px;
 }
+
+QTreeView {
+    background-color: #1F2937;
+    alternate-background-color: #182234;
+    border: 1px solid #374151;
+    border-radius: 10px;
+    padding: 6px;
+    selection-background-color: rgba(249, 115, 22, 0.28);
+    selection-color: #FFFFFF;
+    outline: none;
+    font-size: 13px;
+}
+
+QTreeView::item {
+    padding: 9px 8px;
+    border-radius: 6px;
+    margin: 1px 4px;
+}
+
+QTreeView::item:hover {
+    background-color: rgba(249, 115, 22, 0.12);
+}
+
+QTreeView::item:selected {
+    background-color: rgba(249, 115, 22, 0.28);
+    color: #FFFFFF;
+}
+
+QTreeView::branch {
+    background: transparent;
+}
+
+QTreeView::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1px solid #4B5563;
+    background: #111827;
+}
+
+QTreeView::indicator:hover {
+    border-color: #F97316;
+}
+
+QTreeView::indicator:checked {
+    background: #F97316;
+    border-color: #F97316;
+}
+
+QHeaderView::section {
+    background-color: #16202E;
+    color: #9CA3AF;
+    border: none;
+    border-bottom: 1px solid #374151;
+    padding: 8px 10px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+QScrollBar:horizontal {
+    background: #111827;
+    height: 8px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #374151;
+    border-radius: 4px;
+    min-width: 30px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #4B5563;
+}
