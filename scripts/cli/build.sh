@@ -9,6 +9,8 @@ cleanup_temp() {
     rm -rf archiso/airootfs/root/packages 2>/dev/null || true
     rm -rf archiso/airootfs/etc/calamares 2>/dev/null || true
     rm -f archiso/airootfs/etc/polkit-1/rules.d/49-calamares.rules 2>/dev/null || true
+    # Binarios Rust desplegados por build-rust.sh (no se versionan en git)
+    rm -f archiso/airootfs/usr/bin/churros-welcome 2>/dev/null || true
 }
 
 trap cleanup_temp EXIT
@@ -60,12 +62,16 @@ else
     echo "  Calamares not available — building without installer."
 fi
 
-echo "[3/5] Cleaning previous build..."
+echo "[3/5] Building Rust apps...";
+
+bash scripts/build-rust.sh;
+
+echo "[4/5] Cleaning previous build...";
 
 sudo rm -rf work out
 mkdir -p out
 
-echo "[4/5] Building ISO..."
+echo "[5/5] Building ISO...";
 
 sudo mkarchiso -v \
     -w work \

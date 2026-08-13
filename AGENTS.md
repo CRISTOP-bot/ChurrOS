@@ -23,10 +23,11 @@ Five ordered steps, runs from repo root:
 1. Copy `branding/customize_airootfs.sh` + `branding/files/` into `archiso/airootfs/root/`.
 2. Build missing local packages: `scripts/build-calamares.sh`, `scripts/build-aur.sh`. Expect `calamares-*.pkg.tar.zst`, `python-pywal-*.pkg.tar.zst`, `waypaper-*.pkg.tar.zst`, `yay-*.pkg.tar.zst` in `archiso/packages/`.
 3. If Calamares pkg exists: run `installer/apply-calamares.sh` (deploys `settings.conf`, `modules/*.conf`, `modules/*.yaml`, `branding/churros/`, plus a polkit rule `49-calamares.rules` allowing user `churros` to pkexec calamares) and copy all `archiso/packages/*.pkg.tar.zst` into `airootfs/root/packages/`.
-4. `sudo rm -rf work out` then `sudo mkarchiso -v -w work -o out archiso`.
-5. `rm -rf work` and `chown` `out/` back to `$USER`.
+4. Run `scripts/build-rust.sh`: compiles every crate in `rust/` (release) and deploys binaries into `archiso/airootfs/usr/bin/`. Binary names match crate names (e.g. `churros-welcome`).
+5. `sudo rm -rf work out` then `sudo mkarchiso -v -w work -o out archiso`.
+6. `rm -rf work` and `chown` `out/` back to `$USER`.
 
-A trap on EXIT cleans generated files out of `archiso/airootfs/` (`root/customize_airootfs.sh`, `root/branding`, `root/packages`, `etc/calamares`, `polkit-1/rules.d/49-calamares.rules`). Do not edit those paths directly — they are regenerated each build.
+A trap on EXIT cleans generated files out of `archiso/airootfs/` (`root/customize_airootfs.sh`, `root/branding`, `root/packages`, `etc/calamares`, `polkit-1/rules.d/49-calamares.rules`, `usr/bin/churros-welcome`). Do not edit those paths directly — they are regenerated each build.
 
 ## Testing
 
@@ -50,10 +51,13 @@ Behaviour on the live system is verified in QEMU:
 
 ```
 churros                       Bash dispatcher -> scripts/cli/<cmd>.sh
+rust/                         Rust workspace (apps portadas a gtk4-rs/libadwaita)
+  churros-welcome/            Crate de la app de bienvenida (port completo)
 scripts/
   cli/                        build.sh, run.sh, clean.sh, doctor.sh, info.sh, version.sh, logo.sh
   build-calamares.sh          Produces archiso/packages/calamares-*.pkg.tar.zst
   build-aur.sh                Produces python-pywal + waypaper + yay pkgs
+  build-rust.sh               Compiles rust/* crates -> archiso/airootfs/usr/bin/
 archiso/                      ArchISO profile root
   profiledef.sh               iso metadata, bootmodes, file_permissions map
   packages/                   Local pacman repo (built pkgs + repo db live here)
@@ -97,7 +101,7 @@ Config files per instance: `shellprocess-pacman.conf`, `shellprocess-fixboot.con
 - **Compositor**: Niri (Wayland scrollable-tiling). Requires 3D accel in QEMU (see Testing).
 - **Display Manager**: greetd with autologin to `churros` / `niri` session.
 - **Panel/Launcher/Terminal**: Waybar / Fuzzel / foot.
-- **Apps**: Python GTK4 + Libadwaita in `archiso/airootfs/usr/share/churros/` (`churros-welcome`, `control-center`, `popups`, `preferences`, `services`), installed into `/usr/bin/churros-*` via `profiledef.sh` perms.
+- **Apps**: Python GTK4 + Libadwaita en `archiso/airootfs/usr/share/churros/` (`control-center`, `popups`, `preferences`, `services`), instaladas en `/usr/bin/churros-*` vía `profiledef.sh` perms. **`churros-welcome` está portada a Rust** (`rust/churros-welcome/`, gtk4-rs + libadwaita-rs) y su binario se despliega en `/usr/bin/churros-welcome` por `build-rust.sh`.
 - **Installer**: Calamares with custom `churros` branding (slideshow, QSS stylesheet).
 - **Boot modes** (from `profiledef.sh`): `bios.syslinux` + `uefi.grub`. No systemd-boot, no Limine (mkarchiso del host no lo soporta).
 - **Audio**: PipeWire + WirePlumber.

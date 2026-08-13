@@ -1,0 +1,629 @@
+/*
+    ChurrOS Preferences — Liquid Glass
+    ──────────────────────────────────
+    Glassmorphism + manteniendo colores Churros
+    Accent: #F97316 (naranja cálido)
+    Fondo:  #0f0f10 / #1a1a1c
+*/
+
+/* ── Tokens (dark default) ─────────────────────────────── */
+window {
+    --bg-window:        rgba(15,15,16,.96);
+    --bg-sidebar:       rgba(18,18,20,.92);
+    --bg-group:         rgba(22,22,24,.88);
+    --bg-group-hover:   rgba(30,30,34,.92);
+    --row-bg:           transparent;
+    --row-bg-hover:     rgba(255,255,255,.04);
+    --row-bg-active:    rgba(255,255,255,.08);
+    --text-primary:     rgba(255,255,255,.96);
+    --text-secondary:   rgba(255,255,255,.65);
+    --text-tertiary:    rgba(255,255,255,.45);
+    --border-soft:      rgba(255,255,255,.06);
+    --border-strong:    rgba(255,255,255,.12);
+    --glass-blur:       16px;
+    --glass-shadow:     0 8px 32px rgba(0,0,0,.60);
+    --glass-inset:      0 1px 0 rgba(255,255,255,.03) inset;
+    --accent:           #F97316;
+    --accent-soft:      #FB923C;
+    --accent-strong:    #C2410C;
+    --accent-text:      #ffffff;
+    --accent-bg-hover:  rgba(249,115,22,.14);
+    --accent-glow:      0 0 20px rgba(249,115,22,.20);
+    --scroller-thumb:   rgba(255,255,255,.10);
+}
+
+/* Light override */
+window.light {
+    --bg-window:        rgba(242,242,245,.88);
+    --bg-sidebar:       rgba(255,255,255,.58);
+    --bg-group:         rgba(255,255,255,.72);
+    --bg-group-hover:   rgba(0,0,0,.04);
+    --row-bg:           transparent;
+    --row-bg-hover:     rgba(0,0,0,.04);
+    --row-bg-active:    rgba(0,0,0,.08);
+    --text-primary:     rgba(28,28,30,.96);
+    --text-secondary:   rgba(28,28,30,.58);
+    --text-tertiary:    rgba(28,28,30,.40);
+    --border-soft:      rgba(0,0,0,.08);
+    --border-strong:    rgba(0,0,0,.14);
+    --glass-blur:       16px;
+    --glass-shadow:     0 8px 32px rgba(0,0,0,.12);
+    --glass-inset:      0 1px 0 rgba(255,255,255,.45) inset;
+    --accent:           #EA580C;
+    --accent-soft:      #F97316;
+    --accent-strong:    #9A3412;
+    --accent-text:      #ffffff;
+    --accent-bg-hover:  rgba(234,88,12,.12);
+    --accent-glow:      0 0 20px rgba(234,88,12,.18);
+    --scroller-thumb:   rgba(0,0,0,.16);
+}
+
+/* ── Window base (glass) ───────────────────────────────── */
+window {
+    background: var(--bg-window);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+}
+
+/*
+    Cuando la ventana esta maximizada o fullscreen, no aplicamos
+    backdrop-filter ni border-radius: el fondo del monitor ya es
+    visible detras, asi que mezclarlos hace la interfaz ilegible
+    y amplifica el brillo de wallpapers claros en dark mode.
+*/
+window.maximized,
+window.fullscreen {
+    background: var(--bg-window);
+    backdrop-filter: none;
+    border-radius: 0;
+}
+
+.preferences {
+    background: transparent;
+}
+
+/* ── Sidebar (glass panel) ─────────────────────────────── */
+.sidebar {
+    background: var(--bg-sidebar);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+    border-radius: 18px;
+    padding: 12px;
+    margin: 16px 10px 16px 16px;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--glass-shadow), var(--glass-inset);
+}
+
+.sidebar-title {
+    color: var(--text-primary);
+    font-size: 21px;
+    font-weight: 700;
+    margin: 4px 6px 6px 6px;
+}
+
+.sidebar-subtitle {
+    color: var(--text-secondary);
+    font-size: 11px;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    margin: 0 6px 14px 6px;
+}
+
+.sidebar-item {
+    border-radius: 11px;
+    min-height: 40px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--text-primary);
+    background-image: none;
+    box-shadow: none;
+    transition: 160ms cubic-bezier(.4,0,.2,1);
+}
+
+.sidebar-item:hover {
+    background: var(--accent-bg-hover);
+    box-shadow: var(--glass-inset);
+}
+
+.sidebar-item.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    color: var(--accent-text);
+    font-weight: 600;
+    box-shadow: var(--accent-glow), 0 4px 14px rgba(249,115,22,.30);
+}
+
+.sidebar-item.active:hover {
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent));
+}
+
+.sidebar-item image {
+    margin-right: 10px;
+    color: inherit;
+}
+
+.sidebar-item label {
+    color: inherit;
+}
+
+/* ── Search box ───────────────────────────────────────── */
+.preferences-search,
+searchentry {
+    min-height: 36px;
+    border-radius: 11px;
+    padding: 4px 14px;
+    background: var(--row-bg-hover);
+    border: 1px solid var(--border-soft);
+    color: var(--text-primary);
+    caret-color: var(--accent);
+    transition: 160ms ease-out;
+}
+
+.preferences-search:focus,
+searchentry:focus {
+    border: 1px solid var(--accent);
+    background: rgba(249,115,22,.06);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+}
+
+.preferences-search image,
+searchentry image {
+    color: var(--text-secondary);
+}
+
+/* ── Page header ──────────────────────────────────────── */
+.page-title {
+    color: var(--text-primary);
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.page-subtitle {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+/* ── Section title ────────────────────────────────────── */
+.section-title {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+/* ── Group (glass card) ───────────────────────────────── */
+.group {
+    background: var(--bg-group);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border-radius: 14px;
+    padding: 4px;
+    border: 1px solid var(--border-soft);
+    margin-bottom: 18px;
+    box-shadow: var(--glass-shadow), var(--glass-inset);
+}
+
+.group-title {
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin: 8px 12px 6px 12px;
+}
+
+.group-card {
+    background: var(--bg-group);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: var(--glass-inset);
+}
+
+.group-separator {
+    opacity: .15;
+    margin: 0 18px;
+    background: var(--border-strong);
+}
+
+/* ── Row ─────────────────────────────────────────────── */
+.row {
+    min-height: 56px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--row-bg);
+    transition: 160ms cubic-bezier(.4,0,.2,1);
+    border: 1px solid transparent;
+}
+
+.row:hover {
+    background: var(--row-bg-hover);
+    border-color: var(--border-soft);
+    box-shadow: var(--glass-inset);
+}
+
+.row:active,
+.row:selected {
+    background: var(--row-bg-active);
+}
+
+.row image {
+    margin-right: 12px;
+    color: var(--text-secondary);
+}
+
+.row-title {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.row-subtitle {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.row-value {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.row-arrow {
+    color: var(--text-tertiary);
+    margin-left: 6px;
+    font-size: 14px;
+}
+
+/* ── Switch ──────────────────────────────────────────── */
+switch {
+    min-width: 46px;
+    min-height: 26px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.10);
+    border: 1px solid var(--border-strong);
+    transition: 200ms ease;
+}
+
+switch slider {
+    min-width: 20px;
+    min-height: 20px;
+    margin: 2px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.40);
+    transition: 200ms cubic-bezier(.4,0,.2,1);
+}
+
+switch:checked {
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    border-color: var(--accent);
+    box-shadow: var(--accent-glow);
+}
+
+switch:checked slider {
+    margin-left: 24px;
+}
+
+/* ── Slider ──────────────────────────────────────────── */
+scale {
+    min-width: 180px;
+}
+
+scale trough {
+    min-height: 6px;
+    border-radius: 8px;
+    background: rgba(255,255,255,.10);
+    border: 1px solid var(--border-soft);
+}
+
+scale highlight {
+    background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(249,115,22,.30);
+}
+
+scale slider {
+    min-width: 16px;
+    min-height: 16px;
+    margin: -6px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.45), var(--glass-inset);
+    border: 1px solid var(--border-strong);
+    transition: 120ms ease;
+}
+
+scale slider:hover {
+    box-shadow: 0 2px 12px rgba(249,115,22,.40), 0 0 0 4px rgba(249,115,22,.15);
+}
+
+/* ── DropDown ─────────────────────────────────────────── */
+dropdown,
+button.combo {
+    min-height: 32px;
+    border-radius: 10px;
+    padding: 4px 12px;
+    background: var(--row-bg-hover);
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+    box-shadow: none;
+    background-image: none;
+    transition: 160ms ease-out;
+}
+
+dropdown:hover,
+button.combo:hover {
+    background: var(--accent-bg-hover);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.10);
+}
+
+popover contents list {
+    background: rgba(26,26,28,.92);
+    backdrop-filter: blur(20px);
+}
+
+popover contents listview row {
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+popover contents listview row:hover {
+    background: var(--accent-bg-hover);
+}
+
+popover contents listview row:selected {
+    background: var(--accent);
+    color: var(--accent-text);
+}
+
+popover.search-results list {
+    background: var(--popover-bg, rgba(26,26,28,.96));
+    backdrop-filter: blur(20px);
+}
+
+popover.search-results row {
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+popover.search-results row:hover {
+    background: var(--accent-bg-hover);
+}
+
+popover.search-results row:selected {
+    background: var(--accent);
+    color: var(--accent-text);
+}
+
+/* ── Scrollbar ───────────────────────────────────────── */
+scrollbar {
+    border: none;
+    background: transparent;
+}
+
+scrollbar slider {
+    min-width: 8px;
+    min-height: 30px;
+    border-radius: 6px;
+    background: var(--scroller-thumb);
+    margin: 4px;
+    transition: 120ms ease;
+}
+
+scrollbar slider:hover {
+    background: var(--accent);
+    min-width: 10px;
+}
+
+/* ── About card ──────────────────────────────────────── */
+.about-card {
+    background: var(--bg-group);
+    backdrop-filter: blur(20px) saturate(1.3);
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: var(--glass-shadow), var(--glass-inset);
+}
+
+.about-title {
+    color: var(--text-primary);
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.about-version {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.about-key {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.about-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* ── Info rows ───────────────────────────────────────── */
+.info-row {
+    border-radius: 8px;
+}
+
+.info-value {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* ── Wallpaper grid ──────────────────────────────────── */
+.wallpaper-button {
+    padding: 0;
+    border-radius: 14px;
+    border: 2px solid transparent;
+    background: transparent;
+    box-shadow: none;
+    transition: 180ms cubic-bezier(.4,0,.2,1);
+}
+
+.wallpaper-button:hover {
+    border-color: var(--accent);
+    box-shadow: 0 6px 20px rgba(249,115,22,.25);
+    transform: translateY(-2px);
+}
+
+.wallpaper-button:hover image {
+    opacity: .95;
+}
+
+.wallpaper-thumb {
+    border-radius: 12px;
+    background: var(--bg-group-hover);
+    box-shadow: var(--glass-shadow);
+}
+
+.wallpaper-selected {
+    border: 3px solid var(--accent);
+    border-radius: 14px;
+    box-shadow: var(--accent-glow), 0 4px 16px rgba(249,115,22,.35);
+}
+
+.wallpaper-preview {
+    border-radius: 16px;
+    border: 2px solid var(--border-soft);
+    box-shadow: var(--glass-shadow);
+}
+
+.wallpaper-name {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.wallpaper-card {
+    padding: 8px;
+    border-radius: 14px;
+}
+
+/* ── SelectRow ────────────────────────────────────────── */
+.select-row {
+    background: var(--row-bg);
+    border-radius: 10px;
+    transition: 120ms ease;
+}
+
+.select-row:hover {
+    background: var(--accent-bg-hover);
+    box-shadow: var(--glass-inset);
+}
+
+.select-row.active {
+    background: var(--accent-bg-hover);
+}
+
+.select-row image {
+    color: var(--accent);
+}
+
+/* ── Back button ──────────────────────────────────────── */
+.back-button {
+    min-height: 34px;
+    border-radius: 10px;
+    padding: 4px 14px;
+    background: var(--row-bg-hover);
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+    transition: 160ms ease-out;
+}
+
+.back-button:hover {
+    background: var(--accent-bg-hover);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.10);
+}
+
+/* ── Misc cleanup ─────────────────────────────────────── */
+button {
+    background: transparent;
+    box-shadow: none;
+    background-image: none;
+    border: 1px solid transparent;
+    transition: 160ms ease;
+}
+
+button.suggested-action {
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    color: var(--accent-text);
+    border-radius: 10px;
+    border: 1px solid var(--accent);
+    box-shadow: var(--accent-glow), 0 4px 14px rgba(249,115,22,.25);
+}
+
+button.suggested-action:hover {
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent));
+    box-shadow: var(--accent-glow), 0 6px 18px rgba(249,115,22,.35);
+}
+
+button.destructive-action {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(239,68,68,.25);
+}
+
+label {
+    color: var(--text-primary);
+}
+
+entry {
+    border-radius: 10px;
+    padding: 8px 14px;
+    background: var(--row-bg-hover);
+    border: 1px solid var(--border-soft);
+    color: var(--text-primary);
+    caret-color: var(--accent);
+    transition: 160ms ease-out;
+}
+
+entry:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+}
+
+/* ── Color picker ────────────────────────────────────── */
+.color-swatch {
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--glass-inset);
+}
+
+.color-pick-button {
+    min-height: 32px;
+    border-radius: 10px;
+    padding: 4px 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    color: var(--accent-text);
+    border: 1px solid var(--accent);
+    font-weight: 500;
+    box-shadow: var(--accent-glow);
+}
+
+.color-pick-button:hover {
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent));
+}
+
+.color-entry {
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-family: monospace;
+}
+
+.toggle-button.flat {
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 8px;
+}

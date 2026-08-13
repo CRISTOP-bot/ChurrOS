@@ -359,8 +359,11 @@ class Sidebar(Gtk.Box):
 
             row = self._build_result_row(entry)
 
+            # FIX: la señal correcta de GtkListBoxRow es "activate" (sin "d").
+            # "activated" no existe en GTK4 → TypeError en runtime → el popover
+            # de búsqueda nunca mostraba resultados.
             row.connect(
-                "activated",
+                "activate",
                 self._on_popover_row,
                 idx
             )

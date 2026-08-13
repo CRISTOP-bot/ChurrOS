@@ -20,12 +20,13 @@ Las apps se instalan en `/usr/share/churros/<app>/` dentro de la ISO Live y se e
 
 # churros-welcome
 
-**Path:** `archiso/airootfs/usr/share/churros/churros-welcome/`
-**Instalada en:** `/usr/share/churros/churros-welcome/`
-**Wrapper:** `/usr/bin/churros-welcome`
+**Path (Rust):** `rust/churros-welcome/`
+**Instalada en:** `/usr/bin/churros-welcome` (binario ELF compilado)
 **Autostart:** `archiso/airootfs/etc/skel/.config/niri/config.kdl` (`spawn-at-startup "churros-welcome"`)
 
-La pantalla de bienvenida que se muestra al iniciar la sesión Live.
+La pantalla de bienvenida que se muestra al iniciar la sesión Live. **Portada a Rust (gtk4-rs + libadwaita-rs)** — el código Python original fue reemplazado; los assets (SVG/CSS) siguen en `archiso/airootfs/usr/share/churros/churros-welcome/assets/` y se leen desde `/usr/share/churros/churros-welcome/assets/` en runtime.
+
+El binario se compila con `scripts/build-rust.sh` (invocado por `./churros build`) y se despliega en `archiso/airootfs/usr/bin/`. No se versiona en git: en un checkout limpio solo existe el crate en `rust/churros-welcome/`.
 
 ## Purpose
 
@@ -46,31 +47,25 @@ La pantalla de bienvenida que se muestra al iniciar la sesión Live.
 - Layout: vertical con scroll (`Gtk.ScrolledWindow`)
 - CSS cargado desde `assets/style.css` con prioridad `APPLICATION`
 
-## Structure
+## Structure (Rust)
 
 ```text
-src/
-├── main.py                # Entry point
-├── window.py              # ChurrOSWelcome (Adw.Application)
-├── config/
-│   ├── constants.py       # WINDOW_WIDTH, CARD_WIDTH, etc.
-│   ├── metadata.py        # APP_NAME, VERSION, REPOSITORY, etc.
-│   └── paths.py           # Rutas a assets
-├── ui/
-│   ├── header.py          # Logo, título, subtítulo
-│   ├── cards.py           # Grid de tarjetas
-│   └── footer.py          # Pie de página
-├── widgets/
-│   ├── action_card.py     # Tarjeta de acción (botón)
-│   └── system_card.py     # Tarjeta con info del sistema
-├── service/
-│   ├── package_manager.py # Stubs para selección de paquetes
-│   └── updater.py         # Stubs para el actualizador del sistema
-└── utils/
-    ├── browser.py         # Abrir URLs (GitHub, Discord, Wiki)
-    ├── desktop.py         # Lanzar el instalador (Calamares)
-    └── system.py          # get_cpu, get_memory, etc.
+rust/churros-welcome/
+├── Cargo.toml              # gtk4 (v4_22) + libadwaita + glib + gio
+├── assets/                 # Copia local para desarrollo (SVG + style.css)
+└── src/
+    ├── main.rs             # Adw::Application + carga de CSS + ventana maximizada
+    ├── header.rs           # Logo, título, subtítulo, separador
+    ├── cards.rs            # FlowBox con las 3 ActionCards
+    ├── footer.rs           # "Linux • Niri • ChurrOS {VERSION}"
+    ├── action_card.rs      # Gtk::Button 280x340 con icono/título/descripción
+    ├── system_card.rs      # Definida pero NO montada (igual que en Python original)
+    ├── system_info.rs      # get_cpu, get_memory, get_kernel, get_os, etc. (lectura /proc)
+    ├── actions.rs          # Abrir URLs (gio::AppInfo) + lanzar calamares.desktop
+    └── assets.rs           # Resolución de rutas: /usr/share/churros/... o assets/ local
 ```
+
+Las funciones de `system_info` leen directamente de `/proc` (cpuinfo, meminfo, os-release, osrelease, hostname), igual que el Python con fallback a psutil — el resultado es el mismo.
 
 ## System Card
 
@@ -224,9 +219,11 @@ Roadmap potencial:
 
 # Packaging
 
-Las apps viven dentro del directorio `archiso/airootfs/usr/share/churros/<app>/`, que es lo que archiso empaqueta directamente en la ISO. Los wrappers en `/usr/bin/churros-*` ejecutan `python3` apuntando a esos paths.
+Las apps GTK viven dentro del directorio `archiso/airootfs/usr/share/churros/<app>/`, que es lo que archiso empaqueta directamente en la ISO. Los wrappers en `/usr/bin/churros-*` ejecutan `python3` apuntando a esos paths.
 
-> **Nota:** El `build.sh` no copia automáticamente las apps. El código fuente *es* el árbol que termina en la ISO.
+> **Nota:** El `build.sh` no copia automáticamente las apps Python. El código fuente *es* el árbol que termina en la ISO.
+
+**Apps Rust** (desde v0.5): el código vive en `rust/<app>/` como crate Cargo. `scripts/build-rust.sh` (invocado por `./churros build`) compila en release y despliega el binario en `archiso/airootfs/usr/bin/<app>`. El binario no se versiona (`.gitignore`). Los assets de runtime siguen en `archiso/airootfs/usr/share/churros/<app>/assets/`, y en desarrollo el crate usa su propia copia local en `rust/<app>/assets/`.
 
 ---
 
@@ -234,8 +231,9 @@ Las apps viven dentro del directorio `archiso/airootfs/usr/share/churros/<app>/`
 
 Para modificar una app:
 
-1. Edita el código en `archiso/airootfs/usr/share/churros/<app>/`.
-2. Compila y prueba:
+1. **Python**: edita el código en `archiso/airootfs/usr/share/churros/<app>/`.
+2. **Rust**: edita el crate en `rust/<app>/` y compila localmente con `cargo build --release --manifest-path rust/Cargo.toml` (el binario queda en `rust/target/release/<app>`).
+3. Compila y prueba la ISO:
 
 ```bash
 ./churros build

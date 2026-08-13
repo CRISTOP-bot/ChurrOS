@@ -30,3 +30,9 @@ archiso/packages/churros.db.tar.gz.old
 archiso/packages/churros.files
 archiso/packages/churros.files.tar.gz
 archiso/packages/churros.files.tar.gz.old
+
+# Rust workspace: build artifacts and deployed binaries.
+# Produced by scripts/build-rust.sh — binaries land in the airootfs tree
+# only during a build and are removed by the cleanup trap.
+rust/target/
+archiso/airootfs/usr/bin/churros-welcome

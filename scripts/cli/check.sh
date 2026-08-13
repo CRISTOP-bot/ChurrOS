@@ -98,9 +98,12 @@ mapfile -t PACKAGES < <(grep -v '^#' archiso/packages.x86_64 | grep -v '^$')
 
 # Binary names do not always match package names: awww-daemon ships in 'awww'
 # and plasma-discover in 'discover', so a substring match counts as a hit.
+# Rust apps (churros-*) are compiled at build time by scripts/build-rust.sh and
+# are not present in a clean checkout, so a crate in rust/ also resolves.
 command_exists() {
     local command=$1 package
     [ -e "archiso/airootfs/usr/bin/$command" ] && return 0
+    [ -e "rust/$command/Cargo.toml" ] && return 0
     for package in "${PACKAGES[@]}"; do
         [ "${#package}" -ge 4 ] || continue
         [[ $command == *"$package"* ]] && return 0
