@@ -11,7 +11,7 @@
 ./churros check      # Static checks: bash, python, package list, niri autostart, po files
 ./churros doctor     # Check for mkarchiso, qemu, xorriso, mksquashfs, mcopy, mkinitcpio
 ./scripts/build-calamares.sh  # Build Calamares .pkg.tar.zst from AUR into archiso/packages/
-./scripts/build-aur.sh        # Build python-pywal + waypaper + yay + onlyoffice-bin AUR packages
+./scripts/build-aur.sh        # Build python-pywal + waypaper + yay AUR packages
 ```
 
 The `churros` dispatcher is at repo root and `cd`s to its own dir before delegating to `scripts/cli/<cmd>.sh`.
@@ -21,7 +21,7 @@ The `churros` dispatcher is at repo root and `cd`s to its own dir before delegat
 Five ordered steps, runs from repo root:
 
 1. Copy `branding/customize_airootfs.sh` + `branding/files/` into `archiso/airootfs/root/`.
-2. Build missing local packages: `scripts/build-calamares.sh`, `scripts/build-aur.sh`. Expect `calamares-*.pkg.tar.zst`, `python-pywal-*.pkg.tar.zst`, `waypaper-*.pkg.tar.zst`, `yay-*.pkg.tar.zst`, `onlyoffice-bin-*.pkg.tar.zst` in `archiso/packages/`.
+2. Build missing local packages: `scripts/build-calamares.sh`, `scripts/build-aur.sh`. Expect `calamares-*.pkg.tar.zst`, `python-pywal-*.pkg.tar.zst`, `waypaper-*.pkg.tar.zst`, `yay-*.pkg.tar.zst` in `archiso/packages/`.
 3. If Calamares pkg exists: run `installer/apply-calamares.sh` (deploys `settings.conf`, `modules/*.conf`, `modules/*.yaml`, `branding/churros/`, plus a polkit rule `49-calamares.rules` allowing user `churros` to pkexec calamares) and copy all `archiso/packages/*.pkg.tar.zst` into `airootfs/root/packages/`.
 4. `sudo rm -rf work out` then `sudo mkarchiso -v -w work -o out archiso`.
 5. `rm -rf work` and `chown` `out/` back to `$USER`.
@@ -53,7 +53,7 @@ churros                       Bash dispatcher -> scripts/cli/<cmd>.sh
 scripts/
   cli/                        build.sh, run.sh, clean.sh, doctor.sh, info.sh, version.sh, logo.sh
   build-calamares.sh          Produces archiso/packages/calamares-*.pkg.tar.zst
-  build-aur.sh                Produces python-pywal + waypaper + yay + onlyoffice-bin pkgs
+  build-aur.sh                Produces python-pywal + waypaper + yay pkgs
 archiso/                      ArchISO profile root
   profiledef.sh               iso metadata, bootmodes, file_permissions map
   packages/                   Local pacman repo (built pkgs + repo db live here)
