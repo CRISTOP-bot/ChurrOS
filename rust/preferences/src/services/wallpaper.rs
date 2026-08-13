@@ -2,11 +2,66 @@
 // WallpaperService — estado del wallpaper (equivalente a services/wallpaper.py)
 // ==========================================
 
-use std::path::PathBuf;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+use std::time::Duration;
 
 use crate::services::settings;
 
 pub struct WallpaperService;
+
+fn build_env() -> Vec<(String, String)> {
+    let mut env: Vec<(String, String)> = std::env::vars().collect();
+
+    if !env.iter().any(|(k, _)| k == "WAYLAND_DISPLAY") {
+        let uid = current_uid();
+        let xrd = format!("/run/user/{uid}");
+        if Path::new(&xrd).is_dir() {
+            if let Ok(entries) = fs::read_dir(&xrd) {
+                let mut socks: Vec<String> = entries
+                    .flatten()
+                    .filter_map(|e| {
+                        let name = e.file_name().to_string_lossy().to_string();
+                        name.starts_with("wayland-").then_some(name)
+                    })
+                    .collect();
+                socks.sort();
+                if let Some(sock) = socks.first() {
+                    env.push(("WAYLAND_DISPLAY".to_string(), sock.clone()));
+                    env.push(("XDG_RUNTIME_DIR".to_string(), xrd.clone()));
+                }
+            }
+        }
+    }
+
+    if !env.iter().any(|(k, _)| k == "XDG_RUNTIME_DIR") {
+        env.push(("XDG_RUNTIME_DIR".to_string(), format!("/run/user/{}", current_uid())));
+    }
+
+    env
+}
+
+fn current_uid() -> u32 {
+    if let Ok(content) = fs::read_to_string("/proc/self/status") {
+        for line in content.lines() {
+            if let Some(rest) = line.strip_prefix("Uid:") {
+                if let Some(first) = rest.split_whitespace().next() {
+                    if let Ok(uid) = first.parse::<u32>() {
+                        return uid;
+                    }
+                }
+            }
+        }
+    }
+    1000
+}
+
+/// shutil.which equivalente: busca el binario en $PATH
+fn which(name: &str) -> bool {
+    let path_var = std::env::var("PATH").unwrap_or_default();
+    path_var.split(':').any(|dir| Path::new(dir).join(name).is_file())
+}
 
 impl WallpaperService {
     /// Ruta del wallpaper actual (settings.json wallpaper.path)
@@ -53,5 +108,122 @@ impl WallpaperService {
         found.sort();
         found.dedup();
         found
+    }
+
+    /// Guarda el wallpaper en settings.json y lo aplica en vivo.
+    /// Devuelve si se aplicó correctamente (equivalente a WallpaperService.set).
+    pub fn set(path: &str) -> bool {
+        settings::set("wallpaper.path", serde_json::json!(path));
+        let applied = Self::apply(path);
+        // TODO: hook pywal (services/pywal_service.py — regenerar paleta si está activo)
+        applied
+    }
+
+    /// Aplica el wallpaper con churros-apply-wallpaper o swaybg
+    /// (equivalente a WallpaperService.apply del Python).
+    pub fn apply(path: &str) -> bool {
+        if path.is_empty() || !Path::new(path).is_file() {
+            println!("[wallpaper] ruta invalida: {path}");
+            return false;
+        }
+
+        let env = build_env();
+        let env_refs: Vec<(&str, &str)> = env
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+            .collect();
+
+        // Backend 1: wrapper churros-apply-wallpaper
+        if which("churros-apply-wallpaper") {
+            let r = Command::new("churros-apply-wallpaper")
+                .arg(path)
+                .envs(env_refs.iter().map(|(k, v)| (*k, *v)))
+                .output();
+            match r {
+                Ok(out) => {
+                    println!(
+                        "[wallpaper] wrapper stdout: {}",
+                        String::from_utf8_lossy(&out.stdout)
+                    );
+                    if !out.stderr.is_empty() {
+                        println!(
+                            "[wallpaper] wrapper stderr: {}",
+                            String::from_utf8_lossy(&out.stderr)
+                        );
+                    }
+                    if out.status.success() {
+                        return true;
+                    }
+                    println!("[wallpaper] wrapper fallo rc={:?}", out.status.code());
+                }
+                Err(e) => println!("[wallpaper] wrapper ex: {e}"),
+            }
+        }
+
+        // Backend 2: swaybg
+        if which("swaybg") {
+            let _ = Command::new("pkill")
+                .args(["-x", "swaybg"])
+                .envs(env_refs.iter().map(|(k, v)| (*k, *v)))
+                .output();
+            let _ = Command::new("swaybg")
+                .args(["-i", path, "-m", "fill"])
+                .envs(env_refs.iter().map(|(k, v)| (*k, *v)))
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn();
+            std::thread::sleep(Duration::from_millis(500));
+            let ok = Command::new("pgrep")
+                .args(["-x", "swaybg"])
+                .envs(env_refs.iter().map(|(k, v)| (*k, *v)))
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false);
+            if ok {
+                println!("[wallpaper] swaybg OK: {path}");
+                return true;
+            }
+        }
+
+        println!("[wallpaper] NINGUN backend funciono");
+        false
+    }
+
+    /// Copia la imagen a ~/.local/share/churros/wallpapers evitando colisiones
+    /// de nombre (name_1.ext, name_2.ext...). Devuelve la ruta destino o None.
+    /// (equivalente a WallpaperService.import_image del Python)
+    pub fn import_image(source_path: &str) -> Option<String> {
+        if source_path.is_empty() || !Path::new(source_path).is_file() {
+            return None;
+        }
+
+        let user_dir = Self::user_dir();
+        if fs::create_dir_all(&user_dir).is_err() {
+            return None;
+        }
+
+        let base = Path::new(source_path)
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("wallpaper")
+            .to_string();
+
+        let (name, ext) = match base.rsplit_once('.') {
+            Some((n, e)) => (n.to_string(), format!(".{e}")),
+            None => (base.clone(), String::new()),
+        };
+
+        let mut dest = user_dir.join(&base);
+        let mut n = 1u32;
+        while dest.exists() {
+            dest = user_dir.join(format!("{name}_{n}{ext}"));
+            n += 1;
+        }
+
+        if fs::copy(source_path, &dest).is_err() {
+            return None;
+        }
+
+        Some(dest.to_string_lossy().to_string())
     }
 }

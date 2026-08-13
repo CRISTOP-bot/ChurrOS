@@ -66,8 +66,199 @@ fn find_block(content: &str, names: &[&str]) -> Option<(usize, usize)> {
     None
 }
 
+// ============================================================
+// Helpers para bloques anidados (layout > border, animations > name)
+// (equivalentes a _find_block / _update_value_in_block / _create_block
+//  y _extract_value de services/dotfiles/niri_config.py)
+// ============================================================
+
+/// Encuentra (start, end) de un bloque anidado `path` (p.ej. ["layout", "border"]).
+/// Devuelve indices sobre lines(); incluye la linea de apertura y la de cierre.
+fn find_nested_block(content: &str, path: &[&str]) -> Option<(usize, usize)> {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut stack: Vec<(usize, String)> = Vec::new();
+
+    for (i, raw) in lines.iter().enumerate() {
+        let stripped = raw.trim();
+        if stripped.is_empty() || stripped.starts_with("//") {
+            continue;
+        }
+        if stripped.ends_with('{') {
+            let mut name = stripped.trim_end_matches('{').trim().to_string();
+            // Quitar posibles comillas finales y el lado "valor" de `name = "x" {`
+            name = name.trim_end_matches('"').to_string();
+            if let Some(eq) = name.find('=') {
+                name.truncate(eq);
+            }
+            let name = name.trim().trim_matches('"').to_string();
+            stack.push((i, name));
+        } else if stripped == "}" || stripped.starts_with('}') {
+            if let Some((start, _name)) = stack.last() {
+                let full_path: Vec<&str> = stack.iter().map(|(_, n)| n.as_str()).collect();
+                if full_path == path {
+                    return Some((*start, i));
+                }
+                stack.pop();
+            }
+        }
+    }
+    None
+}
+
+/// Actualiza o inserta `key value` dentro del bloque `path`.
+/// Devuelve None si el bloque no existe (el caller debe crearlo).
+fn update_value_in_block(content: &str, path: &[&str], key: &str, value: &str) -> Option<String> {
+    let mut lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+    let (start, end) = find_nested_block(content, path)?;
+
+    let base_indent: String = lines[start]
+        .chars()
+        .take_while(|c| *c == ' ' || *c == '\t')
+        .collect();
+    let inner_indent = format!("{base_indent}    ");
+
+    for j in start + 1..end {
+        let stripped = lines[j].trim().to_string();
+        if stripped.starts_with(&format!("{key} ")) || stripped.starts_with(&format!("{key}=")) {
+            lines[j] = format!("{inner_indent}{key} {value}");
+            return Some(lines.join("\n"));
+        }
+    }
+
+    let insert = format!("{inner_indent}{key} {value}");
+    lines.insert(end, insert);
+    Some(lines.join("\n"))
+}
+
+/// Crea el bloque `path` al final del config, creando los padres que falten.
+fn create_block(content: &str, path: &[&str], body_lines: &[&str]) -> String {
+    let mut content = content.to_string();
+
+    for i in 1..=path.len() {
+        let sub_path = &path[..i];
+        if find_nested_block(&content, sub_path).is_none() {
+            let indent = "    ".repeat(i - 1);
+            let lines: &[&str] = if i == path.len() { body_lines } else { &[] };
+
+            let mut block = format!("{indent}{} {{\n", sub_path[i - 1]);
+            for ln in lines {
+                block += &format!("{indent}    {ln}\n");
+            }
+            block += &format!("{indent}}}\n");
+
+            if !content.is_empty() && !content.ends_with('\n') {
+                content.push('\n');
+            }
+            content.push_str(&block);
+            return content;
+        }
+    }
+    content
+}
+
+/// Extrae el valor de `key` dentro del bloque `block_path` (getters).
+fn extract_value(content: &str, block_path: &[&str], key: &str) -> Option<String> {
+    let lines: Vec<&str> = content.lines().collect();
+    let target_depth = block_path.len();
+    let mut stack: Vec<String> = Vec::new();
+    let mut depth = 0usize;
+
+    for raw in lines {
+        let stripped = raw.trim();
+        if stripped.is_empty() || stripped.starts_with("//") {
+            continue;
+        }
+        if stripped.ends_with('{') {
+            let mut name = stripped.trim_end_matches('{').trim().to_string();
+            if let Some(eq) = name.find('=') {
+                name.truncate(eq);
+            }
+            let name = name.trim().trim_matches('"').to_string();
+            stack.push(name);
+            depth += 1;
+        } else if stripped == "}" || stripped.starts_with('}') {
+            if !stack.is_empty() {
+                stack.pop();
+                depth -= 1;
+            }
+        }
+
+        if depth == target_depth
+            && stack.iter().map(|s| s.as_str()).collect::<Vec<_>>() == block_path
+            && (stripped.starts_with(&format!("{key} ")) || stripped.starts_with(&format!("{key}=")))
+        {
+            let value = stripped[key.len()..].trim().trim_start_matches('=').trim();
+            return Some(value.trim_end_matches(';').trim().to_string());
+        }
+    }
+    None
+}
+
+/// str(float) estilo Python: 2.0 -> "2.0", 1.2 -> "1.2", 0.05 -> "0.05"
+fn py_float_str(v: f64) -> String {
+    if v.fract() == 0.0 {
+        format!("{v:.1}")
+    } else {
+        format!("{v}")
+    }
+}
+
 impl NiriConfig {
     /// pkill -HUP niri (recarga la config en vivo)
+    pub fn set_keyboard_layout(layout: &str) {
+        // Añade/actualiza "xkb-layout" en el bloque input del config.kdl
+        let content = read();
+        let lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+
+        // Buscar bloque "input {"
+        let mut start = None;
+        let mut depth = 0i32;
+        for (i, raw) in lines.iter().enumerate() {
+            let stripped = raw.trim();
+            if start.is_none() && stripped.starts_with("input") && stripped.contains('{') {
+                start = Some(i);
+                depth = 1;
+                continue;
+            }
+            if start.is_some() {
+                depth += stripped.matches('{').count() as i32;
+                depth -= stripped.matches('}').count() as i32;
+                if depth <= 0 {
+                    break;
+                }
+            }
+        }
+        let Some(s) = start else {
+            // No hay bloque input: añadirlo al final
+            let mut content = content;
+            if !content.ends_with('\n') {
+                content.push('\n');
+            }
+            content.push_str(&format!("input {{\n    xkb-layout \"{layout}\"\n}}\n"));
+            write_atomic(&content);
+            return;
+        };
+
+        // Reemplazar/insertar la línea xkb-layout dentro del bloque
+        let mut lines = lines;
+        let mut replaced = false;
+        for j in s + 1..lines.len() {
+            let stripped = lines[j].trim();
+            if stripped.starts_with('}') {
+                break;
+            }
+            if stripped.starts_with("xkb-layout") {
+                lines[j] = format!("    xkb-layout \"{layout}\"");
+                replaced = true;
+                break;
+            }
+        }
+        if !replaced {
+            lines.insert(s + 1, format!("    xkb-layout \"{layout}\""));
+        }
+        write_atomic(&lines.join("\n"));
+    }
+
     pub fn reload() {
         let _ = Command::new("pkill")
             .args(["-HUP", "niri"])
@@ -187,4 +378,317 @@ impl NiriConfig {
             write_atomic(&lines.join("\n"));
         }
     }
+}
+
+impl NiriConfig {
+    // --------------------------------------------------------------- Gaps
+
+    pub fn get_gaps() -> i64 {
+        let content = read();
+        match extract_value(&content, &["layout"], "gaps") {
+            Some(v) => v.parse().unwrap_or(16),
+            None => 16,
+        }
+    }
+
+    pub fn set_gaps(gaps: i64) {
+        let content = read();
+        let result = match update_value_in_block(&content, &["layout"], "gaps", &gaps.to_string()) {
+            Some(updated) => updated,
+            None => create_block(&content, &["layout"], &[&format!("gaps {gaps}")]),
+        };
+        write_atomic(&result);
+    }
+
+    // --------------------------------------------------------------- Border
+
+    pub fn get_border() -> serde_json::Value {
+        let content = read();
+        let Some((start, end)) = find_nested_block(&content, &["layout", "border"]) else {
+            return serde_json::json!({
+                "on": false, "width": 0, "active_color": "", "inactive_color": ""
+            });
+        };
+
+        let lines: Vec<&str> = content.lines().collect();
+        let mut width = 0i64;
+        let mut active_color = String::new();
+        let mut inactive_color = String::new();
+
+        for j in start + 1..end {
+            let stripped = lines[j].trim();
+            if stripped.starts_with("width") {
+                if let Some(w) = stripped.split_whitespace().nth(1).and_then(|v| v.parse().ok()) {
+                    width = w;
+                }
+            } else if stripped.starts_with("active-color") {
+                if let Some(m) = first_quoted(stripped) {
+                    active_color = m;
+                }
+            } else if stripped.starts_with("inactive-color") {
+                if let Some(m) = first_quoted(stripped) {
+                    inactive_color = m;
+                }
+            }
+        }
+
+        serde_json::json!({
+            "on": true, "width": width,
+            "active_color": active_color, "inactive_color": inactive_color
+        })
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn set_border(on: bool, width: i64, active_color: &str, inactive_color: &str) {
+        let content = read();
+        let block = find_nested_block(&content, &["layout", "border"]);
+
+        if !on {
+            if let Some((start, end)) = block {
+                let mut lines: Vec<&str> = content.lines().collect();
+                lines.drain(start..=end);
+                write_atomic(&lines.join("\n"));
+            }
+            return;
+        }
+
+        let Some((start, end)) = block else {
+            // Crear el bloque (dentro de layout si existe, si no al final)
+            let mut body: Vec<String> = Vec::new();
+            body.push(format!("width {width}"));
+            body.push(format!("active-color \"{active_color}\""));
+            body.push(format!("inactive-color \"{inactive_color}\""));
+
+            let result = match find_nested_block(&content, &["layout"]) {
+                Some((_, parent_end)) => {
+                    let mut lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+                    let mut block_str = String::from("    border {\n");
+                    for ln in &body {
+                        block_str += &format!("        {ln}\n");
+                    }
+                    block_str += "    }";
+                    lines.insert(parent_end, block_str);
+                    lines.join("\n")
+                }
+                None => {
+                    let body_refs: Vec<&str> = body.iter().map(|s| s.as_str()).collect();
+                    create_block(&content, &["layout", "border"], &body_refs)
+                }
+            };
+            write_atomic(&result);
+            return;
+        };
+
+        // Bloque existente: actualizar cada valor
+        let mut lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+        let base_indent: String = lines[start]
+            .chars()
+            .take_while(|c| *c == ' ' || *c == '\t')
+            .collect();
+        let inner = format!("{base_indent}    ");
+
+        let updates: [(&str, String); 3] = [
+            ("width", width.to_string()),
+            ("active-color", format!("\"{active_color}\"")),
+            ("inactive-color", format!("\"{inactive_color}\"")),
+        ];
+
+        for (key, value) in updates {
+            for j in start + 1..end {
+                let stripped = lines[j].trim().to_string();
+                if stripped.starts_with(&format!("{key} ")) || stripped.starts_with(&format!("{key}="))
+                {
+                    lines[j] = format!("{inner}{key} {value}");
+                    break;
+                }
+            }
+        }
+        write_atomic(&lines.join("\n"));
+    }
+
+    // ----------------------------------------------------------- Focus ring
+
+    pub fn get_focus_ring() -> bool {
+        let content = read();
+        let Some((start, end)) = find_nested_block(&content, &["layout", "focus-ring"]) else {
+            return false;
+        };
+        let lines: Vec<&str> = content.lines().collect();
+        for j in start + 1..end {
+            let stripped = lines[j].trim();
+            if stripped == "off" {
+                return false;
+            }
+            if stripped == "on" {
+                return true;
+            }
+        }
+        true
+    }
+
+    pub fn set_focus_ring(on: bool) {
+        let content = read();
+        let block = find_nested_block(&content, &["layout", "focus-ring"]);
+
+        if !on {
+            if let Some((start, end)) = block {
+                let mut lines: Vec<&str> = content.lines().collect();
+                lines.drain(start..=end);
+                write_atomic(&lines.join("\n"));
+            } else {
+                let result = match find_nested_block(&content, &["layout"]) {
+                    Some((_, parent_end)) => {
+                        let mut lines: Vec<String> =
+                            content.lines().map(|s| s.to_string()).collect();
+                        lines.insert(parent_end, "    focus-ring {\n        off\n    }".to_string());
+                        lines.join("\n")
+                    }
+                    None => create_block(&content, &["layout", "focus-ring"], &["off"]),
+                };
+                write_atomic(&result);
+            }
+            return;
+        }
+
+        if let Some((start, end)) = block {
+            let mut lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+            let has_on = (start + 1..end).any(|j| lines[j].trim() == "on");
+            if !has_on {
+                let mut insert_idx = end;
+                for j in start + 1..end {
+                    if !lines[j].trim().is_empty() {
+                        insert_idx = j;
+                        break;
+                    }
+                }
+                lines.insert(insert_idx, "        on".to_string());
+                write_atomic(&lines.join("\n"));
+            }
+            return;
+        }
+
+        let result = match find_nested_block(&content, &["layout"]) {
+            Some((_, parent_end)) => {
+                let mut lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+                lines.insert(parent_end, "    focus-ring {\n        on\n    }".to_string());
+                lines.join("\n")
+            }
+            None => create_block(&content, &["layout", "focus-ring"], &["on"]),
+        };
+        write_atomic(&result);
+    }
+
+    // ---------------------------------------------------------------- Blur
+
+    pub fn get_blur() -> serde_json::Value {
+        let content = read();
+        let Some((start, end)) = find_nested_block(&content, &["blur"]) else {
+            return serde_json::json!({
+                "passes": 0, "offset": 0.0, "noise": 0.0, "saturation": 1.0
+            });
+        };
+
+        let lines: Vec<&str> = content.lines().collect();
+        let mut passes = 0i64;
+        let mut offset = 0.0f64;
+        let mut noise = 0.0f64;
+        let mut saturation = 1.0f64;
+
+        for j in start + 1..end {
+            let parts: Vec<&str> = lines[j].trim().split_whitespace().collect();
+            if parts.len() == 2 {
+                match parts[0] {
+                    "passes" => {
+                        if let Ok(v) = parts[1].parse() {
+                            passes = v;
+                        }
+                    }
+                    "offset" => {
+                        if let Ok(v) = parts[1].parse() {
+                            offset = v;
+                        }
+                    }
+                    "noise" => {
+                        if let Ok(v) = parts[1].parse() {
+                            noise = v;
+                        }
+                    }
+                    "saturation" => {
+                        if let Ok(v) = parts[1].parse() {
+                            saturation = v;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        serde_json::json!({
+            "passes": passes, "offset": offset, "noise": noise, "saturation": saturation
+        })
+    }
+
+    pub fn set_blur(passes: i64, offset: f64, noise: f64, saturation: f64) {
+        let content = read();
+        // str(int) / str(float) estilo Python
+        let changes: [(&str, String); 4] = [
+            ("passes", passes.to_string()),
+            ("offset", py_float_str(offset)),
+            ("noise", py_float_str(noise)),
+            ("saturation", py_float_str(saturation)),
+        ];
+
+        let Some((start, end)) = find_nested_block(&content, &["blur"]) else {
+            let body: Vec<String> = changes
+                .iter()
+                .map(|(k, v)| format!("{k} {v}"))
+                .collect();
+            let body_refs: Vec<&str> = body.iter().map(|s| s.as_str()).collect();
+            let result = create_block(&content, &["blur"], &body_refs);
+            write_atomic(&result);
+            return;
+        };
+
+        let mut lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+        let base_indent: String = lines[start]
+            .chars()
+            .take_while(|c| *c == ' ' || *c == '\t')
+            .collect();
+        let inner = format!("{base_indent}    ");
+
+        for (key, value) in changes {
+            let mut found = false;
+            for j in start + 1..end {
+                let stripped = lines[j].trim().to_string();
+                if stripped.starts_with(&format!("{key} ")) || stripped.starts_with(&format!("{key}="))
+                {
+                    lines[j] = format!("{inner}{key} {value}");
+                    found = true;
+                    break;
+                }
+            }
+            if !found {
+                lines.insert(end, format!("{inner}{key} {value}"));
+            }
+        }
+        write_atomic(&lines.join("\n"));
+    }
+
+    // ------------------------------------------------- Animation durations
+
+    pub fn get_animation_duration(name: &str, default: i64) -> i64 {
+        let content = read();
+        match extract_value(&content, &["animations", name], "duration") {
+            Some(v) => v.parse().unwrap_or(default),
+            None => default,
+        }
+    }
+}
+
+/// Primera cadena entre comillas de la línea (como re.search(r'"(.+?)"'))
+fn first_quoted(line: &str) -> Option<String> {
+    let start = line.find('"')? + 1;
+    let rest = &line[start..];
+    let end = rest.find('"')?;
+    Some(rest[..end].to_string())
 }

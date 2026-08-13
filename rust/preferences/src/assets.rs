@@ -25,3 +25,14 @@ pub fn logo_path() -> PathBuf {
 pub fn icon_path(name: &str) -> PathBuf {
     assets_root().join("icons").join(name)
 }
+
+/// Carga un icono SVG de los assets como GtkImage (si existe)
+pub fn icon_image(name: &str, pixel_size: i32) -> Option<gtk::Image> {
+    let path = icon_path(name);
+    if !path.is_file() {
+        return None;
+    }
+    let image = gtk::Image::from_file(&path);
+    image.set_pixel_size(pixel_size);
+    Some(image)
+}

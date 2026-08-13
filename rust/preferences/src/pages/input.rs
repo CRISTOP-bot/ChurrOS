@@ -1,0 +1,133 @@
+// ==========================================
+// InputPage — teclado, ratón y panel táctil
+// (equivalente a pages/input.py)
+// ==========================================
+
+use gtk::prelude::*;
+
+use std::process::Command;
+
+use crate::services::niri_config::NiriConfig;
+use crate::widgets::combo_row::ComboRow;
+use crate::widgets::group::Group;
+use crate::widgets::page::Page;
+use crate::widgets::slider_row::SliderRow;
+use crate::widgets::switch_row::SwitchRow;
+
+const LAYOUTS: [&str; 6] = ["es", "us", "latam", "fr", "de", "it"];
+
+fn run_gsettings(args: &[&str]) -> String {
+    let output = Command::new("gsettings")
+        .args(args)
+        .output()
+        .ok()
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .unwrap_or_default();
+    output.trim_matches(|c| c == '\'' || c == '"').to_string()
+}
+
+fn set_gsettings(key: &str, value: &str) {
+    let _ = Command::new("gsettings")
+        .args(["set", "org.gnome.desktop.input-sources", key, value])
+        .output();
+}
+
+pub fn build(navigator: gtk::Stack) -> Page {
+    let page = Page::new(
+        Some(navigator),
+        "Entrada",
+        Some("Teclado, raton y panel tactil"),
+        None,
+    );
+
+    // ============ Teclado ============
+    let mut keyboard = Group::new("Teclado");
+
+    let current = run_gsettings(&[
+        "get",
+        "org.gnome.desktop.input-sources",
+        "sources",
+    ]);
+
+    let mut current_layout = "es";
+    if current.contains("es") {
+        current_layout = "es";
+    } else if current.contains("us") {
+        current_layout = "us";
+    } else if current.contains("latam") {
+        current_layout = "latam";
+    }
+
+    let layout_combo = ComboRow::new(
+        "Disposicion del teclado",
+        &LAYOUTS,
+        Some(current_layout),
+        None,
+        None,
+        Some(Box::new(|layout| {
+            set_gsettings("sources", &format!("[('xkb', '{layout}')]"));
+            NiriConfig::set_keyboard_layout(&layout);
+        })),
+    );
+
+    keyboard.add(&layout_combo);
+    page.add(keyboard.widget());
+
+    // ============ Ratón ============
+    let mut mouse = Group::new("Raton");
+
+    let tap_value = run_gsettings(&[
+        "get",
+        "org.gnome.desktop.peripherals.mouse",
+        "tap-to-click",
+    ]);
+    let tap_active = tap_value.to_lowercase().contains("true");
+
+    mouse.add(&SwitchRow::new(
+        "Tocar para clic",
+        None,
+        Some("Raton: clic con un toque"),
+        tap_active,
+        Some(Box::new(|active| {
+            set_gsettings("tap-to-click", if active { "true" } else { "false" });
+        })),
+    ));
+
+    page.add(mouse.widget());
+
+    // ============ Velocidad del ratón ============
+    let mut speed_group = Group::new("Velocidad");
+
+    let speed_raw = run_gsettings(&[
+        "get",
+        "org.gnome.desktop.peripherals.mouse",
+        "speed",
+    ]);
+    let speed: f64 = speed_raw.parse().unwrap_or(0.0);
+
+    let speed_slider = SliderRow::new(
+        "Velocidad del raton",
+        None,
+        None,
+        -100.0,
+        100.0,
+        10.0,
+        speed * 100.0,
+        Some(Box::new(|value| {
+            let v = value / 100.0;
+            let _ = Command::new("gsettings")
+                .args([
+                    "set",
+                    "org.gnome.desktop.peripherals.mouse",
+                    "speed",
+                    &v.to_string(),
+                ])
+                .output();
+        })),
+    );
+
+    speed_group.add(&speed_slider);
+    page.add(speed_group.widget());
+
+    page
+}

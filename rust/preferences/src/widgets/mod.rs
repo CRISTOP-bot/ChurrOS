@@ -1,3 +1,5 @@
+pub mod color_picker;
+pub mod combo_row;
 pub mod group;
 pub mod navigation_row;
 pub mod page;
@@ -6,6 +8,7 @@ pub mod search;
 pub mod select_row;
 pub mod sidebar;
 pub mod sidebar_item;
+pub mod slider_row;
 pub mod switch_row;
 
 use gtk::prelude::*;
@@ -40,6 +43,13 @@ impl AsWidget for page::Page {
     }
 }
 
+// Widgets GTK crudos (upcast_ref::<gtk::Widget>) también son aceptables
+impl AsWidget for gtk::Widget {
+    fn widget(&self) -> &gtk::Widget {
+        self
+    }
+}
+
 impl AsWidget for select_row::SelectRow {
     fn widget(&self) -> &gtk::Widget {
         self.row.widget().upcast_ref()
@@ -47,6 +57,12 @@ impl AsWidget for select_row::SelectRow {
 }
 
 impl AsWidget for switch_row::SwitchRow {
+    fn widget(&self) -> &gtk::Widget {
+        self.row.widget().upcast_ref()
+    }
+}
+
+impl AsWidget for slider_row::SliderRow {
     fn widget(&self) -> &gtk::Widget {
         self.row.widget().upcast_ref()
     }

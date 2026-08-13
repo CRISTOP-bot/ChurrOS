@@ -110,15 +110,55 @@ impl PreferencesWindow {
     }
 
     fn register_pages(&mut self) {
-        // Páginas principales (se añaden al sidebar + al stack)
+        // Páginas principales (13, mismo orden que widgets/sidebar.py)
         self.register_main_page("system", "system.svg", "Sistema", |n| pages::system::build(n));
+        self.register_main_page("datetime", "system.svg", "Fecha y hora", |n| {
+            pages::datetime::build(n)
+        });
         self.register_main_page("appearance", "appearance.svg", "Apariencia", |n| {
             pages::appearance::build(n)
         });
+        self.register_main_page("display", "display.svg", "Pantalla", |n| {
+            pages::display::build(n)
+        });
+        self.register_main_page("input", "input.svg", "Entrada", |n| pages::input::build(n));
+        self.register_main_page("audio", "audio.svg", "Audio", |n| pages::audio::build(n));
+        self.register_main_page("connectivity", "connectivity.svg", "Conectividad", |n| {
+            pages::connectivity::build(n)
+        });
+        self.register_main_page("power", "power.svg", "Energía", |n| pages::power::build(n));
+        self.register_main_page("users", "users.svg", "Usuarios", |n| pages::users::build(n));
+        self.register_main_page("privacy", "privacy.svg", "Privacidad", |n| {
+            pages::privacy::build(n)
+        });
+        self.register_main_page("applications", "applications.svg", "Aplicaciones", |n| {
+            pages::applications::build(n)
+        });
+        self.register_main_page("keyboard", "input.svg", "Teclado", |n| {
+            pages::keyboard::build(n)
+        });
         self.register_main_page("about", "about.svg", "Acerca de", |n| pages::about::build(n));
 
-        // Subpáginas con stack propio (accent portada; el resto según se porten)
+        // Subpáginas con stack propio (id, parent, builder)
         self.register_subpage("accent", "appearance", |n| pages::accent::build(n));
+        self.register_subpage("icons", "appearance", |n| pages::icons::build(n));
+        self.register_subpage("cursor", "appearance", |n| pages::cursor::build(n));
+        self.register_subpage("fonts", "appearance", |n| pages::fonts::build(n));
+        self.register_subpage("waybar", "appearance", |n| pages::waybar::build(n));
+        self.register_subpage("niri", "appearance", |n| pages::niri::build(n));
+        self.register_subpage("foot", "appearance", |n| pages::foot::build(n));
+        self.register_subpage("fuzzel", "appearance", |n| pages::fuzzel::build(n));
+        self.register_subpage("mako", "appearance", |n| pages::mako::build(n));
+        self.register_subpage("wallpaper", "appearance", |n| pages::wallpaper::build(n));
+        self.register_subpage("night-light", "appearance", |n| pages::night_light::build(n));
+        self.register_subpage("lock-screen", "appearance", |n| pages::lock_screen::build(n));
+        self.register_subpage("window-rules", "appearance", |n| pages::window_rules::build(n));
+        self.register_subpage("power-profile", "power", |n| pages::power_profile::build(n));
+        self.register_subpage("battery", "power", |n| pages::battery::build(n));
+        self.register_subpage("sleep", "power", |n| pages::sleep::build(n));
+        self.register_subpage("display-timeout", "display", |n| pages::display_timeout::build(n));
+        self.register_subpage("backup", "system", |n| pages::backup::build(n));
+        self.register_subpage("logs", "system", |n| pages::logs::build(n));
 
         // Subpáginas registradas en el catálogo de búsqueda
         // (se añaden al stack según se porten)
