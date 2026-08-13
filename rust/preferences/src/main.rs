@@ -4,6 +4,7 @@
 // ==========================================
 
 mod assets;
+mod logging;
 mod pages;
 mod services;
 mod widgets;
@@ -69,21 +70,31 @@ fn load_css() {
 }
 
 fn activate(app: &gtk::Application) {
+    logging::log("activate");
     // Regenerar accent.css si falta (como AccentService.ensure() en Python)
     AccentService::ensure();
+    logging::log("accent ok");
 
     load_css();
+    logging::log("css ok");
 
     let win = PreferencesWindow::new(app);
+    logging::log("window creada");
     win.present();
+    logging::log("presentada");
 }
 
 fn main() -> glib::ExitCode {
+    logging::init("settings");
+
     let app = gtk::Application::builder()
         .application_id(APP_ID)
         .build();
+    logging::log("gtk app creada");
 
     app.connect_activate(activate);
 
-    app.run()
+    let code = app.run();
+    logging::log(&format!("salida code={code:?}"));
+    code
 }
