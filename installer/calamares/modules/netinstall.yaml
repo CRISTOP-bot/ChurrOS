@@ -1,6 +1,7 @@
 groups:
   - name: Extras ChurrOS
     description: Paquetes adicionales opcionales (repositorio local + extra)
+    selected: false
     packages:
       - name: yay
         description: AUR helper (instala paquetes AUR)
@@ -16,12 +17,14 @@ groups:
         selected: false
   - name: "Ofimática: LibreOffice"
     description: Suite ofimática completa (Writer, Calc, Impress...) desde los repos oficiales
+    selected: false
     packages:
       - name: libreoffice-fresh
         description: LibreOffice (se instala durante la instalación con pacman, requiere internet)
         selected: false
   - name: Desarrollo
     description: Herramientas de desarrollo desde los repos oficiales (requieren internet durante la instalación)
+    selected: false
     subgroups:
       - name: Git y herramientas CLI
         description: Control de versiones y utilidades de línea de comandos
