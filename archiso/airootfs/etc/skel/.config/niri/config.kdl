@@ -100,6 +100,15 @@ window-rule {
     }
 }
 
+// Popup de red: flotante, justo debajo del icono de red de la waybar.
+// Margen derecho ~208px (clock + sep + settings + control-center + sep +
+// pulseaudio desde el borde); y=4 deja 4px bajo la barra (working area).
+window-rule {
+    match app-id="^org\.churros\.popup\.network$"
+    open-floating true
+    default-floating-position x=208 y=4 relative-to="top-right"
+}
+
 // Layer rules
 layer-rule {
     match namespace="^launcher$"
