@@ -1,0 +1,16 @@
+[package]
+name = "churros-services"
+version = "0.1.0"
+edition = "2024"
+description = "ChurrOS services layer (audio, battery, bluetooth, brightness, ethernet, power, wifi) — port Rust de services/"
+
+[lib]
+name = "churros_services"
+
+[package.metadata.churros]
+# Librería compartida por popups/control-center. No produce binario que
+# desplegar en la ISO; el crate la usará como dependencia.
+deploy = false
+
+[dependencies]
+wait-timeout = "0.2"
