@@ -36,3 +36,4 @@ archiso/packages/churros.files.tar.gz.old
 # only during a build and are removed by the cleanup trap.
 rust/**/target/
 archiso/airootfs/usr/bin/churros-welcome
+archiso/airootfs/usr/bin/churros-settings

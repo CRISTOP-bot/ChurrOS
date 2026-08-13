@@ -11,6 +11,7 @@ cleanup_temp() {
     rm -f archiso/airootfs/etc/polkit-1/rules.d/49-calamares.rules 2>/dev/null || true
     # Binarios Rust desplegados por build-rust.sh (no se versionan en git)
     rm -f archiso/airootfs/usr/bin/churros-welcome 2>/dev/null || true
+    rm -f archiso/airootfs/usr/bin/churros-settings 2>/dev/null || true
 }
 
 trap cleanup_temp EXIT

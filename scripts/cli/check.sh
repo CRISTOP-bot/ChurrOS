@@ -103,7 +103,14 @@ mapfile -t PACKAGES < <(grep -v '^#' archiso/packages.x86_64 | grep -v '^$')
 command_exists() {
     local command=$1 package
     [ -e "archiso/airootfs/usr/bin/$command" ] && return 0
-    [ -e "rust/$command/Cargo.toml" ] && return 0
+    # Rust apps: el crate puede vivir en un directorio distinto al nombre del
+    # binario (ej. rust/preferences/ produce churros-settings), así que se
+    # resuelve contra el "name" del package en cada Cargo.toml del workspace.
+    local crate_toml
+    for crate_toml in rust/*/Cargo.toml; do
+        [ -f "$crate_toml" ] || continue
+        grep -q "^name = \"$command\"$" "$crate_toml" && return 0
+    done
     for package in "${PACKAGES[@]}"; do
         [ "${#package}" -ge 4 ] || continue
         [[ $command == *"$package"* ]] && return 0
