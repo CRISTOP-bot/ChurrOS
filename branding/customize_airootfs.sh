@@ -24,6 +24,19 @@ chmod 644 /etc/motd
 echo "✓ Branding applied."
 
 #
+# GRUB theme (installed system)
+#
+
+echo "Deploying GRUB theme..."
+if [ -d /root/branding/grub-theme ]; then
+    mkdir -p /usr/share/churros/grub-theme
+    cp -r /root/branding/grub-theme/. /usr/share/churros/grub-theme/
+    echo "✓ GRUB theme deployed."
+else
+    echo "  (grub-theme not found — skipped)"
+fi
+
+#
 # Live environment
 #
 

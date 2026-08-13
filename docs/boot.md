@@ -71,6 +71,26 @@ GRUB también carga módulos para soportar distintos sistemas de archivos y modo
 
 ---
 
+# Tema GRUB del sistema instalado
+
+**Archivos:** `branding/grub-theme/`
+
+El GRUB del sistema **instalado** (vía Calamares) usa un tema propio con menú centrado:
+
+- **Fondo**: `background.png` (copia de `ChurrOSDarkMinimal.png`, 1920×1080).
+- **Menú**: centrado en pantalla, texto claro `#F8FAFC` sobre fondo oscuro `#111827`, selección con caja naranja redondeada `#F97316` (pixmap `select.png`).
+- **Fuentes**: DejaVu Sans (`.pf2`) generadas con `grub-mkfont` (`scripts/build-grub-theme.sh`).
+
+**Cómo llega al sistema instalado:**
+
+1. `./churros build` regenera las fuentes si faltan (`build-grub-theme.sh`) y copia `branding/grub-theme` al airootfs.
+2. En el arranque live, `customize_airootfs.sh` lo despliega en `/usr/share/churros/grub-theme/`.
+3. Calamares (instancia `shellprocess@grub-theme`, tras el módulo `bootloader`) lo copia a `/boot/grub/themes/churros/`, añade `GRUB_THEME` a `/etc/default/grub` y regenera `/boot/grub/grub.cfg` con `grub-mkconfig`.
+
+`grubcfg.conf` usa `GRUB_TERMINAL_OUTPUT: "gfxterm"` para que el tema se renderice con gráficos.
+
+---
+
 # systemd-boot
 
 > **Nota:** systemd-boot ya no se usa en la ISO. Desde que se habilitó el bootmode `uefi.grub`, el arranque UEFI lo gestiona GRUB (mismo binario que también cubre el sistema instalado vía Calamares). Los archivos de `archiso/efiboot/` quedan obsoletos; no se incluyen en la ISO con el bootmode actual.
