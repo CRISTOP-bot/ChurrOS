@@ -99,7 +99,7 @@ Config files per instance: `shellprocess-pacman.conf`, `shellprocess-fixboot.con
 - **Panel/Launcher/Terminal**: Waybar / Fuzzel / foot.
 - **Apps**: Python GTK4 + Libadwaita in `archiso/airootfs/usr/share/churros/` (`churros-welcome`, `control-center`, `popups`, `preferences`, `services`), installed into `/usr/bin/churros-*` via `profiledef.sh` perms.
 - **Installer**: Calamares with custom `churros` branding (slideshow, QSS stylesheet).
-- **Boot modes** (from `profiledef.sh`): `bios.syslinux` + `uefi.systemd-boot`. No GRUB.
+- **Boot modes** (from `profiledef.sh`): `bios.syslinux` + `uefi.grub`. No systemd-boot, no Limine (mkarchiso del host no lo soporta).
 - **Audio**: PipeWire + WirePlumber.
 - **Build system**: archiso (`mkarchiso`).
 

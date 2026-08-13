@@ -11,7 +11,7 @@ iso_version="$(date --date="@${SOURCE_DATE_EPOCH}" +%Y.%m.%d)"
 install_dir="churros"
 buildmodes=('iso')
 bootmodes=('bios.syslinux'
-           'uefi.systemd-boot')
+           'uefi.grub')
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
 airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86' '-b' '1M' '-Xdict-size' '1M')

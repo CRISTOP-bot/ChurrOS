@@ -2,7 +2,7 @@
 
 Este documento describe el sistema de arranque de la ISO Live de ChurrOS.
 
-ChurrOS utiliza ArchISO, que genera automáticamente cargadores de arranque para BIOS y UEFI. Los tres cargadores soportados son **GRUB** (BIOS y UEFI), **systemd-boot** (UEFI) y **Syslinux** (BIOS legacy).
+ChurrOS utiliza ArchISO, que genera automáticamente cargadores de arranque para BIOS y UEFI. Los cargadores soportados son **GRUB** (UEFI) y **Syslinux** (BIOS legacy).
 
 Todas las entradas de menú de los cargadores están renombradas de "Arch Linux" a "ChurrOS Live" para mantener la identidad de la distribución.
 
@@ -38,10 +38,10 @@ archiso/
 El modo de arranque se define en `archiso/profiledef.sh`:
 
 ```bash
-bootmodes=('bios.syslinux' 'uefi.systemd-boot')
+bootmodes=('bios.syslinux' 'uefi.grub')
 ```
 
-Eso significa que en BIOS se usa Syslinux y en UEFI se usa systemd-boot. El archivo `grub/grub.cfg` lo usa ArchISO para crear una ISO híbrida que también puede arrancar en BIOS/UEFI legacy.
+Eso significa que en BIOS se usa Syslinux y en UEFI se usa GRUB. El bootmode `uefi.grub` hace que ArchISO genere el binario GRUB EFI (con `grub-mkstandalone`) y cree la imagen FAT de arranque El Torito. El archivo `grub/loopback.cfg` se usa para arrancar desde ISO por loopback.
 
 ---
 
@@ -73,27 +73,9 @@ GRUB también carga módulos para soportar distintos sistemas de archivos y modo
 
 # systemd-boot
 
-**Archivos:** `archiso/efiboot/loader/loader.conf`, `archiso/efiboot/loader/entries/*.conf`
+> **Nota:** systemd-boot ya no se usa en la ISO. Desde que se habilitó el bootmode `uefi.grub`, el arranque UEFI lo gestiona GRUB (mismo binario que también cubre el sistema instalado vía Calamares). Los archivos de `archiso/efiboot/` quedan obsoletos; no se incluyen en la ISO con el bootmode actual.
 
-systemd-boot es el cargador usado en sistemas UEFI modernos. Es más rápido y sencillo que GRUB.
-
-Configuración del cargador (`loader.conf`):
-
-```text
-timeout 15
-default 01-archiso-linux.conf
-beep on
-```
-
-Entradas:
-
-| Archivo | Título | Descripción |
-|---------|--------|-------------|
-| `01-archiso-linux.conf` | ChurrOS Live (x86_64, UEFI) | Arranque principal |
-| `02-archiso-speech-linux.conf` | (Accesibilidad) | Añade `accessibility=on` |
-| `03-archiso-memtest86+x64.conf` | Memtest86+ | Test de memoria |
-
-Todas las entradas usan `archisobasedir=%INSTALL_DIR%` y `archisosearchuuid=%ARCHISO_UUID%`, igual que GRUB.
+systemd-boot era el cargador usado en sistemas UEFI modernos (más rápido y sencillo que GRUB).
 
 ---
 
@@ -138,7 +120,7 @@ Si el medio es arrancable por red (PXE), se carga `archiso_pxe.cfg`. En cualquie
 
 El proceso de arranque es el siguiente:
 
-1. La BIOS/UEFI carga el cargador correspondiente (GRUB, systemd-boot o Syslinux).
+1. La BIOS/UEFI carga el cargador correspondiente (GRUB en UEFI, Syslinux en BIOS).
 2. El cargador lee `archisobasedir` y `archisosearchuuid` para localizar la partición Live.
 3. Carga el kernel (`vmlinuz-linux`) y el initramfs (`initramfs-linux.img`).
 4. El initramfs monta el sistema squashfs raíz.
@@ -167,7 +149,6 @@ La nueva ISO incluirá los cambios.
 Edita los archivos correspondientes:
 
 - GRUB: `archiso/grub/grub.cfg` (cadenas dentro de `menuentry`)
-- systemd-boot: `archiso/efiboot/loader/entries/*.conf` (campo `title`)
 - Syslinux: `archiso/syslinux/archiso_sys-linux.cfg` (campo `LABEL` y `MENU LABEL`)
 
 ## Cambiar el splash
@@ -177,7 +158,6 @@ Para Syslinux/GRUB, reemplaza `archiso/syslinux/splash.png` con tu imagen (recom
 ## Cambiar el timeout
 
 - GRUB: `archiso/grub/grub.cfg` → `timeout=15`
-- systemd-boot: `archiso/efiboot/loader/loader.conf` → `timeout 15`
 
 ---
 
