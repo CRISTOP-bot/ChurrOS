@@ -10,7 +10,7 @@
 
 /* ── Tokens → dark default ──────────────────────────── */
 window {
-    --bg-window:           rgba(15,15,16,.96);
+    --bg-window:           rgba(15,15,16,.82);
     --bg-sidebar:          rgba(18,18,20,.92);
     --bg-group:            rgba(22,22,24,.88);
     --bg-group-hover:      rgba(30,30,34,.92);
@@ -37,7 +37,7 @@ window {
 
 /* Light override */
 window.light {
-    --bg-window:           rgba(242,242,245,.88);
+    --bg-window:           rgba(242,242,245,.75);
     --bg-surface:          rgba(255,255,255,.58);
     --bg-group:           rgba(255,255,255,.72);
     --bg-group-hover:      rgba(0,0,0,.04);

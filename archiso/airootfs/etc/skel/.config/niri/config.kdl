@@ -84,6 +84,22 @@ window-rule {
     open-floating true
 }
 
+// Apps de ChurrOS: glassmorphism (el blur real lo hace el compositor,
+// necesita background-effect blur true por app)
+window-rule {
+    match app-id="org.churros.preferences"
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
+    match app-id="org.churros.Welcome"
+    background-effect {
+        blur true
+    }
+}
+
 // Layer rules
 layer-rule {
     match namespace="^launcher$"
