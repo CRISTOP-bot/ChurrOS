@@ -6,7 +6,7 @@ fn unescape(s: &str) -> String {
     s.replace("\\:", ":")
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Network {
     pub ssid: String,
     pub signal: u8,
@@ -15,7 +15,7 @@ pub struct Network {
     pub saved: bool,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct WifiInfo {
     pub available: bool,
     pub enabled: bool,

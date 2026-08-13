@@ -1,29 +1,39 @@
 use std::path::PathBuf;
 
-// En runtime (ISO) los assets viven en /usr/share/churros/preferences/.
-// En desarrollo se usan los assets locales del crate.
+// En runtime (ISO): style.css en la raíz de /usr/share/churros/preferences/
+// y logo.svg + icons/ dentro de assets/. En desarrollo se usan los assets
+// locales del crate, que replican ese mismo layout.
 const RUNTIME_ROOT: &str = "/usr/share/churros/preferences";
 const DEV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/assets");
 
-fn assets_root() -> PathBuf {
-    let runtime = PathBuf::from(RUNTIME_ROOT);
-    if runtime.is_dir() {
-        runtime
+fn resolve(runtime: &str, dev: &str) -> PathBuf {
+    let path = PathBuf::from(runtime);
+    if path.is_file() {
+        path
     } else {
-        PathBuf::from(DEV_ROOT)
+        PathBuf::from(DEV_ROOT).join(dev)
     }
 }
 
 pub fn css_path() -> PathBuf {
-    assets_root().join("style.css")
+    resolve(
+        &format!("{RUNTIME_ROOT}/style.css"),
+        "style.css",
+    )
 }
 
 pub fn logo_path() -> PathBuf {
-    assets_root().join("logo.svg")
+    resolve(
+        &format!("{RUNTIME_ROOT}/assets/logo.svg"),
+        "logo.svg",
+    )
 }
 
 pub fn icon_path(name: &str) -> PathBuf {
-    assets_root().join("icons").join(name)
+    resolve(
+        &format!("{RUNTIME_ROOT}/assets/icons/{name}"),
+        &format!("icons/{name}"),
+    )
 }
 
 /// Carga un icono SVG de los assets como GtkImage (si existe)

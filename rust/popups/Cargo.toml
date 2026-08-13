@@ -1,0 +1,15 @@
+[package]
+name = "churros-popup"
+version = "0.1.0"
+edition = "2024"
+
+[package.metadata.churros]
+# Port completo: build-rust.sh despliega el binario en la ISO
+# (reemplaza al wrapper bash churros-popup y a los popups de Python).
+deploy = true
+
+[dependencies]
+churros-services = { path = "../services" }
+glib = "0.22.8"
+gtk = { version = "0.11.4", package = "gtk4", features = ["v4_22"] }
+libc = "0.2"
