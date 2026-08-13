@@ -1,0 +1,16 @@
+--- calamares-3.4.2/src/modules/netinstall/NetInstallPage.cpp	2026-03-10 09:53:55.000000000 -0500
++++ pkg-new/src/modules/netinstall/NetInstallPage.cpp	2026-08-12 21:31:48.308512639 -0500
+@@ -32,7 +32,12 @@
+     , ui( new Ui::Page_NetInst )
+ {
+     ui->setupUi( this );
+-    ui->groupswidget->header()->setSectionResizeMode( QHeaderView::ResizeToContents );
++    // Columna 0 (nombre): ancho justo al contenido.
++    // Columna 1 (descripcion): estira para ocupar el ancho restante,
++    // evitando la barra de scroll horizontal que cortaba los textos.
++    ui->groupswidget->header()->setSectionResizeMode( 0, QHeaderView::ResizeToContents );
++    ui->groupswidget->header()->setSectionResizeMode( 1, QHeaderView::Stretch );
++    ui->groupswidget->setTextElideMode( Qt::ElideRight );
+     ui->groupswidget->setModel( c->model() );
+     connect( c, &Config::statusChanged, ui->netinst_status, &QLabel::setText );
+     connect( c,

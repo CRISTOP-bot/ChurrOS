@@ -22,6 +22,8 @@ echo
 
 echo "[1/5] Preparing branding..."
 
+bash scripts/build-grub-theme.sh
+
 mkdir -p archiso/airootfs/root
 
 cp branding/customize_airootfs.sh \
@@ -31,6 +33,11 @@ mkdir -p archiso/airootfs/root/branding
 
 cp -r branding/files \
     archiso/airootfs/root/branding/
+
+if [ -d branding/grub-theme ]; then
+    cp -r branding/grub-theme \
+        archiso/airootfs/root/branding/grub-theme
+fi
 
 echo "[2/5] Checking packages..."
 

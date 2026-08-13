@@ -12,6 +12,7 @@
 ./churros doctor     # Check for mkarchiso, qemu, xorriso, mksquashfs, mcopy, mkinitcpio
 ./scripts/build-calamares.sh  # Build Calamares .pkg.tar.zst from AUR into archiso/packages/
 ./scripts/build-aur.sh        # Build python-pywal + waypaper + yay AUR packages
+./scripts/build-grub-theme.sh # Regenerate GRUB theme fonts (.pf2) + assets in branding/grub-theme/
 ```
 
 The `churros` dispatcher is at repo root and `cd`s to its own dir before delegating to `scripts/cli/<cmd>.sh`.
@@ -92,8 +93,9 @@ docs/                         Project documentation
 - `shellprocess@fix-boot` runs before `shellprocess@churros-repo`, which registers the build-time `[churros]` repo (`Server = file:///root/packages`) in the target's pacman.conf so `netinstall` can resolve yay/waypaper/python-pywal.
 - `shellprocess@churros-repo` **MUST** run before `netinstall`/`packages`; the repo is removed again by `shellprocess@post-install` (unanchored `sed /churros/d` is forbidden — use the anchored `[churros]` block removal).
 - `shellprocess@post-install` (cleanup: drops `[churros]`, `userdel -r churros`, removes live-only `/root` artifacts) is the last exec step before `umount`.
+- `shellprocess@grub-theme` runs right after `bootloader`: copies `branding/grub-theme` (deployed to `/usr/share/churros/grub-theme/` at live boot) into `/boot/grub/themes/churros/`, appends `GRUB_THEME` to the target's `/etc/default/grub` and reruns `grub-mkconfig -o /boot/grub/grub.cfg` so the installed system boots with the themed, centered menu.
 
-Config files per instance: `shellprocess-pacman.conf`, `shellprocess-fixboot.conf`, `shellprocess-repo.conf`, `shellprocess-cleanup.conf`. Module IDs in `instances:` are `pacman-init`, `fix-boot`, `churros-repo`, `post-install`.
+Config files per instance: `shellprocess-pacman.conf`, `shellprocess-fixboot.conf`, `shellprocess-repo.conf`, `shellprocess-grub-theme.conf`, `shellprocess-cleanup.conf`. Module IDs in `instances:` are `pacman-init`, `fix-boot`, `churros-repo`, `grub-theme`, `post-install`.
 
 ## Key Architecture
 
