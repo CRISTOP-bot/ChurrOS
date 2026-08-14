@@ -580,6 +580,33 @@ impl NiriConfig {
 
     // ---------------------------------------------------------------- Blur
 
+    pub fn get_blur_enabled() -> bool {
+        let content = read();
+        find_nested_block(&content, &["blur"]).is_some()
+    }
+
+    pub fn set_blur_enabled(on: bool) {
+        let content = read();
+        if !on {
+            if let Some((start, end)) = find_nested_block(&content, &["blur"]) {
+                let mut lines: Vec<&str> = content.lines().collect();
+                lines.drain(start..=end);
+                write_atomic(&lines.join("\n"));
+            }
+        } else {
+            // Re-enable with defaults
+            let result = match find_nested_block(&content, &["blur"]) {
+                Some(_) => content,
+                None => create_block(
+                    &content,
+                    &["blur"],
+                    &["passes 2", "offset 2.0", "noise 0.0", "saturation 1.2"],
+                ),
+            };
+            write_atomic(&result);
+        }
+    }
+
     pub fn get_blur() -> serde_json::Value {
         let content = read();
         let Some((start, end)) = find_nested_block(&content, &["blur"]) else {
@@ -672,6 +699,18 @@ impl NiriConfig {
             }
         }
         write_atomic(&lines.join("\n"));
+    }
+
+    // ------------------------------------------------- Performance mode
+
+    /// Modo rendimiento: desactiva blur + animaciones
+    pub fn get_performance_mode() -> bool {
+        !Self::get_blur_enabled() && !Self::get_animations()
+    }
+
+    pub fn set_performance_mode(on: bool) {
+        Self::set_blur_enabled(!on);
+        Self::set_animations(!on);
     }
 
     // ------------------------------------------------- Animation durations

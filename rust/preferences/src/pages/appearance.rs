@@ -104,6 +104,32 @@ pub fn build(navigator: gtk::Stack) -> Page {
 
     page.add(wallpaper_group.widget());
 
+    // ============ Rendimiento ============
+    let mut performance_group = Group::new("Rendimiento");
+
+    let performance_on = NiriConfig::get_performance_mode();
+    let feedback_rc = Rc::clone(&feedback);
+    performance_group.add(&SwitchRow::new(
+        "Modo rendimiento",
+        Some("appearance.svg"),
+        Some("Desactiva blur y animaciones (mejor rendimiento en hardware modesto)"),
+        performance_on,
+        Some(Box::new(move |active| {
+            NiriConfig::set_performance_mode(active);
+            NiriConfig::reload();
+            set_feedback(
+                &feedback_rc,
+                if active {
+                    "Modo rendimiento activado (blur + animaciones OFF)"
+                } else {
+                    "Modo rendimiento desactivado (blur + animaciones ON)"
+                },
+            );
+        })),
+    ));
+
+    page.add(performance_group.widget());
+
     // ============ Escritorio ============
     let mut desktop_group = Group::new("Escritorio");
 
