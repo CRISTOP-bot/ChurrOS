@@ -12,6 +12,8 @@ cleanup_temp() {
     # Binarios Rust desplegados por build-rust.sh (no se versionan en git)
     rm -f archiso/airootfs/usr/bin/churros-welcome 2>/dev/null || true
     rm -f archiso/airootfs/usr/bin/churros-settings 2>/dev/null || true
+    # GRUB theme copiado al airootfs para que esté disponible en el sistema instalado
+    rm -rf archiso/airootfs/usr/share/churros/grub-theme 2>/dev/null || true
 }
 
 trap cleanup_temp EXIT
@@ -38,6 +40,10 @@ cp -r branding/files \
 if [ -d branding/grub-theme ]; then
     cp -r branding/grub-theme \
         archiso/airootfs/root/branding/grub-theme
+
+    mkdir -p archiso/airootfs/usr/share/churros
+    cp -r branding/grub-theme \
+        archiso/airootfs/usr/share/churros/grub-theme
 fi
 
 echo "[2/5] Checking packages..."

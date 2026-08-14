@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=ChurrOS Control Center
 Comment=Control Center
-Exec=python /usr/share/churros/control-center/main.py
+Exec=churros-control-center
 Icon=preferences-system
 Terminal=false
 Type=Application
