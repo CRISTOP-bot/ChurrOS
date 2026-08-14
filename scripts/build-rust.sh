@@ -19,6 +19,22 @@ if [ ! -f "$RUST_DIR/Cargo.toml" ]; then
     exit 0
 fi
 
+# Asegurar que cargo/rust están instalados en el host
+if ! command -v cargo >/dev/null 2>&1; then
+    echo "  [rust] cargo no encontrado — instalando rust/cargo..."
+    if command -v pacman >/dev/null 2>&1; then
+        sudo pacman -S --needed --noconfirm rust cargo
+    elif command -v apt >/dev/null 2>&1; then
+        sudo apt update && sudo apt install -y rustc cargo
+    elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y rust cargo
+    else
+        echo "  [rust] ERROR: no se pudo instalar cargo automáticamente"
+        echo "  Instala rust/cargo manualmente y vuelve a intentar"
+        exit 1
+    fi
+fi
+
 echo "[rust] Compilando apps Rust (release)..."
 
 cargo build --release --manifest-path "$RUST_DIR/Cargo.toml"
