@@ -179,6 +179,8 @@ wireplumber
 grim
 slurp
 wl-clipboard
+rust
+cargo
 
 ttf-dejavu
 noto-fonts
