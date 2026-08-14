@@ -4,11 +4,9 @@
 
 use gtk::prelude::*;
 
-use churros_services::ethernet;
-use churros_services::wifi;
-
 use super::card::Card;
 use super::open_popup;
+use crate::widgets::SystemInfo;
 
 pub struct NetworkCard {
     card: Card,
@@ -30,34 +28,23 @@ impl NetworkCard {
         &self.card.button
     }
 
-    pub fn update(&self) {
-        let ethernet = ethernet::get();
-
-        if ethernet.available && ethernet.connected {
-            let mut subtitle = "Ethernet".to_string();
-            if let Some(speed) = ethernet.speed {
-                subtitle += &format!(" • {speed} Mbps");
-            }
-            self.card
-                .set_state(Some(subtitle.as_str()), Some("ethernet.svg"));
+    pub fn apply_info(&self, info: &SystemInfo) {
+        if info.ethernet_connected {
+            let subtitle = format!("Ethernet{}", 
+                if !info.ethernet_name.is_empty() { format!(" • {}", info.ethernet_name) } else { String::new() });
+            self.card.set_state(Some(&subtitle), Some("ethernet.svg"));
             return;
         }
 
-        let wifi = wifi::get();
-
-        if !wifi.available {
+        if !info.wifi_connected && info.wifi_strength == 0 && info.wifi_name.is_empty() {
             self.card.set_state(Some("Unavailable"), Some("wifi.svg"));
             return;
         }
 
-        if !wifi.enabled {
-            self.card.set_state(Some("Disabled"), Some("wifi.svg"));
-            return;
-        }
-
-        match &wifi.connected {
-            Some(ssid) => self.card.set_state(Some(ssid), Some("wifi.svg")),
-            None => self.card.set_state(Some("Disconnected"), Some("wifi.svg")),
+        if info.wifi_connected {
+            self.card.set_state(Some(&info.wifi_name), Some("wifi.svg"));
+        } else {
+            self.card.set_state(Some("Disconnected"), Some("wifi.svg"));
         }
     }
 }

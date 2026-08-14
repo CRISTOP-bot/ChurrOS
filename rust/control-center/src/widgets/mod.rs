@@ -7,7 +7,7 @@ mod network;
 mod power;
 mod window;
 
-pub use window::ControlCenterWindow;
+pub use window::{ControlCenterWindow, SystemInfo};
 
 use gtk::prelude::*;
 

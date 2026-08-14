@@ -3,10 +3,18 @@
 // ==========================================
 
 use std::rc::Rc;
+use std::sync::mpsc;
+use std::thread;
 
 use gtk::prelude::*;
 
 use churros_services::spawn;
+use churros_services::audio;
+use churros_services::battery;
+use churros_services::bluetooth;
+use churros_services::brightness;
+use churros_services::ethernet;
+use churros_services::wifi;
 
 use super::super::assets;
 use super::audio::AudioCard;
@@ -23,6 +31,28 @@ pub struct ControlCenterWindow {
     brightness: BrightnessCard,
     battery: BatteryCard,
     audio: AudioCard,
+}
+
+#[derive(Default, Clone)]
+pub struct SystemInfo {
+    // Network
+    pub ethernet_connected: bool,
+    pub ethernet_name: String,
+    pub wifi_connected: bool,
+    pub wifi_name: String,
+    pub wifi_strength: u8,
+    // Bluetooth
+    pub bluetooth_enabled: bool,
+    pub bluetooth_connected: bool,
+    pub bluetooth_device: String,
+    // Brightness
+    pub brightness_percent: u8,
+    // Battery
+    pub battery_percent: u8,
+    pub battery_charging: bool,
+    // Audio
+    pub volume: u8,
+    pub muted: bool,
 }
 
 impl ControlCenterWindow {
@@ -75,6 +105,7 @@ impl ControlCenterWindow {
             audio,
         });
 
+        win.refresh_async();
         win.wire();
         win
     }
@@ -135,16 +166,83 @@ impl ControlCenterWindow {
         self.window.add_controller(controller);
 
         glib::timeout_add_seconds_local(2, glib::clone!(#[strong(rename_to = this)] self, move || {
-            this.refresh();
+            this.refresh_async();
             glib::ControlFlow::Continue
         }));
     }
 
-    fn refresh(&self) {
-        self.network.update();
-        self.bluetooth.update();
-        self.brightness.update();
-        self.battery.update();
-        self.audio.update();
+    fn refresh_async(self: &Rc<Self>) {
+        let this = self.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        thread::spawn(move || {
+            let info = collect_system_info();
+            tx.send(info).ok();
+        });
+        glib::timeout_add_local(std::time::Duration::from_millis(50), glib::clone!(#[strong] this, move || {
+            if let Ok(info) = rx.try_recv() {
+                this.apply_system_info(&info);
+                glib::ControlFlow::Break
+            } else {
+                glib::ControlFlow::Continue
+            }
+        }));
     }
+
+    fn apply_system_info(&self, info: &SystemInfo) {
+        self.network.apply_info(info);
+        self.bluetooth.apply_info(info);
+        self.brightness.apply_info(info);
+        self.battery.apply_info(info);
+        self.audio.apply_info(info);
+    }
+}
+
+fn collect_system_info() -> SystemInfo {
+    let mut info = SystemInfo::default();
+
+    // Network
+    let eth = ethernet::get();
+    info.ethernet_connected = eth.connected;
+    info.ethernet_name = eth.connection;
+
+    let wifi = wifi::get();
+    info.wifi_connected = wifi.connected.is_some();
+    if let Some(ssid) = &wifi.connected {
+        info.wifi_name = ssid.clone();
+        // Get signal strength for connected network
+        if let Some(net) = wifi.networks.iter().find(|n| n.connected) {
+            info.wifi_strength = net.signal;
+        }
+    }
+
+    // Bluetooth
+    info.bluetooth_enabled = bluetooth::available();
+    if info.bluetooth_enabled {
+        let devices = bluetooth::list_devices();
+        for device in &devices {
+            if device.connected {
+                info.bluetooth_connected = true;
+                info.bluetooth_device = device.name.clone();
+                break;
+            }
+        }
+    }
+
+    // Brightness
+    let bright = brightness::get();
+    info.brightness_percent = bright.brightness;
+
+    // Battery
+    let bat = battery::get();
+    info.battery_percent = bat.percentage;
+    info.battery_charging = matches!(
+        bat.state.as_str(),
+        "charging" | "fully-charged" | "pending-charge"
+    );
+
+    // Audio
+    info.volume = audio::get_volume();
+    info.muted = audio::is_muted();
+
+    info
 }

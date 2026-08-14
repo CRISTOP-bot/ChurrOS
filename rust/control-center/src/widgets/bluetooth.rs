@@ -4,10 +4,9 @@
 
 use gtk::prelude::*;
 
-use churros_services::bluetooth;
-
 use super::card::Card;
 use super::open_popup;
+use crate::widgets::SystemInfo;
 
 pub struct BluetoothCard {
     card: Card,
@@ -15,7 +14,7 @@ pub struct BluetoothCard {
 
 impl BluetoothCard {
     pub fn new(window: &gtk::ApplicationWindow) -> Self {
-        let card = Card::new("bluetooth.svg", "Bluetooth", "Unavailable");
+        let card = Card::new("bluetooth.svg", "Bluetooth", "Loading...");
 
         let win = window.clone();
         card.button.connect_clicked(move |_| {
@@ -29,35 +28,23 @@ impl BluetoothCard {
         &self.card.button
     }
 
-    pub fn update(&self) {
-        if !bluetooth::available() {
+    pub fn apply_info(&self, info: &SystemInfo) {
+        if !info.bluetooth_enabled {
             self.card
                 .set_state(Some("Unavailable"), Some("bluetooth_disabled.svg"));
             return;
         }
 
-        if bluetooth::is_blocked() {
-            self.card
-                .set_state(Some("Blocked"), Some("bluetooth_disabled.svg"));
-            return;
-        }
-
-        if bluetooth::is_enabled() {
-            let connected = bluetooth::list_devices()
-                .iter()
-                .filter(|device| device.connected)
-                .count();
-
-            if connected > 0 {
-                let subtitle = format!("{connected} Connected");
-                self.card
-                    .set_state(Some(subtitle.as_str()), Some("bluetooth.svg"));
+        if info.bluetooth_connected {
+            let subtitle = if !info.bluetooth_device.is_empty() {
+                info.bluetooth_device.as_str()
             } else {
-                self.card.set_state(Some("On"), Some("bluetooth.svg"));
-            }
-        } else {
+                "Connected"
+            };
             self.card
-                .set_state(Some("Off"), Some("bluetooth_disabled.svg"));
+                .set_state(Some(subtitle), Some("bluetooth.svg"));
+        } else {
+            self.card.set_state(Some("On"), Some("bluetooth.svg"));
         }
     }
 }

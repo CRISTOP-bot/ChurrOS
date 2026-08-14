@@ -7,6 +7,7 @@ use gtk::prelude::*;
 use churros_services::audio;
 
 use super::super::assets;
+use crate::widgets::SystemInfo;
 
 pub struct AudioCard {
     box_: gtk::Box,
@@ -47,9 +48,11 @@ impl AudioCard {
 
         let scale = gtk::Scale::with_range(gtk::Orientation::Horizontal, 0.0, 100.0, 1.0);
         scale.set_hexpand(true);
+        scale.set_draw_value(false);
 
-        scale.connect_value_changed(|scale| {
-            audio::set_volume(scale.value() as u8);
+        scale.connect_change_value(|_, _, value| {
+            audio::set_volume(value as u8);
+            glib::Propagation::Proceed
         });
 
         box_.append(&header);
@@ -67,13 +70,11 @@ impl AudioCard {
         &self.box_
     }
 
-    pub fn update(&self) {
-        let volume = audio::get_volume();
+    pub fn apply_info(&self, info: &SystemInfo) {
+        self.scale.set_value(info.volume as f64);
+        self.subtitle.set_label(&format!("{}%", info.volume));
 
-        self.scale.set_value(volume as f64);
-        self.subtitle.set_label(&format!("{volume}%"));
-
-        let icon = if volume == 0 {
+        let icon = if info.muted || info.volume == 0 {
             "audio_muted.svg"
         } else {
             "audio.svg"

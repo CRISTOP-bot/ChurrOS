@@ -4,10 +4,9 @@
 
 use gtk::prelude::*;
 
-use churros_services::battery;
-
 use super::card::Card;
 use super::open_popup;
+use crate::widgets::SystemInfo;
 
 pub struct BatteryCard {
     card: Card,
@@ -29,30 +28,24 @@ impl BatteryCard {
         &self.card.button
     }
 
-    pub fn update(&self) {
-        let battery = battery::get();
-
-        if !battery.available {
+    pub fn apply_info(&self, info: &SystemInfo) {
+        if info.battery_percent == 0 && !info.battery_charging {
             self.card.set_state(Some("Desktop"), Some("battery.svg"));
             return;
         }
 
-        let percentage = battery.percentage;
-
-        let icon = if percentage <= 15 {
+        let icon = if info.battery_percent <= 15 {
             "battery_critical.svg"
         } else {
             "battery.svg"
         };
 
-        let mut subtitle = format!("{percentage}%");
+        let mut subtitle = format!("{}%", info.battery_percent);
 
-        match battery.state.as_str() {
-            "charging" => subtitle += " • Charging",
-            "fully-charged" => subtitle += " • Full",
-            _ => {}
+        if info.battery_charging {
+            subtitle += " • Charging";
         }
 
-        self.card.set_state(Some(subtitle.as_str()), Some(icon));
+        self.card.set_state(Some(&subtitle), Some(icon));
     }
 }

@@ -4,10 +4,9 @@
 
 use gtk::prelude::*;
 
-use churros_services::brightness;
-
 use super::card::Card;
 use super::open_popup;
+use crate::widgets::SystemInfo;
 
 pub struct BrightnessCard {
     card: Card,
@@ -29,16 +28,8 @@ impl BrightnessCard {
         &self.card.button
     }
 
-    pub fn update(&self) {
-        let brightness = brightness::get();
-
-        if !brightness.available {
-            self.card
-                .set_state(Some("Unavailable"), Some("brightness.svg"));
-            return;
-        }
-
-        let subtitle = format!("{}%", brightness.brightness);
-        self.card.set_state(Some(subtitle.as_str()), Some("brightness.svg"));
+    pub fn apply_info(&self, info: &SystemInfo) {
+        let subtitle = format!("{}%", info.brightness_percent);
+        self.card.set_state(Some(&subtitle), Some("brightness.svg"));
     }
 }
