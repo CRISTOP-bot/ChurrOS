@@ -37,7 +37,8 @@ fi
 
 echo "[rust] Compilando apps Rust (release)..."
 
-cargo build --release --manifest-path "$RUST_DIR/Cargo.toml"
+# Usar todos los núcleos disponibles para compilar en paralelo
+cargo build --release --manifest-path "$RUST_DIR/Cargo.toml" --jobs "$(nproc)"
 
 # Desplegar cada binario del workspace en airootfs/usr/bin/
 # SOLO los crates marcados con [package.metadata.churros] deploy = true
