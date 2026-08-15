@@ -111,8 +111,23 @@ niri
 
 foot
 flatpak
-
 waybar
+
+# Bazaar app store (instalado desde el repo local patcheado)
+appstream
+glycin
+glycin-gtk4
+gtksourceview5
+libheif
+libmalcontent
+libsoup3
+libxmlb
+libyaml
+malcontent
+md4c
+webkitgtk-6.0
+json-glib
+graphene
 
 
 thunar

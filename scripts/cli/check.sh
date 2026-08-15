@@ -112,6 +112,10 @@ command_exists() {
     if [ "$command" = calamares ]; then
         return 0
     fi
+    if [ "$command" = bazaar ]; then
+        # Instalado via bsdtar en customize_airootfs.sh (repo local patcheado)
+        return 0
+    fi
     for package in "${LOCAL_AUR[@]}"; do
         [ "$command" = "$package" ] && return 0
     done

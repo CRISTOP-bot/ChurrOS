@@ -86,6 +86,17 @@ else
     echo "  (not available — installer skipped)"
 fi
 
+echo "Installing Bazaar (patched build, fixes libdex conflict)..."
+if ls /root/packages/bazaar-*.pkg.tar.zst 1>/dev/null 2>&1; then
+    bsdtar -xf /root/packages/bazaar-*.pkg.tar.zst -C /
+
+    rm -f /root/packages/bazaar-*.pkg.tar.zst
+
+    echo "✓ Bazaar installed."
+else
+    echo "  (not available — bazaar skipped)"
+fi
+
 if ls /root/packages/*.pkg.tar.zst 1>/dev/null 2>&1; then
     echo "Configuring ChurrOS local repo (build-time only)..."
     # Solo para el build; no se agrega al live ISO porque /root/packages no existe ahí

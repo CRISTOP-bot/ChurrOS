@@ -12,6 +12,8 @@ cleanup_temp() {
     # Binarios Rust desplegados por build-rust.sh (no se versionan en git)
     rm -f archiso/airootfs/usr/bin/churros-welcome 2>/dev/null || true
     rm -f archiso/airootfs/usr/bin/churros-settings 2>/dev/null || true
+    rm -f archiso/airootfs/usr/bin/churros-popup 2>/dev/null || true
+    rm -f archiso/airootfs/usr/bin/churros-control-center 2>/dev/null || true
     # GRUB theme copiado al airootfs para que esté disponible en el sistema instalado
     rm -rf archiso/airootfs/usr/share/churros/grub-theme 2>/dev/null || true
 }
@@ -51,6 +53,7 @@ echo "[2/5] Checking packages..."
 CALAMARES_PKG=$(ls archiso/packages/calamares-[0-9]*.pkg.tar.zst 2>/dev/null | head -1 || true)
 PYWAL_PKG=$(ls archiso/packages/python-pywal-*.pkg.tar.zst 2>/dev/null | head -1 || true)
 WAYPAPER_PKG=$(ls archiso/packages/waypaper-*.pkg.tar.zst 2>/dev/null | head -1 || true)
+BAZAAR_PKG=$(ls archiso/packages/bazaar-*.pkg.tar.zst 2>/dev/null | head -1 || true)
 
 if [ -z "$CALAMARES_PKG" ]; then
     echo "  Calamares not found — building..."
@@ -61,6 +64,11 @@ fi
 if [ -z "$PYWAL_PKG" ] || [ -z "$WAYPAPER_PKG" ]; then
     echo "  AUR extras not found — building..."
     bash scripts/build-aur.sh
+fi
+
+if [ -z "$BAZAAR_PKG" ]; then
+    echo "  Bazaar not found — building (patched to fix libdex conflict)..."
+    bash scripts/build-bazaar.sh
 fi
 
 if [ -n "$CALAMARES_PKG" ]; then

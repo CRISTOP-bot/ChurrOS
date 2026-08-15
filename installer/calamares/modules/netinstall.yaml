@@ -3,6 +3,9 @@ groups:
     description: Paquetes adicionales opcionales (repositorio local + extra)
     selected: false
     packages:
+      - name: bazaar
+        description: Tienda de apps (repositorio local, fix libdex)
+        selected: false
       - name: yay
         description: AUR helper (instala paquetes AUR)
         selected: false
