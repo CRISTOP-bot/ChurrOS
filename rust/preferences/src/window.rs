@@ -36,31 +36,9 @@ impl PreferencesWindow {
         window.add_css_class("preferences");
         apply_theme_class(&window);
 
-        // Clase "maximized" igual que window.py::_check_maximized:
-        // el CSS glass (window.maximized) desactiva blur/border-radius
-        // en maximizado/fullscreen para mantener legibilidad.
-        // Check inicial al mapear (timeout 500ms como el Python)…
-        window.connect_map(|w| {
-            let w = w.clone();
-            glib::timeout_add_local_once(std::time::Duration::from_millis(500), move || {
-                let active = w.is_maximized() || w.is_fullscreen();
-                if active {
-                    w.add_css_class("maximized");
-                } else {
-                    w.remove_css_class("maximized");
-                }
-            });
-        });
-        // …y en vivo cuando cambia el estado.
-        let win_max = window.clone();
-        window.connect_notify_local(Some("maximized"), move |w, _| {
-            if w.is_maximized() || w.is_fullscreen() {
-                w.add_css_class("maximized");
-            } else {
-                w.remove_css_class("maximized");
-            }
-            let _ = &win_max;
-        });
+        // Evitar que el compositor maximice la ventana al iniciar
+        // (el CSS .maximized quita el blur/glassmorphism)
+        window.set_resizable(true);
 
         let w = window.clone();
         if let Some(schema_source) = gio::SettingsSchemaSource::default() {
