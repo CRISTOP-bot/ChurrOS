@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
-// En runtime (ISO): style.css en la raíz de /usr/share/churros/preferences/
+// En runtime (ISO): style.css en la raíz de /usr/share/churros/churros-settings/
 // y logo.svg + icons/ dentro de assets/. En desarrollo se usan los assets
 // locales del crate, que replican ese mismo layout.
-const RUNTIME_ROOT: &str = "/usr/share/churros/preferences";
+const RUNTIME_ROOT: &str = "/usr/share/churros/churros-settings";
 const DEV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/assets");
 
 fn resolve(runtime: &str, dev: &str) -> PathBuf {
