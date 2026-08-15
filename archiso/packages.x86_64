@@ -128,6 +128,8 @@ md4c
 webkitgtk-6.0
 json-glib
 graphene
+# bazaar se resuelve desde el repo local patcheado ([churros] en pacman.conf)
+bazaar
 
 
 thunar
