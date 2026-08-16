@@ -131,29 +131,55 @@ fn update_value_in_block(content: &str, path: &[&str], key: &str, value: &str) -
 }
 
 /// Crea el bloque `path` al final del config, creando los padres que falten.
+/// Crea el bloque `path` (y los padres que falten), con `body_lines` como
+/// contenido del bloque más profundo. Si algún padre ya existe, el bloque
+/// nuevo se anida dentro de él; si no existe ninguno, se añade al final.
+/// (La versión anterior creaba el padre vacío y perdía el hijo.)
 fn create_block(content: &str, path: &[&str], body_lines: &[&str]) -> String {
-    let mut content = content.to_string();
-
+    // Profundidad del prefijo que ya existe.
+    let mut existing_depth = 0usize;
     for i in 1..=path.len() {
-        let sub_path = &path[..i];
-        if find_nested_block(&content, sub_path).is_none() {
-            let indent = "    ".repeat(i - 1);
-            let lines: &[&str] = if i == path.len() { body_lines } else { &[] };
-
-            let mut block = format!("{indent}{} {{\n", sub_path[i - 1]);
-            for ln in lines {
-                block += &format!("{indent}    {ln}\n");
-            }
-            block += &format!("{indent}}}\n");
-
-            if !content.is_empty() && !content.ends_with('\n') {
-                content.push('\n');
-            }
-            content.push_str(&block);
-            return content;
+        if find_nested_block(content, &path[..i]).is_some() {
+            existing_depth = i;
+        } else {
+            break;
         }
     }
-    content
+
+    if existing_depth == path.len() {
+        return content.to_string();
+    }
+
+    // Construir los bloques que faltan, de adentro hacia afuera.
+    let mut inner = String::new();
+    let deepest_indent = "    ".repeat(path.len());
+    for ln in body_lines {
+        inner.push_str(&format!("{deepest_indent}{ln}\n"));
+    }
+    for i in (existing_depth..path.len()).rev() {
+        let indent = "    ".repeat(i);
+        let head = path[i];
+        inner = format!("{indent}{head} {{\n{inner}{indent}}}\n");
+    }
+
+    if existing_depth > 0 {
+        // Anidar justo antes del cierre del padre existente.
+        let (_, parent_end) = find_nested_block(content, &path[..existing_depth]).unwrap();
+        let lines: Vec<&str> = content.lines().collect();
+        let mut out: Vec<String> = lines[..parent_end].iter().map(|s| s.to_string()).collect();
+        for l in inner.lines() {
+            out.push(l.to_string());
+        }
+        out.extend(lines[parent_end..].iter().map(|s| s.to_string()));
+        out.join("\n")
+    } else {
+        let mut c = content.to_string();
+        if !c.is_empty() && !c.ends_with('\n') {
+            c.push('\n');
+        }
+        c.push_str(&inner);
+        c
+    }
 }
 
 /// Extrae el valor de `key` dentro del bloque `block_path` (getters).
@@ -204,64 +230,39 @@ fn py_float_str(v: f64) -> String {
 }
 
 impl NiriConfig {
-    /// pkill -HUP niri (recarga la config en vivo)
+    /// Actualiza `input { keyboard { xkb { layout "..." } } }` (o lo crea).
+    /// La versión anterior usaba una clave plana `xkb-layout` que no existe
+    /// en el config y además rompía con sub-bloques anidados.
     pub fn set_keyboard_layout(layout: &str) {
-        // Añade/actualiza "xkb-layout" en el bloque input del config.kdl
         let content = read();
-        let lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
 
-        // Buscar bloque "input {"
-        let mut start = None;
-        let mut depth = 0i32;
-        for (i, raw) in lines.iter().enumerate() {
-            let stripped = raw.trim();
-            if start.is_none() && stripped.starts_with("input") && stripped.contains('{') {
-                start = Some(i);
-                depth = 1;
-                continue;
-            }
-            if start.is_some() {
-                depth += stripped.matches('{').count() as i32;
-                depth -= stripped.matches('}').count() as i32;
-                if depth <= 0 {
-                    break;
-                }
-            }
-        }
-        let Some(s) = start else {
-            // No hay bloque input: añadirlo al final
-            let mut content = content;
-            if !content.ends_with('\n') {
-                content.push('\n');
-            }
-            content.push_str(&format!("input {{\n    xkb-layout \"{layout}\"\n}}\n"));
-            write_atomic(&content);
+        // Editar `layout "..."` dentro de input > keyboard > xkb.
+        if let Some(updated) = update_value_in_block(
+            &content,
+            &["input", "keyboard", "xkb"],
+            "layout",
+            &format!("\"{layout}\""),
+        ) {
+            write_atomic(&updated);
             return;
-        };
+        }
 
-        // Reemplazar/insertar la línea xkb-layout dentro del bloque
-        let mut lines = lines;
-        let mut replaced = false;
-        for j in s + 1..lines.len() {
-            let stripped = lines[j].trim();
-            if stripped.starts_with('}') {
-                break;
-            }
-            if stripped.starts_with("xkb-layout") {
-                lines[j] = format!("    xkb-layout \"{layout}\"");
-                replaced = true;
-                break;
-            }
-        }
-        if !replaced {
-            lines.insert(s + 1, format!("    xkb-layout \"{layout}\""));
-        }
-        write_atomic(&lines.join("\n"));
+        // No existe el bloque xkb: crearlo anidado (con sus padres).
+        let result = create_block(
+            &content,
+            &["input", "keyboard", "xkb"],
+            &[&format!("layout \"{layout}\"")],
+        );
+        write_atomic(&result);
     }
 
+    /// Recarga la config de niri en vivo (equivalente a reload()).
+    /// OJO: NO usar pkill -HUP niri — SIGHUP reinicia la sesión entera
+    /// del compositor (mata todas las apps); la forma correcta es
+    /// `niri msg action load-config-file`.
     pub fn reload() {
-        let _ = Command::new("pkill")
-            .args(["-HUP", "niri"])
+        let _ = Command::new("niri")
+            .args(["msg", "action", "load-config-file"])
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
             .spawn();
@@ -600,7 +601,7 @@ impl NiriConfig {
                 None => create_block(
                     &content,
                     &["blur"],
-                    &["passes 2", "offset 2.0", "noise 0.0", "saturation 1.2"],
+                    &["passes 3", "offset 3.0", "noise 0.0", "saturation 1.3"],
                 ),
             };
             write_atomic(&result);
@@ -703,12 +704,87 @@ impl NiriConfig {
 
     // ------------------------------------------------- Performance mode
 
-    /// Modo rendimiento: desactiva blur + animaciones
+    /// Marcadores del bloque de blur de las apps ChurrOS en config.kdl
+    /// (ver archiso/airootfs/etc/skel/.config/niri/config.kdl).
+    const GLASS_START: &'static str = "[CHURROS-GLASS-START]";
+    const GLASS_END: &'static str = "[CHURROS-GLASS-END]";
+
+    /// Byte bounds de la región entre las líneas de marcador (exclusivas).
+    /// Se busca el marcador como LÍNEA completa para que las menciones
+    /// en comentarios descriptivos no confundan el matcher.
+    fn glass_bounds(content: &str) -> Option<(usize, usize)> {
+        let start_marker = "\n// [CHURROS-GLASS-START]\n";
+        let end_marker = "\n// [CHURROS-GLASS-END]";
+        let start = content.find(start_marker)? + start_marker.len();
+        let end = start + content[start..].find(end_marker)?;
+        Some((start, end))
+    }
+
+    /// Devuelve si el blur de las window rules de ChurrOS está activo
+    /// (None si el config no tiene los marcadores).
+    fn get_glass_blur(content: &str) -> Option<bool> {
+        let (start, end) = Self::glass_bounds(content)?;
+        for line in content[start..end].lines() {
+            match line.trim() {
+                "blur true" => return Some(true),
+                "blur false" => return Some(false),
+                _ => {}
+            }
+        }
+        Some(false)
+    }
+
+    /// Toggle blur true <-> blur false SOLO en líneas exactas dentro del
+    /// bloque marcado (los comentarios que mencionen blur no se tocan).
+    fn set_glass_blur(content: &str, enabled: bool) -> Option<String> {
+        let (start, end) = Self::glass_bounds(content)?;
+        let region = &content[start..end];
+        let had_trailing_nl = region.ends_with('\n');
+        let mut new_region: String = region
+            .lines()
+            .map(|line| {
+                let stripped = line.trim();
+                if !enabled && stripped == "blur true" {
+                    line.replacen("blur true", "blur false", 1)
+                } else if enabled && stripped == "blur false" {
+                    line.replacen("blur false", "blur true", 1)
+                } else {
+                    line.to_string()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        if had_trailing_nl {
+            new_region.push('\n');
+        }
+        Some(format!(
+            "{}{}{}",
+            &content[..start],
+            new_region,
+            &content[end..]
+        ))
+    }
+
+    /// Modo rendimiento: desactiva blur (window rules de ChurrOS) + animaciones.
     pub fn get_performance_mode() -> bool {
-        !Self::get_blur_enabled() && !Self::get_animations()
+        let content = read();
+        let glass_off = match Self::get_glass_blur(&content) {
+            Some(active) => !active,
+            // Config sin marcadores: criterio antiguo (bloque blur ausente)
+            None => !Self::get_blur_enabled(),
+        };
+        !Self::get_animations() && glass_off
     }
 
     pub fn set_performance_mode(on: bool) {
+        // El blur real de las apps vive en las window rules (marcadas con
+        // [CHURROS-GLASS-*]): quitarlo ahí es lo que lo desactiva de verdad.
+        let content = read();
+        if let Some(new_content) = Self::set_glass_blur(&content, !on) {
+            write_atomic(&new_content);
+        }
+        // El bloque global `blur { ... }` solo es tuning; se conserva el
+        // comportamiento anterior (borrar al activar, restaurar al quitar).
         Self::set_blur_enabled(!on);
         Self::set_animations(!on);
     }
@@ -730,4 +806,75 @@ fn first_quoted(line: &str) -> Option<String> {
     let rest = &line[start..];
     let end = rest.find('"')?;
     Some(rest[..end].to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// config.kdl real de la ISO (skel): debe tener los marcadores de glass.
+    fn real_config() -> &'static str {
+        const PATH: &str = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../archiso/airootfs/etc/skel/.config/niri/config.kdl"
+        );
+        let content = fs::read_to_string(PATH).expect("leer config.kdl del skel");
+        Box::leak(content.into_boxed_str())
+    }
+
+    #[test]
+    fn real_config_has_glass_markers() {
+        let content = real_config();
+        assert!(content.contains(NiriConfig::GLASS_START), "falta [CHURROS-GLASS-START]");
+        assert!(content.contains(NiriConfig::GLASS_END), "falta [CHURROS-GLASS-END]");
+        assert_eq!(NiriConfig::get_glass_blur(content), Some(true));
+    }
+
+    #[test]
+    fn glass_blur_toggle_roundtrip() {
+        let content = real_config();
+        let off = NiriConfig::set_glass_blur(content, false).expect("toggle off");
+        assert_eq!(NiriConfig::get_glass_blur(&off), Some(false));
+        assert!(off.contains("blur false"));
+
+        let on = NiriConfig::set_glass_blur(&off, true).expect("toggle on");
+        assert_eq!(NiriConfig::get_glass_blur(&on), Some(true));
+        assert!(on.contains("blur true"));
+
+        // Idempotente
+        assert_eq!(off, NiriConfig::set_glass_blur(&off, false).unwrap());
+        // El resto del config no cambia
+        assert_eq!(on.lines().count(), content.lines().count());
+    }
+
+    #[test]
+    fn create_block_nested_preserves_parent_and_child() {
+        let content = "layout {\n    gaps 8\n}\n";
+        // El padre "layout" existe; se debe anidar "border" dentro con su cuerpo.
+        let out = create_block(content, &["layout", "border"], &["on"]);
+        assert!(out.contains("layout {"), "falta layout: {out}");
+        assert!(out.contains("    border {"), "border no anidado: {out}");
+        assert!(out.contains("        on"), "falta cuerpo on: {out}");
+        assert!(out.contains("gaps 8"), "se perdio gaps: {out}");
+    }
+
+    #[test]
+    fn create_block_creates_full_path_when_missing() {
+        let content = "";
+        let out = create_block(content, &["input", "keyboard", "xkb"], &["layout \"us\""]);
+        assert!(out.contains("input {"));
+        assert!(out.contains("    keyboard {"));
+        assert!(out.contains("        xkb {"));
+        assert!(out.contains("            layout \"us\""));
+    }
+
+    #[test]
+    fn update_value_in_block_updates_nested_xkb() {
+        let content =
+            "input {\n    keyboard {\n        xkb {\n            layout \"us\"\n        }\n    }\n}\n";
+        let updated = update_value_in_block(content, &["input", "keyboard", "xkb"], "layout", "\"es\"")
+            .expect("actualizar layout");
+        assert!(updated.contains("layout \"es\""), "no actualizo layout: {updated}");
+        assert!(!updated.contains("layout \"us\""), "no quito el layout viejo: {updated}");
+    }
 }

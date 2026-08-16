@@ -4,7 +4,6 @@
 // ==========================================
 
 use std::fs;
-use std::path::PathBuf;
 use std::process::Command;
 
 pub struct UsersService;
@@ -65,6 +64,16 @@ fn line_has_command_eq(line: &str) -> bool {
     t["command".len()..].trim_start().starts_with('=')
 }
 
+/// ¿La línea inicia una sección `[nombre]`? Devuelve el nombre.
+fn section_name(line: &str) -> Option<&str> {
+    let t = line.trim();
+    if t.starts_with('[') && t.ends_with(']') {
+        Some(&t[1..t.len() - 1])
+    } else {
+        None
+    }
+}
+
 impl UsersService {
     pub fn username() -> String {
         std::env::var("USER").unwrap_or_else(|_| {
@@ -114,12 +123,24 @@ impl UsersService {
             .unwrap_or_else(|_| "Desconocido".to_string())
     }
 
-    /// ¿Hay autologin configurado en greetd? (regex ^\s*command\s*=\s*"[^"]+")
+    /// ¿Hay autologin configurado en greetd? Solo cuenta la sección
+    /// `[default_session]` (un `command` en `[terminal]`/`[initial_session]`
+    /// no es autologin).
     pub fn auto_login() -> bool {
-        match fs::read_to_string(GREETD_PATH) {
-            Ok(content) => content.lines().any(line_is_command),
-            Err(_) => false,
+        let Ok(content) = fs::read_to_string(GREETD_PATH) else {
+            return false;
+        };
+        let mut in_default = false;
+        for line in content.lines() {
+            if let Some(sec) = section_name(line) {
+                in_default = sec == "default_session";
+                continue;
+            }
+            if in_default && line_is_command(line) {
+                return true;
+            }
         }
+        false
     }
 
     /// Activa/desactiva el autologin editando /etc/greetd/config.toml
@@ -129,7 +150,19 @@ impl UsersService {
             return false;
         };
 
-        let has_command = content.lines().any(line_has_command_eq);
+        // ¿Hay un `command` dentro de [default_session]?
+        let mut has_command = false;
+        let mut in_default = false;
+        for line in content.lines() {
+            if let Some(sec) = section_name(line) {
+                in_default = sec == "default_session";
+                continue;
+            }
+            if in_default && line_has_command_eq(line) {
+                has_command = true;
+                break;
+            }
+        }
 
         if value && has_command {
             return true;
@@ -157,30 +190,51 @@ impl UsersService {
                 format!("{content}\n[default_session]\ncommand = \"/usr/bin/niri\"\n")
             }
         } else {
-            // Quitar la primera línea command = "..." (regex multilinea)
-            let mut lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
-            if let Some(pos) = lines.iter().position(|l| line_is_command(l)) {
-                lines.remove(pos);
+            // Quitar la línea `command = "..."` SOLO dentro de [default_session]
+            let mut out: Vec<String> = Vec::with_capacity(content.lines().count());
+            let mut in_default = false;
+            let mut removed = false;
+            for line in content.lines() {
+                if let Some(sec) = section_name(line) {
+                    in_default = sec == "default_session";
+                    out.push(line.to_string());
+                    continue;
+                }
+                if in_default && !removed && line_is_command(line) {
+                    removed = true;
+                    continue;
+                }
+                out.push(line.to_string());
             }
-            lines.join("\n")
+            out.join("\n")
         };
 
         if new_content == content {
             return true;
         }
 
-        let path = PathBuf::from(GREETD_PATH);
-        let directory = path.parent().unwrap_or(std::path::Path::new("/etc"));
-        let tmp = directory.join(format!(
-            "greetd-{}.toml.tmp",
-            std::process::id()
-        ));
-        if fs::write(&tmp, &new_content).is_ok() {
-            if fs::rename(&tmp, &path).is_ok() {
-                return true;
-            }
-            let _ = fs::remove_file(&tmp);
+        // /etc/greetd no es escribible por el usuario: escribir a un temporal
+        // propio y copiarlo con privilegios (churros-pkexec: pkexec/sudo -n).
+        // El patrón es el mismo que usa datetime.rs con timedatectl.
+        let tmp = std::env::temp_dir().join(format!("churros-greetd-{}.toml", std::process::id()));
+        if fs::write(&tmp, &new_content).is_err() {
+            return false;
         }
-        false
+        let tmp_str = tmp.to_string_lossy().to_string();
+        let ok = if getuid() == 0 {
+            Command::new("install")
+                .args(["-m", "644", &tmp_str, GREETD_PATH])
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false)
+        } else {
+            Command::new("churros-pkexec")
+                .args(["install", "-m", "644", &tmp_str, GREETD_PATH])
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false)
+        };
+        let _ = fs::remove_file(&tmp);
+        ok
     }
 }
