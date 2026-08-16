@@ -15,7 +15,7 @@ pub fn build(app: &gtk::Application) -> PopupWindow {
 
 /// Lista de acciones de energía (port de power/widgets/power.py).
 fn power_widget() -> gtk::Box {
-    let vbox = gtk::Box::new(gtk::Orientation::Vertical, 10);
+    let vbox = gtk::Box::new(gtk::Orientation::Vertical, 8);
     vbox.add_css_class("power-widget");
 
     let actions: [(&str, &str, fn()); 6] = [
@@ -33,16 +33,20 @@ fn power_widget() -> gtk::Box {
         if title == "Hibernate" && !can_hibernate {
             continue;
         }
-        vbox.append(&power_button(icon, title, action));
+        let danger = title == "Restart" || title == "Shutdown";
+        vbox.append(&power_button(icon, title, danger, action));
     }
 
     vbox
 }
 
 /// Botón de acción: icono + texto (port de power/widgets/button.py).
-fn power_button(icon: &str, title: &str, action: fn()) -> gtk::Button {
+fn power_button(icon: &str, title: &str, danger: bool, action: fn()) -> gtk::Button {
     let btn = gtk::Button::new();
     btn.add_css_class("power-button");
+    if danger {
+        btn.add_css_class("danger");
+    }
 
     let box_ = gtk::Box::new(gtk::Orientation::Horizontal, 12);
 

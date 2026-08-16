@@ -237,6 +237,7 @@ impl WifiWidget {
         let wifi = self.clone();
 
         let page = gtk::Box::new(gtk::Orientation::Vertical, 12);
+        page.add_css_class("password-page");
 
         let back = gtk::Button::with_label("Back");
         back.add_css_class("network-button");

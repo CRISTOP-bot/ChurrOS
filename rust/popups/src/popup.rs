@@ -7,9 +7,10 @@ use std::path::{Path, PathBuf};
 use gtk::gdk::Key;
 use gtk::prelude::*;
 
-// En runtime (ISO) los assets viven en /usr/share/churros/popups/assets/.
+// En runtime (ISO) los assets viven en /usr/share/churros/churros-popup/assets/
+// (desplegados por build-rust.sh a /usr/share/churros/<crate>/assets/).
 // En desarrollo se usan los assets locales del crate.
-const RUNTIME_ROOT: &str = "/usr/share/churros/popups/assets";
+const RUNTIME_ROOT: &str = "/usr/share/churros/churros-popup/assets";
 const DEV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/assets");
 
 fn assets_root() -> PathBuf {

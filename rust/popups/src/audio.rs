@@ -43,24 +43,23 @@ fn volume_widget(source: bool) -> gtk::Box {
     let icon = gtk::Label::new(Some(if source { "󰍜" } else { "󰕾" }));
     icon.add_css_class("volume-icon");
 
-    let label = gtk::Label::new(None);
-    label.set_xalign(0.0);
-    label.set_hexpand(true);
-    label.add_css_class("volume-label");
-
     let slider = gtk::Scale::with_range(gtk::Orientation::Horizontal, 0.0, 100.0, 1.0);
     slider.set_draw_value(false);
     slider.set_hexpand(true);
     slider.set_digits(0);
     slider.set_round_digits(0);
 
+    let label = gtk::Label::new(None);
+    label.set_xalign(1.0);
+    label.add_css_class("volume-label");
+
     box_.append(&icon);
     box_.append(&slider);
+    box_.append(&label);
     vbox.append(&box_);
-    vbox.append(&label);
 
     if !audio::available() {
-        label.set_label("Audio requires WirePlumber (wpctl)");
+        label.set_label("—");
         slider.set_sensitive(false);
         return vbox;
     }
@@ -79,11 +78,10 @@ fn volume_widget(source: bool) -> gtk::Box {
             audio::set_volume(value);
         }
     };
-    let prefix = if source { "󰍜" } else { "󰕾" };
 
     let initial = get_volume();
     slider.set_value(initial as f64);
-    label.set_label(&format!("{prefix} {initial}%"));
+    label.set_label(&format!("{initial}%"));
 
     let suppress = Rc::new(Cell::new(false));
 
@@ -93,7 +91,7 @@ fn volume_widget(source: bool) -> gtk::Box {
         let value = s.value() as u8;
         suppress1.set(true);
         set_volume(value);
-        lab1.set_label(&format!("{prefix} {value}%"));
+        lab1.set_label(&format!("{value}%"));
         suppress1.set(false);
     });
 
@@ -109,7 +107,7 @@ fn volume_widget(source: bool) -> gtk::Box {
         if current != s2.value() as u8 && !active {
             suppress2.set(true);
             s2.set_value(current as f64);
-            lab2.set_label(&format!("{prefix} {current}%"));
+            lab2.set_label(&format!("{current}%"));
             suppress2.set(false);
         }
         glib::ControlFlow::Continue
@@ -201,6 +199,11 @@ fn mute_widget(source: bool) -> gtk::Button {
 
     let update_label = move |b: &gtk::Button, muted: bool| {
         let text = if muted { "Mute" } else { "Unmute" };
+        if muted {
+            b.add_css_class("muted");
+        } else {
+            b.remove_css_class("muted");
+        }
         b.set_label(&format!("{prefix}  {text}"));
     };
 

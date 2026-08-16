@@ -32,6 +32,7 @@ fn toggle_widget() -> gtk::Box {
         sw.set_active(false);
         sw.set_sensitive(false);
         label.set_label("Bluetooth blocked (rfkill)");
+        label.add_css_class("blocked");
     } else {
         sw.set_active(bluetooth::is_enabled());
 
@@ -171,6 +172,9 @@ fn device_row(device: &bluetooth::BtDevice) -> gtk::Box {
     });
     action.set_tooltip_text(Some(if device.connected { "Disconnect" } else { "Connect" }));
     action.add_css_class("device-action");
+    if device.connected {
+        action.add_css_class("connected");
+    }
     action.connect_clicked(move |_| {
         if connected {
             bluetooth::disconnect(&address);

@@ -1,40 +1,102 @@
 /*
     ChurrOS Popups — Liquid Glass base
     Accent: #F97316
+
+    Diseño común de todos los popups: fondo glass, cabecera con icono en
+    badge, tarjetas de contenido, botones de acción y estados de foco.
+    Los CSS por popup (audio.css, network.css…) extienden o ajustan estos
+    estilos con PRIORITY_APPLICATION + 1.
 */
 
 .popup {
-    background: rgba(15,15,16,.72);
-    backdrop-filter: blur(24px) saturate(1.4);
-    border-radius: 18px;
-    border: 1px solid rgba(255,255,255,.08);
-    box-shadow: 0 8px 40px rgba(0,0,0,.50),
-                0 1px 0 rgba(255,255,255,.06) inset;
+    background: rgba(15,15,16,.78);
+    backdrop-filter: blur(28px) saturate(1.5);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.09);
+    box-shadow: 0 12px 48px rgba(0,0,0,.55),
+                0 2px 0 rgba(255,255,255,.06) inset,
+                0 0 0 1px rgba(0,0,0,.40) inset;
 }
 
 .popup-content {
-    padding: 16px;
+    padding: 18px;
 }
 
+/* ── Cabecera ─────────────────────────────────────── */
 .popup-header {
-    min-height: 42px;
-    margin-bottom: 12px;
+    min-height: 44px;
+    margin-bottom: 16px;
+    padding: 6px 8px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.05);
 }
 
 .popup-header-icon {
-    color: #ffffff;
-    font-size: 18px;
-    margin-right: 10px;
+    color: #F97316;
+    font-size: 20px;
+    margin-right: 12px;
+    min-width: 28px;
+    min-height: 28px;
+    border-radius: 10px;
+    background: rgba(249,115,22,.14);
+    box-shadow: 0 0 14px rgba(249,115,22,.18);
+    padding: 4px 6px;
 }
 
 .popup-header-title {
     color: #ffffff;
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 700;
+    letter-spacing: .2px;
 }
 
-.audio-label {
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: bold;
+/* ── Tarjeta base de contenido ─────────────────────── */
+.card {
+    background: rgba(255,255,255,.04);
+    backdrop-filter: blur(18px) saturate(1.2);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,.07);
+    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
+}
+
+/* ── Título de sección ─────────────────────────────── */
+.section-title {
+    color: #FB923C;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+/* ── Estados vacíos / info ─────────────────────────── */
+.empty-label {
+    color: rgba(255,255,255,.55);
+    font-size: 13px;
+    padding: 18px 0;
+}
+
+/* ── Botones base ──────────────────────────────────── */
+button {
+    border-radius: 12px;
+    padding: 8px 14px;
+    transition: 160ms cubic-bezier(.4,0,.2,1);
+}
+
+button.flat {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.06);
+}
+
+button.flat:hover {
+    background: rgba(255,255,255,.10);
+    border-color: rgba(255,255,255,.12);
+}
+
+/* ── Separador ─────────────────────────────────────── */
+separator {
+    background: rgba(255,255,255,.08);
+    min-height: 1px;
 }

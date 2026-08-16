@@ -4,46 +4,52 @@
 */
 
 .brightness-widget {
-    padding: 14px;
-    background: rgba(255,255,255,.03);
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.05);
+    padding: 18px;
+    background: rgba(255,255,255,.04);
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.07);
+    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
 }
 
 .brightness-label {
     color: white;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 14px;
 }
 
-scale highlight {
-    background: linear-gradient(90deg, #F97316, #FB923C);
-    box-shadow: 0 0 8px rgba(249,115,22,.30);
-}
-
-scale trough {
-    background: rgba(255,255,255,.10);
-    border-radius: 100px;
+.brightness-slider trough {
     min-height: 8px;
-}
-
-scale slider {
-    background: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,.45);
-}
-
-.brightness-info {
-    color: rgba(255,255,255,.70);
-    font-size: 12px;
+    background: rgba(255,255,255,.10);
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.06);
+    box-shadow: 0 1px 2px rgba(0,0,0,.30) inset;
 }
 
 .brightness-slider highlight {
     background: linear-gradient(90deg, #F97316, #FB923C);
-    border-radius: 100px;
-    box-shadow: 0 0 8px rgba(249,115,22,.30);
+    border-radius: 999px;
+    box-shadow: 0 0 10px rgba(249,115,22,.35);
 }
 
 .brightness-slider slider {
-    background: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,.45);
+    background: #F97316;
+    min-width: 18px;
+    min-height: 18px;
+    margin: -5px;
+    border-radius: 999px;
+    box-shadow: 0 0 12px rgba(249,115,22,.45),
+                0 2px 6px rgba(0,0,0,.35);
+    border: 2px solid rgba(255,255,255,.30);
+}
+
+.brightness-slider slider:hover {
+    transform: scale(1.12);
+}
+
+.brightness-info {
+    color: rgba(255,255,255,.60);
+    font-size: 12px;
+    margin-top: 8px;
+    line-height: 1.4;
 }

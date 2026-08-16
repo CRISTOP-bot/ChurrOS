@@ -3,8 +3,16 @@
     Accent: #F97316
 */
 
+.network-widget {
+    padding: 4px;
+}
+
 .network-toggle {
-    padding-bottom: 10px;
+    background: rgba(255,255,255,.04);
+    border-radius: 16px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,.07);
+    margin-bottom: 14px;
 }
 
 .network-toggle label {
@@ -13,47 +21,24 @@
     font-weight: 600;
 }
 
-.ethernet-widget,
-.wifi-widget {
-    background: rgba(255,255,255,.04);
-    backdrop-filter: blur(16px) saturate(1.2);
-    border-radius: 14px;
-    padding: 14px;
-    border: 1px solid rgba(255,255,255,.06);
-    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
-}
-
-.section-title {
-    color: #F97316;
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 8px;
-}
-
-.network-name {
-    color: white;
-    font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0,0,0,.85);
-}
-
-.network-info {
-    color: rgba(255,255,255,.65);
-    font-size: 13px;
-}
-
 .network-label {
     color: white;
     font-size: 15px;
     font-weight: 600;
 }
 
-.network-widget label {
-    color: white;
+/* ── Switch ────────────────────────────────────────── */
+switch {
+    min-width: 48px;
+    min-height: 26px;
+    border-radius: 16px;
+    transition: 200ms ease;
 }
 
-separator {
-    margin: 10px 0;
-    background: rgba(255,255,255,.08);
+switch > slider {
+    background: white;
+    border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.40);
 }
 
 switch:checked {
@@ -61,89 +46,122 @@ switch:checked {
     box-shadow: 0 0 14px rgba(249,115,22,.30);
 }
 
-switch slider {
-    background: white;
-    box-shadow: 0 2px 6px rgba(0,0,0,.40);
+switch:not(:checked) {
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+/* ── Secciones ─────────────────────────────────────── */
+.section-title {
+    color: #FB923C;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.network-info {
+    color: rgba(255,255,255,.60);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+separator {
+    margin: 14px 0;
+    background: rgba(255,255,255,.08);
+    min-height: 1px;
+}
+
+/* ── Red Wi-Fi ─────────────────────────────────────── */
+.network-widget scrolledwindow {
+    min-width: 0;
 }
 
 .network-item {
-    background: rgba(255,255,255,.05);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.06);
     border-radius: 14px;
-    padding: 14px;
-    transition: 180ms cubic-bezier(.4,0,.2,1);
-    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
+    padding: 6px;
+    margin-bottom: 6px;
+    transition: 160ms cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
 }
 
 .network-item:hover {
-    background: rgba(249,115,22,.12);
-    border-color: rgba(249,115,22,.25);
-    box-shadow: 0 4px 18px rgba(249,115,22,.15),
-                0 1px 0 rgba(255,255,255,.08) inset;
-    transform: translateY(-1px);
+    background: rgba(249,115,22,.10);
+    border-color: rgba(249,115,22,.22);
+    box-shadow: 0 4px 16px rgba(249,115,22,.12);
 }
 
 .network-item:active {
-    background: rgba(249,115,22,.22);
-    transform: translateY(0);
+    background: rgba(249,115,22,.20);
+}
+
+.network-main {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 12px;
+    padding: 6px 8px;
+}
+
+.network-main:hover {
+    background: transparent;
+}
+
+.network-icon {
+    color: #FB923C;
+    font-size: 18px;
 }
 
 .network-name {
     color: white;
-    font-size: 15px;
-    font-weight: bold;
-    text-shadow: 0 1px 2px rgba(0,0,0,.85);
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .network-status {
-    color: rgba(255,255,255,.85);
-    text-shadow: 0 1px 2px rgba(0,0,0,.85);
+    color: rgba(255,255,255,.50);
     font-size: 12px;
 }
 
-.connected {
-    color: #47d764;
-    font-weight: bold;
-}
-
-.network-icon {
-    color: #F97316;
-    font-size: 18px;
+.network-status.connected {
+    color: #4ade80;
+    font-weight: 600;
 }
 
 .network-lock {
-    color: rgba(255,255,255,.65);
-    font-size: 14px;
+    color: rgba(255,255,255,.55);
+    font-size: 13px;
 }
 
-.password-dialog {
-    background: rgba(255,255,255,.04);
-    backdrop-filter: blur(14px);
-    border-radius: 14px;
-    padding: 16px;
-    border: 1px solid rgba(255,255,255,.06);
-}
-
-.password-dialog entry {
+.network-forget {
+    background: transparent;
+    border: 1px solid transparent;
+    color: rgba(255,255,255,.45);
     border-radius: 10px;
+    min-height: 30px;
+    min-width: 30px;
+    padding: 0;
+    font-size: 13px;
 }
 
-.network-error {
-    color: #ff5f56;
-    font-size: 12px;
+.network-forget:hover {
+    background: rgba(239,68,68,.14);
+    border-color: rgba(239,68,68,.30);
+    color: #f87171;
 }
 
-.ethernet-widget {
-    margin-top: 18px;
-}
-
+/* ── Acciones (refresh, hidden) ────────────────────── */
 .network-button {
     background: linear-gradient(135deg, #F97316, #C2410C);
     color: white;
-    border-radius: 10px;
-    padding: 10px 14px;
+    border-radius: 12px;
+    padding: 8px 14px;
     font-weight: 600;
+    font-size: 13px;
+    border: none;
     box-shadow: 0 4px 14px rgba(249,115,22,.25);
     transition: 160ms ease;
 }
@@ -154,21 +172,57 @@ switch slider {
     transform: translateY(-1px);
 }
 
-.popup-title {
+.network-button:active {
+    transform: translateY(0);
+}
+
+/* ── Páginas de contraseña / oculta ────────────────── */
+.hidden-dialog,
+.password-page {
+    background: rgba(255,255,255,.04);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,.07);
+}
+
+.hidden-dialog entry,
+.password-page entry {
+    background: rgba(255,255,255,.06);
+    border-radius: 12px;
+    min-height: 38px;
+    padding: 4px 14px;
     color: white;
-    font-size: 22px;
-    font-weight: bold;
 }
 
-.network-widget {
-    padding: 18px;
+.hidden-dialog entry:focus,
+.password-page entry:focus {
+    border-color: rgba(249,115,22,.5);
+    box-shadow: 0 0 0 3px rgba(249,115,22,.12);
 }
 
-.network-separator {
-    margin-top: 8px;
-    margin-bottom: 8px;
+.network-error {
+    color: #ff5f56;
+    font-size: 12px;
 }
 
-.wifi-widget scrolledwindow {
-    min-width: 0;
+/* ── Ethernet ──────────────────────────────────────── */
+.ethernet-widget {
+    background: rgba(255,255,255,.04);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,.07);
+    margin-top: 18px;
+}
+
+.ethernet-widget .network-info {
+    margin-top: 4px;
+}
+
+.ethernet-widget .network-button {
+    margin-top: 12px;
+}
+
+.connected {
+    color: #4ade80;
+    font-weight: 600;
 }

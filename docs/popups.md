@@ -23,7 +23,7 @@ rust/popups/
     └── power.rs
 ```
 
-Assets de runtime: `/usr/share/churros/popups/assets/` (y CSS compartido en `/usr/share/churros/styles/churros.css`).
+Assets de runtime: `/usr/share/churros/churros-popup/assets/` (desplegados por `build-rust.sh`; CSS compartido en `/usr/share/churros/styles/churros.css`).
 
 Uso:
 
@@ -119,7 +119,7 @@ El control center lanza el mismo binario (`churros-popup <nombre>`), no un `pyth
 
 1. Añade un módulo en `rust/popups/src/` que construya un `PopupWindow`.
 2. Regístralo en `build_window` y en el array `POPUPS` de `main.rs`.
-3. Añade CSS/iconos en `assets/` y en `archiso/airootfs/usr/share/churros/popups/assets/`.
+3. Añade CSS/iconos en `assets/` (build-rust.sh lo despliega a `archiso/airootfs/usr/share/churros/churros-popup/assets/`).
 4. Enlázalo desde Waybar o niri.
 
 ---
