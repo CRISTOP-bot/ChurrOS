@@ -118,7 +118,13 @@ pub fn patch_style(css: &str, font_family: &str, font_size: i64, bg_alpha: f64) 
     let mut out = sanitize_selectors(css);
     out = patch_first_decl(&out, "font-family", &format!("'{font_family}'"));
     out = patch_first_decl(&out, "font-size", &format!("{font_size}px"));
-    patch_first_background_alpha(&out, bg_alpha)
+    out = patch_first_background_alpha(&out, bg_alpha);
+    // Asegurar que el @import de colores esté presente (si se pierde, el fondo
+    // se vuelve gris porque @background no resuelve).
+    if !out.lines().any(|l| l.trim().starts_with("@import")) {
+        out = format!("@import \"./colors-waybar.css\";\n{}", out);
+    }
+    out
 }
 
 #[cfg(test)]
