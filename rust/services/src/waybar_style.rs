@@ -26,7 +26,7 @@ pub fn sanitize_selectors(css: &str) -> String {
 /// skel (incluido `#custom-power`) y metía selectores inválidos.
 pub fn should_replace_style(css: &str) -> bool {
     let t = css.trim();
-    t.is_empty() || t.contains("auto-generated") || t.contains("#custom/")
+    t.is_empty() || t.contains("auto-generated") || t.contains("#custom/") || !css.contains("alpha(@background,")
 }
 
 /// Lee `@define-color nombre valor;` → objeto JSON {nombre: valor}.
