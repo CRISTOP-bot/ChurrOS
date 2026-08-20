@@ -243,6 +243,9 @@ else
     netinstall_i=$(step_index 'netinstall' || true)
     post_i=$(step_index 'shellprocess@post-install' || true)
     umount_i=$(step_index 'umount' || true)
+    mount_i=$(step_index 'mount' || true)
+    bootnocow_i=$(step_index 'shellprocess@boot-nocow' || true)
+    unpackfs_i=$(step_index 'unpackfs' || true)
 
     order_ok=1
     for pair in \
@@ -251,7 +254,10 @@ else
         "shellprocess@churros-repo:$repo_i" \
         "netinstall:$netinstall_i" \
         "shellprocess@post-install:$post_i" \
-        "umount:$umount_i"
+        "umount:$umount_i" \
+        "mount:$mount_i" \
+        "shellprocess@boot-nocow:$bootnocow_i" \
+        "unpackfs:$unpackfs_i"
     do
         name=${pair%%:*}
         idx=${pair##*:}
@@ -278,9 +284,17 @@ else
             fail "shellprocess@post-install must be the last step before umount"
             order_ok=0
         fi
+        if [ "$mount_i" -ge "$bootnocow_i" ]; then
+            fail "shellprocess@boot-nocow must run after mount"
+            order_ok=0
+        fi
+        if [ "$bootnocow_i" -ge "$unpackfs_i" ]; then
+            fail "shellprocess@boot-nocow must run before unpackfs"
+            order_ok=0
+        fi
     fi
 
-    [ "$order_ok" -eq 1 ] && pass "pacman-init → fix-boot → churros-repo → netinstall; post-install before umount"
+    [ "$order_ok" -eq 1 ] && pass "boot-nocow after mount; pacman-init → fix-boot → churros-repo → netinstall; post-install before umount"
 fi
 
 # --------------------------------------------- Calamares shellprocess confs
@@ -354,6 +368,214 @@ else
     [ "$conf_ok" -eq 1 ] && pass "${#INSTANCE_CONFIGS[@]} shellprocess configs present and referenced"
 fi
 
+# Calamares reads defaultFileSystemType (capital S). The other spelling is ignored and ext4 is used.
+PARTITION_CONF=installer/calamares/modules/partition.conf
+if [ -f "$PARTITION_CONF" ]; then
+    if grep -qE '^[[:space:]]*defaultFilesystemType:' "$PARTITION_CONF"; then
+        fail "$PARTITION_CONF uses defaultFilesystemType (ignored); need defaultFileSystemType"
+    elif grep -qE '^[[:space:]]*defaultFileSystemType:' "$PARTITION_CONF"; then
+        pass "partition.conf defaultFileSystemType is the key Calamares reads"
+    else
+        notice "$PARTITION_CONF has no defaultFileSystemType (Calamares falls back to ext4)"
+    fi
+fi
+
+# GRUB gfxmenu rejects unknown global properties (install then fails to boot
+# the kernel *and* prints theme.txt errors). /boot on btrfs+zstd is unreadable.
+GRUB_THEME_TXT=branding/grub-theme/theme.txt
+if [ -f "$GRUB_THEME_TXT" ]; then
+    if grep -qE '^[[:space:]]*title-align:' "$GRUB_THEME_TXT"; then
+        fail "$GRUB_THEME_TXT: title-align is not a GRUB gfxmenu property"
+    elif grep -qE 'selected_item_pixmap_style_(left|right)' "$GRUB_THEME_TXT"; then
+        fail "$GRUB_THEME_TXT: selected_item_pixmap_style_left/right are not GRUB properties"
+    else
+        pass "GRUB theme.txt uses only gfxmenu global properties"
+    fi
+fi
+
+BOOT_GRUB_SCRIPT=archiso/airootfs/usr/share/churros/scripts/make-boot-grub-readable
+GRUB_THEME_CONF=installer/calamares/modules/shellprocess-grub-theme.conf
+BOOT_GRUB_HOOK=archiso/airootfs/etc/pacman.d/hooks/91-churros-boot-grub-readable.hook
+if [ ! -f "$BOOT_GRUB_SCRIPT" ]; then
+    fail "$BOOT_GRUB_SCRIPT missing (GRUB premature EOF on btrfs zstd /boot)"
+elif [ ! -f "$GRUB_THEME_CONF" ] || ! grep -q 'make-boot-grub-readable' "$GRUB_THEME_CONF"; then
+    fail "$GRUB_THEME_CONF does not run make-boot-grub-readable after grub-mkconfig"
+elif ! grep -q 'conv=fsync' "$BOOT_GRUB_SCRIPT" || grep -qE 'cp -a --' "$BOOT_GRUB_SCRIPT"; then
+    fail "$BOOT_GRUB_SCRIPT must full-copy into a +C inode (cp -a reflinks zstd extents on btrfs)"
+elif [ ! -f "$BOOT_GRUB_HOOK" ]; then
+    fail "$BOOT_GRUB_HOOK missing (kernel updates would rewrite compressed /boot images)"
+elif grep -q 'remove from airootfs' "$BOOT_GRUB_HOOK"; then
+    fail "$BOOT_GRUB_HOOK would be deleted by the ISO-only hook cleaner"
+else
+    pass "GRUB btrfs /boot rewrite is wired (install + pacman hook)"
+fi
+
+# PartitionLabelsView fills palette().window() and upstream paints Qt::black / Qt::gray.
+LABELS_PATCH=installer/patches/calamares-partition-labels.patch
+if [ ! -f "$LABELS_PATCH" ]; then
+    fail "$LABELS_PATCH missing (partition size/fs text stays Qt::gray on the legend)"
+elif ! grep -q 'bg.lightness()' "$LABELS_PATCH"; then
+    fail "$LABELS_PATCH does not pick label pens from the view background"
+else
+    pass "partition labels secondary-text patch present"
+fi
+
+# ----------------------------------------------- Calamares branding files
+
+section "Calamares branding"
+
+# Stdlib only (CI has no PyYAML). Mirrors Branding.cpp bail() checks:
+# componentName == directory, slideshow exists, image paths exist and
+# are non-empty, slideshowAPI 2 requires onActivate/onLeave.
+if python3 - installer/calamares/branding <<'PY'
+import re
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+errors = 0
+
+
+def fail(msg: str) -> None:
+    global errors
+    errors += 1
+    print(f"    {msg}")
+
+
+def unquote(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1]
+    return value
+
+
+def parse_desc(path: Path) -> dict[str, object]:
+    text = path.read_text(encoding="utf-8")
+    data: dict[str, object] = {"images": {}}
+    section = None
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].rstrip()
+        if not line.strip() or line.strip() == "---":
+            continue
+        if re.match(r"^[A-Za-z][A-Za-z0-9_]*:\s*$", line):
+            section = line.split(":", 1)[0]
+            if section == "images":
+                data["images"] = {}
+            continue
+        m = re.match(r"^([A-Za-z][A-Za-z0-9_]*):\s*(.*)$", line)
+        if m:
+            section = None
+            data[m.group(1)] = unquote(m.group(2))
+            continue
+        if section == "images":
+            m = re.match(r"^\s+([A-Za-z][A-Za-z0-9_]*):\s*(.*)$", line)
+            if m:
+                data["images"][m.group(1)] = unquote(m.group(2))  # type: ignore[index]
+    return data
+
+
+if not root.is_dir():
+    fail(f"{root} missing")
+    sys.exit(1)
+
+for component in sorted(p for p in root.iterdir() if p.is_dir()):
+    desc = component / "branding.desc"
+    if not desc.is_file():
+        fail(f"{desc} missing")
+        continue
+    data = parse_desc(desc)
+    name = str(data.get("componentName") or "")
+    if name != component.name:
+        fail(f"{desc}: componentName '{name}' != directory '{component.name}'")
+
+    sidebar = str(data.get("sidebar") or "widget")
+    if sidebar.split(",")[0].strip() == "qml":
+        qml_sidebar = component / "calamares-sidebar.qml"
+        if not qml_sidebar.is_file():
+            fail(f"{desc}: sidebar: qml requires {qml_sidebar}")
+
+    slideshow = str(data.get("slideshow") or "")
+    if not slideshow:
+        fail(f"{desc}: slideshow is missing")
+    else:
+        show = component / slideshow
+        if not show.is_file():
+            fail(f"{desc}: slideshow file {show} does not exist")
+        else:
+            api = str(data.get("slideshowAPI") or "")
+            if api == "2":
+                qml = show.read_text(encoding="utf-8")
+                if not re.search(r"function\s+onActivate\s*\(", qml):
+                    fail(f"{show}: slideshowAPI 2 requires onActivate()")
+                if not re.search(r"function\s+onLeave\s*\(", qml):
+                    fail(f"{show}: slideshowAPI 2 requires onLeave()")
+                if "#0F0F10" not in qml:
+                    fail(f"{show}: slideshow has no dark fill (Install page stays Fusion-white)")
+
+    images = data.get("images") or {}
+    if not isinstance(images, dict) or not images:
+        fail(f"{desc}: images: must list productLogo/productIcon files")
+    else:
+        for key, value in images.items():
+            if value == "":
+                fail(f"{desc}: images.{key} is empty (Calamares exits)")
+                continue
+            image_path = component / value
+            if not image_path.is_file():
+                fail(f"{desc}: images.{key} file {image_path} does not exist")
+            elif image_path.stat().st_size == 0:
+                fail(f"{desc}: images.{key} file {image_path} is empty")
+
+    qss = component / "stylesheet.qss"
+    if qss.is_file():
+        qss_text = qss.read_text(encoding="utf-8")
+        if re.search(r"^QWidget\s*\{", qss_text, re.M):
+            fail(f"{qss}: QWidget {{ }} paints PartitionLabelsView unreadable")
+        if "PrettyRadioButton" not in qss_text or "ChoicePage" not in qss_text:
+            fail(f"{qss}: partition ChoicePage/PrettyRadioButton styles missing (white-on-white)")
+        if "#summaryStep QWidget" not in qss_text:
+            fail(f"{qss}: summary page QWidget styles missing (white-on-white)")
+        if "PartitionLabelsView" not in qss_text or "QQuickWidget" not in qss_text:
+            fail(f"{qss}: PartitionLabelsView/QQuickWidget styles missing (Fusion-white panels)")
+        if "combo-arrow.svg" in qss_text and not (component / "combo-arrow.svg").is_file():
+            fail(f"{qss}: combo-arrow.svg is referenced but missing")
+
+sys.exit(1 if errors else 0)
+PY
+then
+    pass "branding component would load"
+else
+    fail "branding component would make Calamares exit"
+fi
+
+# ------------------------------------------- Calamares host preview (no ISO)
+
+section "Calamares host preview"
+
+PREVIEW=installer/calamares/preview
+if [ ! -f "$PREVIEW/settings.conf" ]; then
+    fail "$PREVIEW/settings.conf missing"
+else
+    preview_ok=1
+    if grep -E '^[[:space:]]+-[[:space:]]*partition[[:space:]]*$' "$PREVIEW/settings.conf" >/dev/null; then
+        fail "preview settings.conf must not load partition (polkit / real disks)"
+        preview_ok=0
+    fi
+    if [ -f "$PREVIEW/finished.conf" ] && ! grep -q '^restartNowMode:[[:space:]]*never' "$PREVIEW/finished.conf"; then
+        fail "preview finished.conf must set restartNowMode: never"
+        preview_ok=0
+    fi
+    if [ -f "$PREVIEW/locale.conf" ] && ! grep -q '^adjustLiveTimezone:[[:space:]]*false' "$PREVIEW/locale.conf"; then
+        fail "preview locale.conf must set adjustLiveTimezone: false"
+        preview_ok=0
+    fi
+    if [ -f "$PREVIEW/keyboard.conf" ] && ! grep -q '^useLocale1:[[:space:]]*false' "$PREVIEW/keyboard.conf"; then
+        fail "preview keyboard.conf must set useLocale1: false"
+        preview_ok=0
+    fi
+    [ "$preview_ok" -eq 1 ] && pass "preview does not partition, reboot, or push layout/timezone"
+fi
+
 # ------------------------------------------- Local AUR extras ↔ netinstall
 
 section "Local AUR extras in netinstall"
@@ -380,6 +602,48 @@ else
         fi
     done
     [ "$aur_ok" -eq 1 ] && pass "${aur_checked} local AUR packages listed in netinstall"
+fi
+
+# ------------------------------------------- Calamares Python ABI
+
+section "Calamares libpython"
+
+CALAMARES_LOCAL=$(ls archiso/packages/calamares-[0-9]*.pkg.tar.zst 2>/dev/null | head -1 || true)
+if [ -z "$CALAMARES_LOCAL" ]; then
+    notice "no local calamares package (ISO build will compile it)"
+elif ! command -v readelf >/dev/null 2>&1; then
+    notice "readelf not available; skip libpython check"
+else
+    host_python=$(/usr/bin/python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+    abi_tmp=$(mktemp -d)
+    bsdtar -xf "$CALAMARES_LOCAL" -C "$abi_tmp" usr/lib/libcalamares.so.3.4.2 2>/dev/null || \
+        bsdtar -xf "$CALAMARES_LOCAL" -C "$abi_tmp" usr/lib/libcalamares.so 2>/dev/null || true
+    abi_so=$(find "$abi_tmp" -name 'libcalamares.so*' -type f | head -1 || true)
+    pkg_python=""
+    if [ -n "$abi_so" ]; then
+        pkg_python=$(readelf -d "$abi_so" | sed -n 's/.*libpython\([0-9.]*\)\.so.*/\1/p' | head -1)
+    fi
+    rm -rf "$abi_tmp"
+    if [ -z "$pkg_python" ]; then
+        fail "$(basename "$CALAMARES_LOCAL"): could not read libpython NEEDED"
+    elif [ "$pkg_python" != "$host_python" ]; then
+        fail "$(basename "$CALAMARES_LOCAL") links libpython${pkg_python} but ISO python is ${host_python} (Calamares will not start). Run ./scripts/build-calamares.sh"
+    else
+        pass "Calamares links libpython${pkg_python} (matches host)"
+    fi
+    want_stamp=$(
+        (
+            cd installer/patches
+            ls calamares-*.patch | sort | xargs sha256sum
+            echo "python=$host_python"
+        ) | sha256sum | awk '{print $1}'
+    )
+    have_stamp=$(cat archiso/packages/.calamares-build.stamp 2>/dev/null || true)
+    if [ "$have_stamp" != "$want_stamp" ]; then
+        fail "local calamares package is stale vs installer/patches (run ./scripts/build-calamares.sh)"
+    else
+        pass "local calamares package matches installer/patches stamp"
+    fi
 fi
 
 # ------------------------------------------------------- Live overlay size
