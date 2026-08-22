@@ -34,5 +34,18 @@ terminal-font: "DejaVu Sans 16.pf2"
     item_height = 36
     item_spacing = 10
     item_padding = 12
-    selected_item_pixmap_style = "select.png"
+    selected_item_pixmap_style = "select"
+}
+
++ pixmap_style {
+    id = "select"
+    image = "select.png"
+    left = 0
+    top = 0
+    width = 520
+    height = 36
+    slice_left = 4
+    slice_right = 4
+    slice_top = 4
+    slice_bottom = 4
 }
