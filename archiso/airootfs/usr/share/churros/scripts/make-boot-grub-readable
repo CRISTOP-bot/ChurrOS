@@ -55,10 +55,10 @@ for f in /boot/vmlinuz-* /boot/initramfs-*.img /boot/*-ucode.img; do
     rewrite_for_grub "$f"
 done
 
-# Rewrite GRUB theme assets (background, fonts, select.png, theme.txt)
+# Rewrite GRUB theme assets (background, fonts, select*.png, theme.txt)
 THEME_DIR="/boot/grub/themes/churros"
 if [ -d "$THEME_DIR" ]; then
-    for f in "$THEME_DIR"/background.png "$THEME_DIR"/*.pf2 "$THEME_DIR"/select.png "$THEME_DIR"/theme.txt; do
+    for f in "$THEME_DIR"/background.png "$THEME_DIR"/*.pf2 "$THEME_DIR"/select*.png "$THEME_DIR"/theme.txt; do
         [ -f "$f" ] || continue
         case "$f" in
             *.grub-rewr) continue ;;

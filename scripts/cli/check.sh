@@ -380,16 +380,48 @@ if [ -f "$PARTITION_CONF" ]; then
     fi
 fi
 
-# GRUB gfxmenu rejects unknown global properties (install then fails to boot
-# the kernel *and* prints theme.txt errors). /boot on btrfs+zstd is unreadable.
+# GRUB gfxmenu rejects unknown global properties and unknown + components
+# (install then fails to boot the kernel *and* prints theme.txt errors).
+# Styled-box pixmaps are a filename pattern with '*', not a + pixmap_style block.
+# /boot on btrfs+zstd is unreadable unless images are rewritten into +C inodes.
 GRUB_THEME_TXT=branding/grub-theme/theme.txt
 if [ -f "$GRUB_THEME_TXT" ]; then
     if grep -qE '^[[:space:]]*title-align:' "$GRUB_THEME_TXT"; then
         fail "$GRUB_THEME_TXT: title-align is not a GRUB gfxmenu property"
     elif grep -qE 'selected_item_pixmap_style_(left|right)' "$GRUB_THEME_TXT"; then
         fail "$GRUB_THEME_TXT: selected_item_pixmap_style_left/right are not GRUB properties"
+    elif grep -qE '^\+[[:space:]]*pixmap_style\b' "$GRUB_THEME_TXT"; then
+        fail "$GRUB_THEME_TXT: + pixmap_style is not a GRUB gfxmenu component"
     else
         pass "GRUB theme.txt uses only gfxmenu global properties"
+    fi
+
+    unknown_comp=0
+    while IFS= read -r comp; do
+        case "$comp" in
+            boot_menu|label|image|hbox|vbox|canvas|circular_progress|progress_bar) ;;
+            *)
+                fail "$GRUB_THEME_TXT: unknown GRUB component + $comp"
+                unknown_comp=$((unknown_comp + 1))
+                ;;
+        esac
+    done < <(grep -E '^\+[[:space:]]+[A-Za-z0-9_]+' "$GRUB_THEME_TXT" \
+        | sed -E 's/^\+[[:space:]]+([A-Za-z0-9_]+).*/\1/')
+    [ "$unknown_comp" -eq 0 ] && pass "GRUB theme.txt components are gfxmenu types"
+
+    style=$(grep -E '^[[:space:]]*selected_item_pixmap_style[[:space:]]*=' "$GRUB_THEME_TXT" \
+        | sed -E 's/.*=[[:space:]]*"([^"]+)".*/\1/' | tail -n1)
+    if [ -z "$style" ]; then
+        pass "GRUB theme.txt has no selected_item_pixmap_style"
+    elif [[ "$style" != *'*'* ]]; then
+        fail "$GRUB_THEME_TXT: selected_item_pixmap_style must be a styled-box pattern (e.g. select_*.png), not '$style'"
+    else
+        center=${style/\*/c}
+        if [ ! -f "branding/grub-theme/$center" ]; then
+            fail "branding/grub-theme/$center missing (GRUB styled box center slice)"
+        else
+            pass "GRUB selected_item_pixmap_style uses $style ($center present)"
+        fi
     fi
 fi
 
@@ -406,6 +438,10 @@ elif [ ! -f "$BOOT_GRUB_HOOK" ]; then
     fail "$BOOT_GRUB_HOOK missing (kernel updates would rewrite compressed /boot images)"
 elif grep -q 'remove from airootfs' "$BOOT_GRUB_HOOK"; then
     fail "$BOOT_GRUB_HOOK would be deleted by the ISO-only hook cleaner"
+elif grep -qE 'Type[[:space:]]*=[[:space:]]*Package' "$BOOT_GRUB_HOOK" \
+    && grep -qE 'Type[[:space:]]*=[[:space:]]*Path' "$BOOT_GRUB_HOOK" \
+    && [ "$(grep -c '^\[Trigger\]' "$BOOT_GRUB_HOOK")" -lt 2 ]; then
+    fail "$BOOT_GRUB_HOOK mixes Path and Package Type in one Trigger (pacman applies the last Type to every Target)"
 else
     pass "GRUB btrfs /boot rewrite is wired (install + pacman hook)"
 fi

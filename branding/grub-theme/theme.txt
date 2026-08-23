@@ -1,6 +1,8 @@
 # ChurrOS GRUB theme
 # Fondo oscuro + menu centrado con seleccion naranja.
 # Global properties are only those in gfxmenu theme_set_string (no title-align).
+# Selected highlight is a styled box: select_*.png (at least select_c.png).
+# + pixmap_style is not a GRUB component and aborts theme load.
 
 title-text: ""
 title-font: "DejaVu Sans Bold 22.pf2"
@@ -34,18 +36,5 @@ terminal-font: "DejaVu Sans 16.pf2"
     item_height = 36
     item_spacing = 10
     item_padding = 12
-    selected_item_pixmap_style = "select"
-}
-
-+ pixmap_style {
-    id = "select"
-    image = "select.png"
-    left = 0
-    top = 0
-    width = 520
-    height = 36
-    slice_left = 4
-    slice_right = 4
-    slice_top = 4
-    slice_bottom = 4
+    selected_item_pixmap_style = "select_*.png"
 }

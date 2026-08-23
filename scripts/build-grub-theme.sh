@@ -36,6 +36,12 @@ if [ ! -f "$THEME_DIR/background.png" ] && [ -f "$BG_SRC" ]; then
     cp "$BG_SRC" "$THEME_DIR/background.png"
 fi
 
+# GRUB styled boxes resolve select_*.png → select_c.png (and optional edges).
+if [ -f "$THEME_DIR/select.png" ] && [ ! -f "$THEME_DIR/select_c.png" ]; then
+    echo "  Deriving select_c.png from select.png..."
+    cp "$THEME_DIR/select.png" "$THEME_DIR/select_c.png"
+fi
+
 echo
 echo "======================================"
 echo "  GRUB theme assets ready."
