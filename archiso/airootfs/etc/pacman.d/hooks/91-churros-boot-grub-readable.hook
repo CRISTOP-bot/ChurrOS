@@ -6,9 +6,19 @@ Target = usr/lib/modules/*/vmlinuz
 Target = boot/vmlinuz-*
 Target = boot/initramfs-*.img
 Target = boot/*-ucode.img
+Target = boot/grub/themes/churros/background.png
+Target = boot/grub/themes/churros/*.pf2
+Target = boot/grub/themes/churros/select*.png
+Target = boot/grub/themes/churros/theme.txt
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = grub
 
 [Action]
-Description = Rewriting /boot images so GRUB can read them on btrfs
+Description = Rewriting /boot images + GRUB theme so GRUB can read them on btrfs
 When = PostTransaction
 Depends = coreutils
 Exec = /usr/share/churros/scripts/make-boot-grub-readable
