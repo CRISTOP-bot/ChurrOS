@@ -14,10 +14,10 @@ desktop-color: "#111827"
 terminal-font: "DejaVu Sans 16.pf2"
 
 + label {
-    left = 0
-    width = 100%
-    top = 8%
-    height = 40
+    left = "0"
+    width = "100%"
+    top = "8%"
+    height = "40"
     text = "ChurrOS"
     font = "DejaVu Sans Bold 22.pf2"
     color = "#F97316"
@@ -27,14 +27,13 @@ terminal-font: "DejaVu Sans 16.pf2"
 + boot_menu {
     left = "50% - 260"
     top = "50% - 140"
-    width = 520
-    height = 280
+    width = "520"
+    height = "280"
     item_color = "#F8FAFC"
     selected_item_color = "#111827"
     item_font = "DejaVu Sans 16.pf2"
     selected_item_font = "DejaVu Sans Bold 16.pf2"
-    item_height = 36
-    item_spacing = 10
-    item_padding = 12
+    item_height = "36"
+    item_spacing = "10"
     selected_item_pixmap_style = "select_*.png"
 }
