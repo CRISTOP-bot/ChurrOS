@@ -423,6 +423,29 @@ if [ -f "$GRUB_THEME_TXT" ]; then
             pass "GRUB selected_item_pixmap_style uses $style ($center present)"
         fi
     fi
+
+    spaced=0
+    for f in branding/grub-theme/*; do
+        [ -e "$f" ] || continue
+        base=$(basename "$f")
+        if [[ "$base" == *' '* ]]; then
+            fail "branding/grub-theme/$base: GRUB cannot open filenames with spaces"
+            spaced=$((spaced + 1))
+        fi
+    done
+    [ "$spaced" -eq 0 ] && pass "GRUB theme filenames have no spaces"
+
+    if grep -qE '(title-font|terminal-font|[[:space:]]font[[:space:]]*=|[[:space:]]item_font|[[:space:]]selected_item_font).*\.pf2' "$GRUB_THEME_TXT"; then
+        fail "$GRUB_THEME_TXT: font properties must use the PFF2 name, not the .pf2 filename"
+    else
+        pass "GRUB theme.txt font properties use font names, not filenames"
+    fi
+
+    if grep -qE '%[[:space:]]+[+-]|[+-][[:space:]]+[0-9]' "$GRUB_THEME_TXT"; then
+        fail "$GRUB_THEME_TXT: position expressions must be 50%-260 (no spaces; grub_strtoull fails)"
+    else
+        pass "GRUB theme.txt position expressions have no spaces"
+    fi
 fi
 
 BOOT_GRUB_SCRIPT=archiso/airootfs/usr/share/churros/scripts/make-boot-grub-readable

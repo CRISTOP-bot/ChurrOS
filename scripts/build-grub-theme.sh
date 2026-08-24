@@ -14,18 +14,21 @@ echo "======================================"
 
 mkdir -p "$THEME_DIR"
 
+# GRUB cannot open paths with spaces (kern/fs.c: invalid file name ' ').
+rm -f "$THEME_DIR"/DejaVu\ Sans*.pf2
+
 if command -v grub-mkfont &>/dev/null; then
-    if [ ! -f "$THEME_DIR/DejaVu Sans 16.pf2" ]; then
-        echo "  Generating DejaVu Sans 16.pf2..."
-        grub-mkfont -o "$THEME_DIR/DejaVu Sans 16.pf2" -s 16 "$FONTS_SRC"
+    if [ ! -f "$THEME_DIR/dejavu-16.pf2" ]; then
+        echo "  Generating dejavu-16.pf2..."
+        grub-mkfont -o "$THEME_DIR/dejavu-16.pf2" -s 16 "$FONTS_SRC"
     fi
-    if [ ! -f "$THEME_DIR/DejaVu Sans Bold 16.pf2" ]; then
-        echo "  Generating DejaVu Sans Bold 16.pf2..."
-        grub-mkfont -o "$THEME_DIR/DejaVu Sans Bold 16.pf2" -s 16 "$FONTS_BOLD_SRC"
+    if [ ! -f "$THEME_DIR/dejavu-bold-16.pf2" ]; then
+        echo "  Generating dejavu-bold-16.pf2..."
+        grub-mkfont -o "$THEME_DIR/dejavu-bold-16.pf2" -s 16 "$FONTS_BOLD_SRC"
     fi
-    if [ ! -f "$THEME_DIR/DejaVu Sans Bold 22.pf2" ]; then
-        echo "  Generating DejaVu Sans Bold 22.pf2..."
-        grub-mkfont -o "$THEME_DIR/DejaVu Sans Bold 22.pf2" -s 22 "$FONTS_BOLD_SRC"
+    if [ ! -f "$THEME_DIR/dejavu-bold-22.pf2" ]; then
+        echo "  Generating dejavu-bold-22.pf2..."
+        grub-mkfont -o "$THEME_DIR/dejavu-bold-22.pf2" -s 22 "$FONTS_BOLD_SRC"
     fi
 else
     echo "  grub-mkfont not found — keeping existing .pf2 fonts (if any)."
