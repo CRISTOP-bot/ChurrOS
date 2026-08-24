@@ -1,40 +1,41 @@
 # ChurrOS GRUB theme
 # Fondo oscuro + menu centrado con seleccion naranja.
 # Global properties are only those in gfxmenu theme_set_string (no title-align).
+# Font properties use PFF2NAME (not the .pf2 filename). Filenames must not
+# contain spaces: GRUB file open treats space as a separator.
+# Position math is 50%-260 (no spaces) or grub_strtoull fails.
 # Selected highlight is a styled box: select_*.png (at least select_c.png).
-# + pixmap_style is not a GRUB component and aborts theme load.
 
 title-text: ""
-title-font: "DejaVu Sans Bold 22.pf2"
+title-font: "DejaVu Sans Bold 22"
 title-color: "#F97316"
 
 desktop-image: "background.png"
 desktop-color: "#111827"
 
-terminal-font: "DejaVu Sans 16.pf2"
+terminal-font: "DejaVu Sans Regular 16"
 
 + label {
-    left = 0
-    width = 100%
-    top = 8%
-    height = 40
+    left = "0"
+    width = "100%"
+    top = "8%"
+    height = "40"
     text = "ChurrOS"
-    font = "DejaVu Sans Bold 22.pf2"
+    font = "DejaVu Sans Bold 22"
     color = "#F97316"
     align = "center"
 }
 
 + boot_menu {
-    left = "50% - 260"
-    top = "50% - 140"
-    width = 520
-    height = 280
+    left = 50%-260
+    top = 50%-140
+    width = "520"
+    height = "280"
     item_color = "#F8FAFC"
     selected_item_color = "#111827"
-    item_font = "DejaVu Sans 16.pf2"
-    selected_item_font = "DejaVu Sans Bold 16.pf2"
-    item_height = 36
-    item_spacing = 10
-    item_padding = 12
+    item_font = "DejaVu Sans Regular 16"
+    selected_item_font = "DejaVu Sans Bold 16"
+    item_height = "36"
+    item_spacing = "10"
     selected_item_pixmap_style = "select_*.png"
 }
