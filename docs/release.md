@@ -168,13 +168,28 @@ Posteriormente publicar la ISO y el torrent en download.churroslinux.org. Tambi�
 
 # Archivos de la versión
 
-Cada versión oficial debería incluir:
+Cada versión oficial de ChurrOS se compone de:
 
-- Imagen ISO.
-- SHA256SUMS.
-- Notas de la versión.
-- Número de versión.
-- Fecha de publicación.
+1. **Imagen ISO de instalación:**
+   - Archivo `.iso` generado por `./churros build`.
+   - Sumas de verificación `SHA256SUMS`.
+   - Archivo `.torrent` para distribución P2P en download.churroslinux.org.
+
+2. **Bundle de actualización OTA (Over-The-Air):**
+   - Paquete de utilidades `churros-utils-<version>.tar.zst` generado con:
+     ```bash
+     ./scripts/build-churros-release.sh
+     ```
+   - Manifiesto `updates.json` que contiene:
+     ```json
+     {
+       "version": "1.0",
+       "date": "2026-08-25",
+       "file": "churros-utils-1.0.tar.zst",
+       "sha256": "<hash_sha256>"
+     }
+     ```
+   - Al publicar ambos archivos en `https://download.churroslinux.org/churros/`, los sistemas ya instalados reciben automáticamente las nuevas versiones de las apps Rust (`churros-settings`, `churros-welcome`, `churros-popup`, `churros-control-center`), scripts del sistema y assets sin necesidad de reinstalar la distribución.
 
 ---
 

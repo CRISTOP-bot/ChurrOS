@@ -340,6 +340,64 @@ Atajo para abrir la guía de instalación de Arch en el navegador. Disponible en
 
 ---
 
+# Scripts y Utilidades de ChurrOS
+
+ChurrOS incluye un conjunto de utilidades auxiliares en `/usr/bin/` y `/usr/local/bin/` para gestionar el entorno, fondos, permisos, actualizaciones y temas:
+
+## churros-apply-wallpaper
+
+**Path:** `/usr/bin/churros-apply-wallpaper`
+
+Aplica el fondo de pantalla en compositores Wayland (Niri / Hyprland / Sway).
+
+- Detecta automáticamente sockets `WAYLAND_DISPLAY` y `XDG_RUNTIME_DIR` incluso en entornos live sin sesión explícita.
+- Soporta backends `swaybg` (modo estático predeterminado) y `awww` (animaciones/transiciones).
+- Si no recibe argumentos, lee la ruta guardada en `~/.config/churros/settings.json` o recurre a `/usr/share/churros/wallpapers/default.jpeg`.
+
+## churros-pick-image
+
+**Path:** `/usr/bin/churros-pick-image`
+
+Diálogo gráfico nativo en GTK para seleccionar imágenes (fondos de pantalla, avatares). Filtra formatos comunes (PNG, JPG, JPEG, WEBP) y devuelve la ruta seleccionada por stdout.
+
+## churros-pkexec
+
+**Path:** `/usr/bin/churros-pkexec`
+
+Wrapper para ejecutar comandos con permisos de administrador utilizando Polkit sin requerir terminal interactiva. Permite a las aplicaciones de usuario ejecutar utilidades privilegiadas (como `timedatectl`, `churros-update-utils` o `churros-snapshot`) respetando las políticas de `/etc/polkit-1/rules.d/`.
+
+## churros-portal-start
+
+**Path:** `/usr/bin/churros-portal-start`
+
+Inicializa ordenadamente los servicios de portales `xdg-desktop-portal` en Wayland (específicamente `xdg-desktop-portal-gnome` / `xdg-desktop-portal-gtk` / `xdg-desktop-portal-wlr`) tras el arranque de Niri para garantizar la selección de archivos, captura de pantalla e integración con Flatpak.
+
+## churros-update-utils
+
+**Path:** `/usr/bin/churros-update-utils`
+
+Comprueba y descarga actualizaciones del bundle de utilidades oficiales de ChurrOS desde el servidor de distribución (`https://download.churroslinux.org/churros/updates.json`). Verifica la firma SHA-256 del archivo `churros-utils-<version>.tar.zst` antes de extraerlo sobre la raíz `/`.
+
+## churros-theme
+
+**Path:** `/usr/local/bin/churros-theme`
+
+Script CLI para alternar entre tema oscuro y claro (`dark` / `light`), sincronizando gsettings, archivos CSS de acento y notificando al compositor y barra.
+
+## churros-update-auto
+
+**Path:** `/usr/local/bin/churros-update-auto`
+
+Servicio en segundo plano que comprueba periódicamente si existen actualizaciones de pacman, flatpak o utilidades ChurrOS y emite notificaciones de escritorio cuando hay paquetes listos para actualizar.
+
+## churros-snapshot
+
+**Path:** `/usr/local/bin/churros-snapshot`
+
+Herramienta de administración para crear, listar, limpiar y restaurar snapshots Btrfs del sistema raíz (`@`) y de usuario (`@home`). Utilizada tanto por el hook de pacman (`50-churros-snapshot.hook`) como por la interfaz gráfica en `churros-settings`. (Detalles en `docs/rollback.md`).
+
+---
+
 # Init Order
 
 Resumen del orden de arranque del Live:
