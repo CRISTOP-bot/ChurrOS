@@ -45,10 +45,18 @@ Construye una nueva imagen ISO de ChurrOS.
 
 ```bash
 ./churros build
+./churros build --edition xfce
+./churros build --edition niri
 ```
+
+Opciones:
+- `--edition <niri|xfce>` (o `-e`): Selecciona el entorno de escritorio de la ISO (por defecto: `niri`).
+  - `niri`: Compositor Wayland con tiling dinámico horizontal (Waybar, foot, Fuzzel, Mako).
+  - `xfce`: Entorno de escritorio clásico X11 (XFCE 4, panel ChurrOS, xfwm4, xfce4-terminal).
 
 Este comando realiza automáticamente:
 
+- Configuración de paquetes y dotfiles según la edición seleccionada.
 - Copia de branding y tema GRUB al airootfs.
 - Construcción de paquetes AUR locales si faltan (Calamares, python-pywal, waypaper, yay).
 - Compilación de las apps Rust (`scripts/build-rust.sh`) y despliegue en `usr/bin/`.

@@ -2,14 +2,40 @@
 
 set -e
 
-HOST_REPO_SYMLINK=0
+EDITION="niri"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --edition|-e)
+            EDITION="$2"
+            shift 2
+            ;;
+        --edition=*)
+            EDITION="${1#*=}"
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
 
+EDITION=$(echo "$EDITION" | tr '[:upper:]' '[:lower:]')
+if [ "$EDITION" != "niri" ] && [ "$EDITION" != "xfce" ]; then
+    echo "Error: unsupported edition '$EDITION' (supported: niri, xfce)" >&2
+    exit 1
+fi
+
+PACKAGES_BACKED_UP=0
 cleanup_temp() {
     echo "[cleanup] Removing temporary build files..."
     if [ "$HOST_REPO_SYMLINK" -eq 1 ]; then
         echo "[cleanup] Removing host /root/packages symlink..."
         sudo rm -f /root/packages 2>/dev/null || true
     fi
+    if [ "$PACKAGES_BACKED_UP" -eq 1 ] && [ -f archiso/packages.x86_64.orig ]; then
+        mv archiso/packages.x86_64.orig archiso/packages.x86_64
+    fi
+    rm -f archiso/airootfs/etc/churros-edition 2>/dev/null || true
     rm -f archiso/airootfs/root/customize_airootfs.sh 2>/dev/null || true
     rm -rf archiso/airootfs/root/branding 2>/dev/null || true
     rm -rf archiso/airootfs/root/packages 2>/dev/null || true
@@ -28,8 +54,48 @@ trap cleanup_temp EXIT
 
 echo "======================================"
 echo "      ChurrOS Build System"
+echo "      Edition: ${EDITION^^}"
 echo "======================================"
 echo
+
+# 0. Configurar paquetes según la edición
+if [ "$EDITION" = "xfce" ]; then
+    echo "[0/5] Selecting XFCE packages..."
+    if [ -f archiso/packages.xfce.x86_64 ]; then
+        cp archiso/packages.x86_64 archiso/packages.x86_64.orig
+        PACKAGES_BACKED_UP=1
+        cp archiso/packages.xfce.x86_64 archiso/packages.x86_64
+    else
+        echo "Error: archiso/packages.xfce.x86_64 not found!" >&2
+        exit 1
+    fi
+fi
+
+# Guardar la edición activa en el airootfs
+mkdir -p archiso/airootfs/etc
+echo "$EDITION" > archiso/airootfs/etc/churros-edition
+
+# Configurar greetd para la sesión correspondiente
+mkdir -p archiso/airootfs/etc/greetd
+if [ "$EDITION" = "xfce" ]; then
+    cat > archiso/airootfs/etc/greetd/config.toml << 'EOF'
+[terminal]
+vt = 1
+
+[default_session]
+command = "/usr/bin/startxfce4"
+user = "churros"
+EOF
+else
+    cat > archiso/airootfs/etc/greetd/config.toml << 'EOF'
+[terminal]
+vt = 1
+
+[default_session]
+command = "/usr/bin/niri"
+user = "churros"
+EOF
+fi
 
 echo "[1/5] Preparing branding..."
 
@@ -51,7 +117,8 @@ chmod +x archiso/airootfs/root/branding/stamp-os-release.sh
 CHURROS_VERSION=$(tr -d '[:space:]' < VERSION)
 bash branding/stamp-os-release.sh \
     archiso/airootfs/root/branding/files/os-release \
-    "$CHURROS_VERSION"
+    "$CHURROS_VERSION" \
+    "$EDITION"
 
 if [ -d branding/grub-theme ]; then
     cp -r branding/grub-theme \

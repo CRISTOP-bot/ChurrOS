@@ -4,8 +4,7 @@
 # Usage: stamp-os-release.sh <os-release-path> <version>
 set -euo pipefail
 
-file=${1:-}
-ver=${2:-}
+edition=${3:-niri}
 
 if [ ! -f "$file" ]; then
     echo "stamp-os-release: file not found: $file" >&2
@@ -30,4 +29,13 @@ set_or_insert() {
 
 set_or_insert VERSION_ID "$ver" ID
 set_or_insert VERSION "\"${ver}\"" VERSION_ID
-set_or_insert PRETTY_NAME "\"ChurrOS ${ver}\"" NAME
+
+if [ "$edition" = "xfce" ]; then
+    set_or_insert VARIANT "\"XFCE Edition\"" VERSION
+    set_or_insert VARIANT_ID "\"xfce\"" VARIANT
+    set_or_insert PRETTY_NAME "\"ChurrOS XFCE ${ver}\"" NAME
+else
+    set_or_insert VARIANT "\"Niri Edition\"" VERSION
+    set_or_insert VARIANT_ID "\"niri\"" VARIANT
+    set_or_insert PRETTY_NAME "\"ChurrOS ${ver}\"" NAME
+fi

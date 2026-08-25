@@ -81,7 +81,18 @@ if [ -n "$duplicates" ]; then
     # shellcheck disable=SC2086
     printf '      %s\n' $duplicates
 else
-    pass "no duplicates"
+    pass "no duplicates (packages.x86_64)"
+fi
+
+if [ -f archiso/packages.xfce.x86_64 ]; then
+    duplicates_xfce=$(grep -v '^#' archiso/packages.xfce.x86_64 | grep -v '^$' | sort | uniq -d)
+    if [ -n "$duplicates_xfce" ]; then
+        fail "duplicate entries in archiso/packages.xfce.x86_64:"
+        # shellcheck disable=SC2086
+        printf '      %s\n' $duplicates_xfce
+    else
+        pass "no duplicates (packages.xfce.x86_64)"
+    fi
 fi
 
 # ------------------------------------------------------- Shared resolvers

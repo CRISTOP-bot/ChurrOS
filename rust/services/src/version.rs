@@ -28,6 +28,50 @@ pub fn from_os_release() -> String {
     distro().to_string()
 }
 
+/// Lee la edición de ChurrOS desde `/etc/churros-edition`, `VARIANT_ID` de `/etc/os-release`
+/// o variables del entorno de sesión. Por defecto devuelve `"niri"`.
+pub fn edition() -> String {
+    if let Ok(content) = std::fs::read_to_string("/etc/churros-edition") {
+        let e = content.trim().to_lowercase();
+        if !e.is_empty() {
+            return e;
+        }
+    }
+    if let Ok(content) = std::fs::read_to_string("/etc/os-release") {
+        for line in content.lines() {
+            if let Some(rest) = line.strip_prefix("VARIANT_ID=") {
+                let val = rest.trim().trim_matches('"').to_lowercase();
+                if !val.is_empty() {
+                    return val;
+                }
+            }
+        }
+    }
+    let desktop = std::env::var("XDG_CURRENT_DESKTOP")
+        .or_else(|_| std::env::var("DESKTOP_SESSION"))
+        .unwrap_or_default()
+        .to_lowercase();
+    if desktop.contains("xfce") {
+        "xfce".to_string()
+    } else {
+        "niri".to_string()
+    }
+}
+
+/// Nombre capitalizado del escritorio activo para la interfaz gráfica ("XFCE", "Niri", etc.).
+pub fn desktop_name() -> &'static str {
+    let ed = edition();
+    if ed.contains("xfce") {
+        "XFCE"
+    } else if ed.contains("hyprland") {
+        "Hyprland"
+    } else if ed.contains("sway") {
+        "Sway"
+    } else {
+        "Niri"
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

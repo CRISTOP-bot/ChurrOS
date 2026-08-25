@@ -47,11 +47,16 @@ El objetivo es generar imágenes ISO reproducibles, mantener un flujo sencillo y
 
 # Flujo de compilación
 
-`./churros build` hace, en este orden:
+`./churros build [--edition <niri|xfce>]` hace, en este orden:
+
+## 0. Selección de edición y paquetes
+
+- Si se especifica `--edition xfce`: selecciona `archiso/packages.xfce.x86_64`, configura `/etc/churros-edition` con `xfce` y ajusta el autologin de `greetd` a `startxfce4`.
+- Si se especifica `--edition niri` (por defecto): utiliza `archiso/packages.x86_64` (Waybar, Niri, foot, Fuzzel, Mako) y el autologin a sesión Niri.
 
 ## 1. Branding y tema GRUB
 
-Copia `branding/customize_airootfs.sh` y `branding/files/` al airootfs. Regenera fuentes del tema GRUB si faltan y copia `branding/grub-theme` a `/usr/share/churros/grub-theme/`.
+Copia `branding/customize_airootfs.sh` y `branding/files/` al airootfs. Estampa `VERSION` y la edición activa en `os-release`. Regenera fuentes del tema GRUB si faltan y copia `branding/grub-theme` a `/usr/share/churros/grub-theme/`.
 
 ## 2. Paquetes locales
 

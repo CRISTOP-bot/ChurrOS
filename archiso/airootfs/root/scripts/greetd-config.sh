@@ -20,13 +20,23 @@ fi
 
 chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config" 2>/dev/null || true
 
+EDITION="niri"
+if [ -f /etc/churros-edition ]; then
+    EDITION="$(tr -d '[:space:]' < /etc/churros-edition | tr '[:upper:]' '[:lower:]')"
+fi
+
+SESSION_CMD="/usr/bin/niri"
+if [ "$EDITION" = "xfce" ] || [ -x /usr/bin/startxfce4 -a ! -x /usr/bin/niri ]; then
+    SESSION_CMD="/usr/bin/startxfce4"
+fi
+
 cat > /etc/greetd/config.toml << EOF
 [terminal]
 vt = 1
 
 [default_session]
-command = "/usr/bin/niri"
+command = "$SESSION_CMD"
 user = "$USERNAME"
 EOF
 
-echo "greetd config written for user: $USERNAME"
+echo "greetd config written for user: $USERNAME ($SESSION_CMD)"
