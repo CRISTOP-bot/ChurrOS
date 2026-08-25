@@ -14,10 +14,10 @@ navigation: widget
 strings:
   productName: "ChurrOS"
   shortProductName: ChurrOS
-  version: 0.7
-  shortVersion: 0.7
-  versionedName: ChurrOS 0.7
-  shortVersionedName: ChurrOS 0.7
+  version: 1.0
+  shortVersion: 1.0
+  versionedName: ChurrOS 1.0
+  shortVersionedName: ChurrOS 1.0
   bootloaderEntryName: ChurrOS
   productUrl: https://github.com/Hoyuse/ChurrOS
   supportUrl: https://github.com/Hoyuse/ChurrOS/issues

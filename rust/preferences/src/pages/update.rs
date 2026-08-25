@@ -8,7 +8,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::mpsc::TryRecvError;
 
-use crate::services::update::UpdateService;
+use crate::services::update::{Snapshot, UpdateService};
 use crate::widgets::combo_row::ComboRow;
 use crate::widgets::group::Group;
 use crate::widgets::page::Page;
@@ -125,6 +125,57 @@ pub fn build(navigator: gtk::Stack) -> Page {
     *churros_status.borrow_mut() = Some(churros_row);
     action_group.add(churros_status.borrow().as_ref().unwrap());
     page.add(action_group.widget());
+
+    // ---------- Rollback (snapshots btrfs) ----------
+    let mut rb_group = Group::new("Rollback (snapshots btrfs)");
+
+    let snap_box: Rc<gtk::Box> = Rc::new(gtk::Box::new(gtk::Orientation::Vertical, 0));
+    let create_btn = {
+        let b = Rc::clone(&snap_box);
+        Row::new(
+            "Crear snapshot ahora",
+            Some("Crea una copia btrfs del sistema antes de cambios importantes"),
+            Some("system.svg"),
+            None,
+            None,
+            Some(Box::new(move |_| {
+                let b = Rc::clone(&b);
+                let (tx, rx) = std::sync::mpsc::channel::<()>();
+                std::thread::spawn(move || {
+                    let _ = UpdateService::create_snapshot();
+                    let _ = tx.send(());
+                });
+                glib::timeout_add_local(std::time::Duration::from_millis(150), move || {
+                    match rx.try_recv() {
+                        Ok(()) => {
+                            refresh_snapshots(Rc::clone(&b));
+                            glib::ControlFlow::Break
+                        }
+                        Err(TryRecvError::Empty) => glib::ControlFlow::Continue,
+                        Err(TryRecvError::Disconnected) => glib::ControlFlow::Break,
+                    }
+                });
+            })),
+        )
+    };
+    rb_group.add(&create_btn);
+
+    let restore_info = Row::new(
+        "Cómo restaurar",
+        Some("Si el sistema no arranca, inicia desde la ISO live y ejecuta: \
+              sudo churros-snapshot restore -d /dev/sdX <stamp>"),
+        Some("system.svg"),
+        None,
+        None,
+        None,
+    );
+    rb_group.add(&restore_info);
+
+    rb_group.add(snap_box.as_ref().upcast_ref::<gtk::Widget>());
+    page.add(rb_group.widget());
+
+    let snap_box_rc = Rc::clone(&snap_box);
+    glib::idle_add_local_once(move || refresh_snapshots(snap_box_rc));
 
     // ---------- Log ----------
     let mut log_group = Group::new("Registro de actualización");
@@ -254,4 +305,86 @@ fn append_log(log_view: &Rc<RefCell<Option<gtk::TextView>>>, text: &str) {
         let mut end = buffer.end_iter();
         let _ = view.scroll_to_iter(&mut end, 0.0, false, 0.0, 1.0);
     }
+}
+
+// ------------------------------------------------------------ rollback UI
+
+fn refresh_snapshots(snap_box: Rc<gtk::Box>) {
+    let (tx, rx) = std::sync::mpsc::channel::<Vec<Snapshot>>();
+    std::thread::spawn(move || {
+        let list = UpdateService::list_snapshots();
+        let _ = tx.send(list);
+    });
+
+    glib::timeout_add_local(std::time::Duration::from_millis(150), move || {
+        match rx.try_recv() {
+            Ok(list) => {
+                while let Some(child) = snap_box.first_child() {
+                    snap_box.remove(&child);
+                }
+                if list.is_empty() {
+                    let empty = gtk::Label::new(Some("Sin snapshots todavía."));
+                    empty.add_css_class("row-subtitle");
+                    empty.set_xalign(0.0);
+                    empty.set_margin_top(10);
+                    empty.set_margin_bottom(10);
+                    empty.set_margin_start(14);
+                    empty.set_margin_end(14);
+                    snap_box.append(&empty);
+                } else {
+                    for snap in &list {
+                        let row = build_snapshot_row(snap, Rc::clone(&snap_box));
+                        snap_box.append(row.widget());
+                    }
+                }
+                glib::ControlFlow::Break
+            }
+            Err(TryRecvError::Empty) => glib::ControlFlow::Continue,
+            Err(TryRecvError::Disconnected) => glib::ControlFlow::Break,
+        }
+    });
+}
+
+fn build_snapshot_row(snap: &Snapshot, snap_box: Rc<gtk::Box>) -> Row {
+    let delete = gtk::Button::with_label("Eliminar");
+    delete.add_css_class("flat");
+    delete.add_css_class("destructive-action");
+    delete.set_halign(gtk::Align::End);
+
+    let stamp = snap.stamp.clone();
+    let b = Rc::clone(&snap_box);
+    delete.connect_clicked(move |_| {
+        let b = Rc::clone(&b);
+        let s = stamp.clone();
+        let (tx, rx) = std::sync::mpsc::channel::<()>();
+        std::thread::spawn(move || {
+            let _ = UpdateService::delete_snapshot(&s);
+            let _ = tx.send(());
+        });
+        glib::timeout_add_local(std::time::Duration::from_millis(150), move || {
+            match rx.try_recv() {
+                Ok(()) => {
+                    refresh_snapshots(Rc::clone(&b));
+                    glib::ControlFlow::Break
+                }
+                Err(TryRecvError::Empty) => glib::ControlFlow::Continue,
+                Err(TryRecvError::Disconnected) => glib::ControlFlow::Break,
+            }
+        });
+    });
+
+    let subtitle = if snap.date.is_empty() {
+        snap.reason.clone()
+    } else {
+        format!("{} · {}", snap.reason, snap.date)
+    };
+
+    Row::new(
+        &snap.stamp,
+        Some(&subtitle),
+        Some("system.svg"),
+        None,
+        Some(&delete.upcast_ref::<gtk::Widget>()),
+        None,
+    )
 }
