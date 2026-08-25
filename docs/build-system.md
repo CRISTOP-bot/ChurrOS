@@ -34,8 +34,14 @@ El objetivo es generar imágenes ISO reproducibles, mantener un flujo sencillo y
 - Perfil en `archiso/`
 - Workspace Rust en `rust/`
 - Paquetes locales en `archiso/packages/`
-
-No hace falta ejecutar `mkarchiso` a mano.
+- Scripts de compilación auxiliares en `scripts/`:
+  - `build-rust.sh`: Compila en release todos los crates de `rust/` con `deploy = true` y los instala en el airootfs.
+  - `build-calamares.sh`: Compila el instalador Calamares desde AUR con parches locales y soporte de Python.
+  - `build-aur.sh`: Compila paquetes AUR necesarios (`python-pywal`, `waypaper`, `yay`).
+  - `build-bazaar.sh`: Compila la tienda de aplicaciones Bazaar resolviendo conflictos de dependencias con libdex.
+  - `build-grub-theme.sh`: Genera fuentes `.pf2` y recursos gráficos para el tema de GRUB.
+  - `build-i18n.sh`: Compila catálogos gettext de `po/*.po` a `.mo` en `archiso/airootfs/usr/share/locale/`.
+  - `build-churros-release.sh`: Genera el bundle OTA `churros-utils-<version>.tar.zst` y `updates.json` para el servidor de actualizaciones.
 
 ---
 

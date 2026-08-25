@@ -32,11 +32,17 @@ Esta documentación está dirigida tanto a desarrolladores como a futuros colabo
 
 - [Release](release.md)
 
+## Mantenimiento y Recuperación
+
+- [Rollback](rollback.md)
+
 ## Proyecto
 
 - [Roadmap](roadmap.md)
+- [Goals](goals.md)
 - [Vision](vision.md)
 - [Contributing](contributing.md)
+- [Devlog](devlog.md)
 
 ---
 
@@ -69,9 +75,12 @@ Cada documento aborda un aspecto específico del proyecto.
 | Boot | Sistema de arranque (GRUB UEFI + Syslinux BIOS). |
 | VM | Máquina virtual de desarrollo con QEMU/KVM. |
 | Release | Proceso para generar una versión oficial. |
+| Rollback | Sistema de snapshots Btrfs y recuperación ante fallos. |
 | Roadmap | Estado actual y objetivos futuros del proyecto. |
+| Goals | Metas generales y alcance del proyecto. |
 | Vision | Filosofía y metas de ChurrOS. |
 | Contributing | Guía para contribuir al proyecto. |
+| Devlog | Registro cronológico del desarrollo y hitos alcanzados. |
 
 ---
 

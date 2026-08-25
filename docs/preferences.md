@@ -136,6 +136,7 @@ En maximizado/fullscreen se añade la clase `maximized` para el CSS glass (menos
 | `users.rs` | Sistema | Cuentas |
 | `privacy.rs` | Sistema | Permisos |
 | `backup.rs` | Sistema | Export / import / reset de `~/.config/churros/` |
+| `update.rs` | Sistema | Actualizador (pacman, Flatpak, utilidades ChurrOS) y Rollback Btrfs |
 | `logs.rs` | Sistema | Visor de logs |
 | `about.rs` | Sistema | Versión, créditos, licencia |
 
@@ -150,6 +151,7 @@ En maximizado/fullscreen se añade la clase `maximized` para el CSS glass (menos
 - **WaybarService** — `config.jsonc` + `style.css`; recarga con `SIGUSR1`.
 - **DatetimeService** — `timedatectl` vía `churros-pkexec`.
 - **BackupService** — tar de `~/.config/churros/`.
+- **UpdateService** — comprobación/actualización asíncrona de paquetes (pacman, flatpak, utilidades ChurrOS), temporizadores systemd y gestión de snapshots Btrfs vía `churros-snapshot`.
 
 ---
 

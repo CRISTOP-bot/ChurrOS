@@ -17,8 +17,12 @@ rust/services/src/
 ├── battery.rs      # upower
 ├── bluetooth.rs    # bluetoothctl / rfkill
 ├── brightness.rs   # brightnessctl + /sys/class/backlight
+├── dev.rs          # Aislamiento dry-run para ./churros apps
 ├── ethernet.rs     # nmcli
+├── jsonc.rs        # Parser y normalizador JSONC (comentarios y trailing commas)
 ├── power.rs        # loginctl, niri msg, systemctl
+├── version.rs      # Versión embebida en tiempo de compilación (VERSION)
+├── waybar_style.rs # Manipulador de estilos y selectores CSS para Waybar
 └── wifi.rs         # nmcli
 ```
 
@@ -127,6 +131,49 @@ Wrapper real sobre `bluetoothctl` (ya no es una lista hardcodeada).
 | `hibernate()` | `systemctl hibernate` (`can_hibernate()` primero) |
 | `restart()` | `systemctl reboot` |
 | `shutdown()` | `systemctl poweroff` |
+
+---
+
+## dev
+
+Módulo de seguridad para desarrollo (`CHURROS_DEV=1`). Permite ejecutar `./churros apps` sobre la máquina del desarrollador en modo vista previa sin riesgo de alterar el sistema host.
+
+- **Comportamiento:** Las operaciones de sólo lectura (obtener volumen, listar redes, consultar batería) se ejecutan normalmente.
+- **Aislamiento:** Cualquier comando que altere el estado (`wpctl set-volume`, `nmcli con up/down`, `bluetoothctl connect`, `systemctl reboot/poweroff`, `pkill`) es interceptado, cancelado y registrado en stderr como `[churros-dev] blocked: <comando>`.
+
+---
+
+## jsonc
+
+Parser y normalizador minimalista de JSON con comentarios (`//`) y trailing commas (`,}` o `,]`).
+
+- `strip_line_comments(raw)`: Elimina comentarios de línea preservando URLs y cadenas con barras (`//`).
+- `remove_trailing_commas(text)`: Limpia comas sobrantes para permitir parseo estricto con `serde_json`.
+- `parse(raw)`: Combina ambas funciones para convertir texto JSONC a `serde_json::Value`.
+
+Utilizado principalmente para la manipulación de configuraciones como `config.jsonc` de Waybar y archivos de preferencias de ChurrOS.
+
+---
+
+## version
+
+Manejo y lectura de la versión de la distribución.
+
+- `distro() -> &'static str`: Retorna el número de versión (`VERSION`) embebido en tiempo de compilación mediante `include_str!("../../../VERSION")`.
+- `from_os_release() -> String`: Intenta leer `VERSION_ID` desde `/etc/os-release` en runtime con fallback a `distro()`.
+
+Garantiza que apps como `churros-welcome`, `churros-settings` y los servicios del sistema reporten siempre la versión oficial sincronizada.
+
+---
+
+## waybar_style
+
+Manipulación de CSS y normalización de sintaxis para temas de Waybar.
+
+- `css_color(hex)`: Normaliza colores `#rrggbbaa` a formato de 6 dígitos `#rrggbb` compatible con los analizadores CSS de GTK en Waybar.
+- `sanitize_selectors(css)`: Corrige automáticamente selectores mal formados (ej. convierte `#custom/sep` a `#custom-sep`).
+- `parse_define_colors(css)`: Extrae definiciones `@define-color nombre valor;` a estructuras JSON para inspección y edición interactiva desde `churros-settings`.
+- `patch_color(css, name, value)`: Modifica o inyecta variables de color en stylesheets sin destruir comentarios ni reglas existentes.
 
 ---
 
