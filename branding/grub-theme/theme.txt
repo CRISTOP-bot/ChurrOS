@@ -4,7 +4,8 @@
 # Font properties use PFF2NAME (not the .pf2 filename). Filenames must not
 # contain spaces: GRUB file open treats space as a separator.
 # Position math is 50%-260 (no spaces) or grub_strtoull fails.
-# Selected highlight is a styled box: select_*.png (at least select_c.png).
+# Selected entry is highlighted with bold orange text (no selected_item_pixmap_style:
+# the styled-box pixmap can render on the wrong menu item in gfxmenu).
 
 title-text: ""
 title-font: "DejaVu Sans Bold 22"
@@ -28,14 +29,13 @@ terminal-font: "DejaVu Sans Regular 16"
 
 + boot_menu {
     left = 50%-260
-    top = 50%-140
+    top = 50%-65
     width = "520"
-    height = "280"
+    height = "130"
     item_color = "#F8FAFC"
-    selected_item_color = "#111827"
+    selected_item_color = "#F97316"
     item_font = "DejaVu Sans Regular 16"
     selected_item_font = "DejaVu Sans Bold 16"
     item_height = "36"
     item_spacing = "10"
-    selected_item_pixmap_style = "select_*.png"
 }
