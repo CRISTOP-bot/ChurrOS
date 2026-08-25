@@ -469,6 +469,66 @@ else
     pass "GRUB btrfs /boot rewrite is wired (install + pacman hook)"
 fi
 
+# ------------------------------------------- Rollback (churros-snapshot)
+
+section "Rollback snapshots btrfs"
+
+SNAP_SCRIPT=archiso/airootfs/usr/local/bin/churros-snapshot
+SNAP_HOOK=archiso/airootfs/etc/pacman.d/hooks/50-churros-snapshot.hook
+
+snap_ok=1
+if [ ! -f "$SNAP_SCRIPT" ]; then
+    fail "$SNAP_SCRIPT missing (rollback btrfs)"
+    snap_ok=0
+else
+    if ! grep -q 'subvolid=5' "$SNAP_SCRIPT"; then
+        fail "$SNAP_SCRIPT must mount the top-level subvol (subvolid=5) for snapshots"
+        snap_ok=0
+    fi
+    if ! grep -q 'btrfs subvol snapshot' "$SNAP_SCRIPT"; then
+        fail "$SNAP_SCRIPT must create snapshots with btrfs subvol snapshot"
+        snap_ok=0
+    fi
+    if ! grep -q 'meta.txt' "$SNAP_SCRIPT"; then
+        fail "$SNAP_SCRIPT must write per-snapshot metadata (meta.txt)"
+        snap_ok=0
+    fi
+fi
+
+if [ ! -f "$SNAP_HOOK" ]; then
+    fail "$SNAP_HOOK missing (no snapshot before pacman transactions)"
+    snap_ok=0
+else
+    if ! grep -q 'When[[:space:]]*=[[:space:]]*PreTransaction' "$SNAP_HOOK"; then
+        fail "$SNAP_HOOK must be PreTransaction (snapshot BEFORE the upgrade)"
+        snap_ok=0
+    fi
+    if ! grep -q 'churros-snapshot' "$SNAP_HOOK"; then
+        fail "$SNAP_HOOK does not call churros-snapshot"
+        snap_ok=0
+    fi
+    if ! grep -q '||' "$SNAP_HOOK"; then
+        fail "$SNAP_HOOK must tolerate snapshot failure (a snapshot error must not block pacman)"
+        snap_ok=0
+    fi
+    if grep -q 'remove from airootfs' "$SNAP_HOOK"; then
+        fail "$SNAP_HOOK would be deleted by the ISO-only hook cleaner"
+        snap_ok=0
+    fi
+fi
+
+if ! grep -q 'churros-snapshot' archiso/profiledef.sh; then
+    fail "archiso/profiledef.sh must declare the file_permissions entry for /usr/local/bin/churros-snapshot"
+    snap_ok=0
+fi
+
+if ! grep -q 'churros-snapshot' rust/preferences/src/services/update.rs; then
+    fail "UpdateService must expose snapshot management (create/list/delete)"
+    snap_ok=0
+fi
+
+[ "$snap_ok" -eq 1 ] && pass "rollback btrfs wired (script + hook + profiledef + UI)"
+
 # PartitionLabelsView fills palette().window() and upstream paints Qt::black / Qt::gray.
 LABELS_PATCH=installer/patches/calamares-partition-labels.patch
 if [ ! -f "$LABELS_PATCH" ]; then
@@ -633,6 +693,29 @@ else
         preview_ok=0
     fi
     [ "$preview_ok" -eq 1 ] && pass "preview does not partition, reboot, or push layout/timezone"
+fi
+
+# ------------------------------------------- Calamares finished (producción)
+
+# restartNowMode solo admite never|user-unchecked|user-checked|always en
+# Calamares 3.4.x; un valor inválido oculta el botón de reinicio de la
+# pantalla final (regresión: "no aparece la opción de reiniciar").
+FINISHED_CONF=installer/calamares/modules/finished.conf
+if [ ! -f "$FINISHED_CONF" ]; then
+    fail "$FINISHED_CONF missing (finished page defaults; restart option may vanish)"
+else
+    mode=$(grep -E '^restartNowMode:' "$FINISHED_CONF" | head -1 | awk '{print $2}')
+    case "$mode" in
+        never|user-unchecked|user-checked|always)
+            pass "finished.conf restartNowMode=$mode is a valid Calamares 3.4 value"
+            ;;
+        *)
+            fail "$FINISHED_CONF restartNowMode='$mode' is invalid (hide the restart checkbox); use never|user-unchecked|user-checked|always"
+            ;;
+    esac
+    if ! grep -q '^restartNowCommand:' "$FINISHED_CONF"; then
+        fail "$FINISHED_CONF should set restartNowCommand (systemctl -i reboot)"
+    fi
 fi
 
 # ------------------------------------------- Local AUR extras ↔ netinstall

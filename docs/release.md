@@ -113,7 +113,7 @@ Verifica:
 
 El número de versión vive en `VERSION`. Lo muestran `./churros version`, `./churros info`, el footer de welcome, Ajustes y el `os-release` de la ISO. Debe coincidir con el tag de GitHub cuando exista.
 
-La versión actual es **0.7**. El esquema previsto es Semantic Versioning (`MAJOR.MINOR.PATCH`); algunas ISO y tags omiten el parche (`v0.6`, `v0.7`).
+La versión actual es **1.0**. El esquema previsto es Semantic Versioning (`MAJOR.MINOR.PATCH`); algunas ISO y tags omiten el parche (`v0.6`, `v0.7`).
 
 Ejemplo:
 
@@ -122,7 +122,7 @@ Ejemplo:
 
 ↓
 
-0.8
+1.0
 ```
 
 ---

@@ -23,6 +23,14 @@ pub struct ChurrosUpdate {
     pub sha256: String,
 }
 
+/// Snapshot btrfs del sistema (rollback). Campos de `churros-snapshot list --json`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Snapshot {
+    pub stamp: String,
+    pub reason: String,
+    pub date: String,
+}
+
 /// Parsea el updates.json del servidor de releases.
 fn parse_updates_json(raw: &str) -> Option<ChurrosUpdate> {
     let v: serde_json::Value = serde_json::from_str(raw).ok()?;
@@ -214,6 +222,58 @@ impl UpdateService {
         run_streaming(&["churros-pkexec", "churros-update-utils", url.as_str()], cb)
     }
 
+    // ------------------------------------------------ snapshots (rollback)
+
+    /// Lista los snapshots btrfs disponibles (vía churros-snapshot, root).
+    pub fn list_snapshots() -> Vec<Snapshot> {
+        let Some(out) = run_capture(
+            &["churros-pkexec", "churros-snapshot", "list", "--json"],
+            30,
+        ) else {
+            return Vec::new();
+        };
+        let Ok(value) = serde_json::from_str::<serde_json::Value>(&out) else {
+            return Vec::new();
+        };
+        let Some(items) = value.as_array() else {
+            return Vec::new();
+        };
+        items
+            .iter()
+            .filter_map(|item| {
+                Some(Snapshot {
+                    stamp: item.get("stamp")?.as_str()?.to_string(),
+                    reason: item
+                        .get("reason")
+                        .and_then(|r| r.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    date: item
+                        .get("date")
+                        .and_then(|d| d.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                })
+            })
+            .collect()
+    }
+
+    /// Crea un snapshot btrfs manual (razón "manual").
+    pub fn create_snapshot() -> bool {
+        run_streaming(
+            &["churros-pkexec", "churros-snapshot", "create", "manual"],
+            &|_| {},
+        )
+    }
+
+    /// Elimina un snapshot btrfs por su stamp.
+    pub fn delete_snapshot(stamp: &str) -> bool {
+        run_streaming(
+            &["churros-pkexec", "churros-snapshot", "delete", stamp],
+            &|_| {},
+        )
+    }
+
     // -------------------------------------------------------- timer
 
     /// Aplica el estado actual (enabled + intervalo) al timer de systemd.
@@ -273,20 +333,20 @@ mod tests {
     #[test]
     fn parse_updates_json_valid() {
         let raw = r#"{
-            "version": "0.7",
+            "version": "1.0",
             "date": "2026-08-20",
-            "file": "churros-utils-0.7.tar.zst",
+            "file": "churros-utils-1.0.tar.zst",
             "sha256": "abc123"
         }"#;
         let u = parse_updates_json(raw).unwrap();
-        assert_eq!(u.version, "0.7");
-        assert_eq!(u.file, "churros-utils-0.7.tar.zst");
+        assert_eq!(u.version, "1.0");
+        assert_eq!(u.file, "churros-utils-1.0.tar.zst");
         assert_eq!(u.sha256, "abc123");
     }
 
     #[test]
     fn parse_updates_json_invalid() {
         assert!(parse_updates_json("not json").is_none());
-        assert!(parse_updates_json(r#"{"version":"0.7"}"#).is_none());
+        assert!(parse_updates_json(r#"{"version":"1.0"}"#).is_none());
     }
 }

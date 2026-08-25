@@ -1,0 +1,12 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Creando snapshot btrfs antes de la transacción (rollback de ChurrOS)
+When = PreTransaction
+Depends = btrfs-progs
+Exec = /bin/sh -c '/usr/local/bin/churros-snapshot create pacman-pre || echo "churros-snapshot: aviso — no se creó snapshot (¿btrfs?)" >&2'

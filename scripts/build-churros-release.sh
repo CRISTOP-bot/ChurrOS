@@ -51,13 +51,21 @@ for s in churros-apply-wallpaper churros-pick-image churros-pkexec churros-porta
         echo "    + usr/bin/$s"
     fi
 done
-for s in churros-theme churros-update-auto; do
+for s in churros-theme churros-update-auto churros-snapshot; do
     if [ -f "$AIROOTFS/usr/local/bin/$s" ]; then
         cp "$AIROOTFS/usr/local/bin/$s" "$STAGE/usr/local/bin/$s"
         chmod 755 "$STAGE/usr/local/bin/$s"
         echo "    + usr/local/bin/$s"
     fi
 done
+
+# 4a. Hook de rollback (snapshot antes de cada transacción de pacman)
+if [ -f "$AIROOTFS/etc/pacman.d/hooks/50-churros-snapshot.hook" ]; then
+    mkdir -p "$STAGE/etc/pacman.d/hooks"
+    cp "$AIROOTFS/etc/pacman.d/hooks/50-churros-snapshot.hook" \
+        "$STAGE/etc/pacman.d/hooks/50-churros-snapshot.hook"
+    echo "    + etc/pacman.d/hooks/50-churros-snapshot.hook"
+fi
 
 # 4. Assets de /usr/share/churros (estilos, defaults, wallpapers, set-*)
 if [ -d "$AIROOTFS/usr/share/churros" ]; then

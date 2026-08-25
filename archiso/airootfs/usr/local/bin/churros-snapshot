@@ -1,0 +1,330 @@
+#!/usr/bin/env bash
+#
+# churros-snapshot — sistema de rollback de ChurrOS con snapshots btrfs.
+#
+# Crea snapshots de los subvolúmenes @ y @home ANTES de cada transacción de
+# pacman (hook PreTransaction) para poder volver atrás si una actualización
+# rompe el sistema. Los snapshots viven en el subvolumen @snapshots (nivel
+# superior, id=5), aislado de @ para que no haya snapshots anidados.
+#
+# Uso:
+#   churros-snapshot create [RAZON]
+#   churros-snapshot list [--json|--plain]
+#   churros-snapshot info <stamp>
+#   churros-snapshot delete <stamp>
+#   churros-snapshot cleanup [KEEP]
+#   churros-snapshot restore [-d DISPOSITIVO] <stamp>
+#
+# restore: intercambia @/@home por los del snapshot. El sistema en marcha no
+# puede renombrar el subvolumen raíz montado: hay que arrancar desde la ISO
+# live y apuntar al disco instalado con -d.
+
+set -euo pipefail
+
+SNAPSHOTS_DIR="@snapshots"
+STAMP_FILE="meta.txt"
+KEEP_DEFAULT=5
+
+usage() {
+    sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'
+    exit "${1:-0}"
+}
+
+log() { printf 'churros-snapshot: %s\n' "$*" >&2; }
+die() { log "ERROR: $*"; exit 1; }
+
+# ------------------------------------------------------------------ helpers
+
+device_of() {
+    local mnt="$1" src
+    src="$(findmnt -n -o SOURCE "$mnt" 2>/dev/null)" \
+        || die "no se pudo resolver el dispositivo de $mnt"
+    # findmnt devuelve /dev/sdXn[/@] en btrfs; mount solo admite /dev/sdXn.
+    printf '%s\n' "${src%%\[*}"
+}
+
+is_btrfs() {
+    [ "$(findmnt -n -o FSTYPE "${1:-/}" 2>/dev/null)" = "btrfs" ]
+}
+
+TOP_MOUNT=""
+top_mount() {
+    local dev="$1"
+    TOP_MOUNT="$(mktemp -d /run/churros-snap.XXXXXX 2>/dev/null || mktemp -d)"
+    mount -o subvolid=5 "$dev" "$TOP_MOUNT" \
+        || die "no se pudo montar el volumen btrfs ($dev) para gestionar snapshots"
+}
+
+top_cleanup() {
+    if [ -n "$TOP_MOUNT" ] && mountpoint -q "$TOP_MOUNT"; then
+        umount "$TOP_MOUNT" || true
+        rmdir "$TOP_MOUNT" 2>/dev/null || true
+    fi
+    TOP_MOUNT=""
+}
+trap top_cleanup EXIT
+
+snapshot_path() { printf '%s/%s/%s' "$TOP_MOUNT" "$SNAPSHOTS_DIR" "$1"; }
+
+require_snapshot() {
+    [ -d "$(snapshot_path "$1")/root" ] \
+        || die "snapshot '$1' no existe (o no tiene subvolumen root)"
+}
+
+ensure_root_btrfs() {
+    is_btrfs / || die "el sistema de archivos de / no es btrfs (rollback solo soportado en btrfs)"
+}
+
+stamp_now() { date +%Y%m%d-%H%M%S; }
+
+# ---------------------------------------------------------------- create
+
+create() {
+    local reason="${1:-manual}"
+    local dev stamp dir home="no"
+
+    ensure_root_btrfs
+    dev="$(device_of /)"
+    top_mount "$dev"
+    [ -d "$TOP_MOUNT/@" ] || die "no hay subvolumen '@' en $dev"
+
+    # Asegurar el subvolumen contenedor (no montado en el sistema).
+    if [ ! -d "$TOP_MOUNT/$SNAPSHOTS_DIR" ]; then
+        btrfs subvol create "$TOP_MOUNT/$SNAPSHOTS_DIR" >/dev/null
+    fi
+
+    stamp="$(stamp_now)"
+    dir="$(snapshot_path "$stamp")"
+    mkdir -p "$dir"
+
+    btrfs subvol snapshot -r "$TOP_MOUNT/@" "$dir/root" >/dev/null
+
+    if [ -d "$TOP_MOUNT/@home" ]; then
+        if btrfs subvol snapshot -r "$TOP_MOUNT/@home" "$dir/home" >/dev/null 2>&1; then
+            home="ok"
+        else
+            btrfs subvol delete "$dir/root" >/dev/null 2>&1 || true
+            rmdir "$dir" 2>/dev/null || true
+            die "fallo al crear el snapshot de @home; se abortó el snapshot completo"
+        fi
+    fi
+
+    {
+        echo "stamp=$stamp"
+        echo "date=$(date '+%Y-%m-%d %H:%M:%S')"
+        echo "reason=$reason"
+        echo "kernel=$(uname -r 2>/dev/null || echo '?')"
+        echo "home=$home"
+        echo "packages=$(find /var/lib/pacman/local -mindepth 1 -maxdepth 1 -type d -printf x 2>/dev/null | wc -c)"
+    } > "$dir/$STAMP_FILE"
+
+    log "snapshot '$stamp' creado (razón: $reason)"
+    cleanup_inner "${KEEP:-$KEEP_DEFAULT}"
+}
+
+# ---------------------------------------------------------------- list
+
+list_plain() {
+    local n=0 meta stamp reason date
+    for meta in "$TOP_MOUNT/$SNAPSHOTS_DIR"/*/"$STAMP_FILE"; do
+        [ -f "$meta" ] || continue
+        stamp="$(basename "$(dirname "$meta")")"
+        reason="$(sed -n 's/^reason=//p' "$meta" | head -1)"
+        date="$(sed -n 's/^date=//p' "$meta" | head -1)"
+        printf '%-16s  %-22s  %s\n' "$stamp" "$date" "${reason:-?}"
+        n=$((n + 1))
+    done
+    [ "$n" -gt 0 ] || printf '(sin snapshots)\n'
+}
+
+list_json() {
+    local first=1 meta stamp reason date esc
+    for meta in "$TOP_MOUNT/$SNAPSHOTS_DIR"/*/"$STAMP_FILE"; do
+        [ -f "$meta" ] || continue
+        stamp="$(basename "$(dirname "$meta")")"
+        reason="$(sed -n 's/^reason=//p' "$meta" | head -1)"
+        date="$(sed -n 's/^date=//p' "$meta" | head -1)"
+        [ "$first" -eq 1 ] || printf ','
+        first=0
+        esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+        printf '{"stamp":"%s","reason":"%s","date":"%s"}' \
+            "$(esc "$stamp")" "$(esc "$reason")" "$(esc "$date")"
+    done
+}
+
+list_snapshots() {
+    local mode="${1:-json}"
+    ensure_root_btrfs
+    top_mount "$(device_of /)"
+    if [ "$mode" = "json" ]; then
+        printf '['
+        list_json
+        printf ']\n'
+    else
+        list_plain
+    fi
+}
+
+# ---------------------------------------------------------------- info
+
+info_snapshot() {
+    ensure_root_btrfs
+    top_mount "$(device_of /)"
+    require_snapshot "$1"
+    local meta
+    meta="$(snapshot_path "$1")/$STAMP_FILE"
+    if [ -f "$meta" ]; then
+        cat "$meta"
+    else
+        printf 'stamp=%s\n(reason no registrado)\n' "$1"
+    fi
+}
+
+# ---------------------------------------------------------------- delete
+
+# Borra un snapshot asumiendo TOP_MOUNT montado. No llama a top_mount.
+delete_one() {
+    local stamp="$1" dir sub
+    require_snapshot "$stamp"
+    dir="$(snapshot_path "$stamp")"
+    for sub in "$dir"/root "$dir"/home; do
+        if [ -d "$sub" ]; then
+            btrfs subvol delete "$sub" >/dev/null
+        fi
+    done
+    rm -rf "$dir"
+    log "snapshot '$stamp' eliminado"
+}
+
+delete_snapshot() {
+    ensure_root_btrfs
+    top_mount "$(device_of /)"
+    delete_one "$1"
+}
+
+# ---------------------------------------------------------------- cleanup
+
+# Asume TOP_MOUNT montado; borra los más antiguos hasta dejar KEEP.
+cleanup_inner() {
+    local keep="${1:-$KEEP_DEFAULT}"
+    [ "$keep" -lt 0 ] && keep=0
+    [ -d "$TOP_MOUNT/$SNAPSHOTS_DIR" ] || return 0
+
+    local stamps=() d
+    for d in "$TOP_MOUNT/$SNAPSHOTS_DIR"/*/; do
+        [ -d "$d" ] || continue
+        [ -f "${d}${STAMP_FILE}" ] && stamps+=("$(basename "$d")")
+    done
+
+    local total=${#stamps[@]}
+    if [ "$total" -le "$keep" ]; then
+        log "cleanup: $total snapshots (máx. $keep) — nada que borrar"
+        return 0
+    fi
+
+    local s
+    for s in "${stamps[@]:0:$((total - keep))}"; do
+        delete_one "$s"
+    done
+    log "cleanup: borrados $((total - keep)) snapshots (quedan $keep)"
+}
+
+cleanup() {
+    ensure_root_btrfs
+    top_mount "$(device_of /)"
+    cleanup_inner "${1:-$KEEP_DEFAULT}"
+}
+
+# ---------------------------------------------------------------- restore
+
+restore() {
+    local stamp="$1" dev="$2"
+    [ -n "$stamp" ] || usage 1
+
+    if [ -z "$dev" ]; then
+        ensure_root_btrfs
+        dev="$(device_of /)"
+    fi
+
+    top_mount "$dev"
+    [ -d "$TOP_MOUNT/@" ] || die "no hay subvolumen '@' en $dev"
+    require_snapshot "$stamp"
+
+    if [ "$dev" = "$(device_of / 2>/dev/null || echo none)" ]; then
+        die "no se puede restaurar el sistema en marcha (raíz montada). Arranca desde la ISO live y ejecuta: churros-snapshot restore -d $dev $stamp"
+    fi
+
+    local src backup_stamp
+    src="$(snapshot_path "$stamp")"
+    backup_stamp="broken-$(date +%Y%m%d-%H%M%S)"
+
+    log "resguardando estado actual como @$backup_stamp"
+    mv "$TOP_MOUNT/@" "$TOP_MOUNT/@$backup_stamp"
+    btrfs subvol snapshot "$src/root" "$TOP_MOUNT/@" >/dev/null
+
+    if [ -d "$src/home" ] && [ -d "$TOP_MOUNT/@home" ]; then
+        mv "$TOP_MOUNT/@home" "$TOP_MOUNT/@home.$backup_stamp"
+        btrfs subvol snapshot "$src/home" "$TOP_MOUNT/@home" >/dev/null
+    fi
+
+    log "restaurado '$stamp' como subvolumen raíz (respaldos: @$backup_stamp, @home.$backup_stamp)"
+    log "reinicia el sistema para completar la restauración"
+}
+
+# ---------------------------------------------------------------- main
+
+CMD="${1:-}"
+case "$CMD" in
+    create)
+        shift
+        create "${1:-manual}"
+        ;;
+    list)
+        shift
+        case "${1:-json}" in
+            --plain|-p) list_snapshots plain ;;
+            *)          list_snapshots json ;;
+        esac
+        ;;
+    info)
+        shift
+        [ "$#" -ge 1 ] || usage 1
+        info_snapshot "$1"
+        ;;
+    delete)
+        shift
+        [ "$#" -ge 1 ] || usage 1
+        delete_snapshot "$1"
+        ;;
+    cleanup)
+        shift
+        cleanup "${1:-$KEEP_DEFAULT}"
+        ;;
+    restore)
+        shift
+        dev=""
+        stamp=""
+        while [ "$#" -gt 0 ]; do
+            case "$1" in
+                -d)
+                    [ "$#" -ge 2 ] || usage 1
+                    dev="$2"
+                    shift 2
+                    ;;
+                *)
+                    stamp="$1"
+                    shift
+                    ;;
+            esac
+        done
+        [ -n "$stamp" ] || usage 1
+        restore "$stamp" "$dev"
+        ;;
+    ""|-h|--help)
+        usage 0
+        ;;
+    *)
+        echo "churros-snapshot: comando desconocido '$CMD'" >&2
+        usage 1
+        ;;
+esac
