@@ -8,15 +8,16 @@ if [ -z "$USERNAME" ]; then
     exit 1
 fi
 
-# Post-instalacion: quitar churros-welcome y churros-control-center del autostart.
+# Post-instalacion: quitar churros-welcome del autostart (Niri y XFCE/XDG autostart).
 # Calamares ya se borra via shellprocess-cleanup.conf.
 NIRI_CONF="/home/$USERNAME/.config/niri/config.kdl"
-
 if [ -f "$NIRI_CONF" ]; then
-
     sed -i '/spawn-at-startup "churros-welcome"/d' "$NIRI_CONF" 2>/dev/null || true
-
 fi
+
+# Eliminar autostart de XFCE / XDG tanto en el nuevo usuario como en /etc/skel
+rm -f "/home/$USERNAME/.config/autostart/churros-welcome.desktop" 2>/dev/null || true
+rm -f /etc/skel/.config/autostart/churros-welcome.desktop 2>/dev/null || true
 
 chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config" 2>/dev/null || true
 
