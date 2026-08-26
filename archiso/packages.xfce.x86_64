@@ -206,6 +206,7 @@ evince
 gnome-calculator
 
 # Hardware & System
+spice-vdagent
 upower
 bluez
 bluez-utils

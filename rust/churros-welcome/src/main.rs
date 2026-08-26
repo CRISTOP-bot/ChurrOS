@@ -53,10 +53,14 @@ fn activate(app: &adw::Application) {
         .title("Welcome — ChurrOS")
         .build();
 
-    window.set_default_size(0, 0);
+    window.set_default_size(700, 520);
     window.set_size_request(640, 480);
     window.set_decorated(false);
-    window.maximize();
+
+    let desktop = churros_services::version::edition();
+    if desktop.contains("niri") {
+        window.maximize();
+    }
 
     let content = gtk::Box::new(gtk::Orientation::Vertical, 30);
     content.set_margin_top(40);

@@ -173,21 +173,29 @@ impl PreferencesWindow {
         self.register_subpage("icons", "appearance", |n| pages::icons::build(n));
         self.register_subpage("cursor", "appearance", |n| pages::cursor::build(n));
         self.register_subpage("fonts", "appearance", |n| pages::fonts::build(n));
-        self.register_subpage("waybar", "appearance", |n| pages::waybar::build(n));
-        self.register_subpage("niri", "appearance", |n| pages::niri::build(n));
-        self.register_subpage("foot", "appearance", |n| pages::foot::build(n));
-        self.register_subpage("fuzzel", "appearance", |n| pages::fuzzel::build(n));
-        self.register_subpage("mako", "appearance", |n| pages::mako::build(n));
+        let is_niri = churros_services::version::edition().contains("niri");
+
+        if is_niri {
+            self.register_subpage("waybar", "appearance", |n| pages::waybar::build(n));
+            self.register_subpage("niri", "appearance", |n| pages::niri::build(n));
+            self.register_subpage("foot", "appearance", |n| pages::foot::build(n));
+            self.register_subpage("fuzzel", "appearance", |n| pages::fuzzel::build(n));
+            self.register_subpage("mako", "appearance", |n| pages::mako::build(n));
+        }
         self.register_subpage("wallpaper", "appearance", |n| pages::wallpaper::build(n));
         self.register_subpage("night-light", "appearance", |n| pages::night_light::build(n));
-        self.register_subpage("lock-screen", "appearance", |n| pages::lock_screen::build(n));
-        self.register_subpage("window-rules", "appearance", |n| pages::window_rules::build(n));
+        if is_niri {
+            self.register_subpage("lock-screen", "appearance", |n| pages::lock_screen::build(n));
+            self.register_subpage("window-rules", "appearance", |n| pages::window_rules::build(n));
+        }
         self.register_subpage("power-profile", "power", |n| pages::power_profile::build(n));
         self.register_subpage("battery", "power", |n| pages::battery::build(n));
         self.register_subpage("sleep", "power", |n| pages::sleep::build(n));
         self.register_subpage("display-timeout", "display", |n| pages::display_timeout::build(n));
         self.register_subpage("backup", "system", |n| pages::backup::build(n));
-        self.register_subpage("logs", "system", |n| pages::logs::build(n));
+        if is_niri {
+            self.register_subpage("logs", "system", |n| pages::logs::build(n));
+        }
 
         // Subpáginas registradas en el catálogo de búsqueda
         // (se añaden al stack según se porten)
@@ -201,22 +209,26 @@ impl PreferencesWindow {
                 "cursor", "appearance", "Cursor", "Tema y tamano del cursor", Some("cursor.svg"));
             s.register_subpage(
                 "fonts", "appearance", "Fuentes", "Familia y tamano de fuente", Some("font.svg"));
-            s.register_subpage(
-                "waybar", "appearance", "Waybar", "Barra: posicion, colores, modulos", Some("waybar.svg"));
-            s.register_subpage(
-                "niri", "appearance", "Niri", "Compositor: disposicion, bordes, blur", Some("niri.svg"));
-            s.register_subpage(
-                "foot", "appearance", "Foot", "Terminal: fuente, cursor, padding, bell", Some("terminal.svg"));
-            s.register_subpage(
-                "fuzzel", "appearance", "Fuzzel", "Launcher: fuente, layout, iconos", Some("applications.svg"));
-            s.register_subpage(
-                "mako", "appearance", "Mako", "Notificaciones: fuente, colores, posicion, DND", Some("mako.svg"));
+            if is_niri {
+                s.register_subpage(
+                    "waybar", "appearance", "Waybar", "Barra: posicion, colores, modulos", Some("waybar.svg"));
+                s.register_subpage(
+                    "niri", "appearance", "Niri", "Compositor: disposicion, bordes, blur", Some("niri.svg"));
+                s.register_subpage(
+                    "foot", "appearance", "Foot", "Terminal: fuente, cursor, padding, bell", Some("terminal.svg"));
+                s.register_subpage(
+                    "fuzzel", "appearance", "Fuzzel", "Launcher: fuente, layout, iconos", Some("applications.svg"));
+                s.register_subpage(
+                    "mako", "appearance", "Mako", "Notificaciones: fuente, colores, posicion, DND", Some("mako.svg"));
+            }
             s.register_subpage(
                 "wallpaper", "appearance", "Fondo", "Cambiar el fondo de pantalla", Some("wallpaper.svg"));
             s.register_subpage(
                 "night-light", "appearance", "Luz nocturna", "Temperatura de color y filtro de luz azul", Some("night_light.svg"));
-            s.register_subpage(
-                "lock-screen", "appearance", "Pantalla de bloqueo", "swaylock + swayidle: estilo y bloqueo automatico", Some("lock_screen.svg"));
+            if is_niri {
+                s.register_subpage(
+                    "lock-screen", "appearance", "Pantalla de bloqueo", "swaylock + swayidle: estilo y bloqueo automatico", Some("lock_screen.svg"));
+            }
             s.register_subpage(
                 "power-profile", "power", "Perfiles de energia", "Performance, balanced o power-saver", None);
             s.register_subpage(
@@ -227,10 +239,12 @@ impl PreferencesWindow {
                 "sleep", "power", "Suspension", "Tiempo antes de suspender el sistema", None);
             s.register_subpage(
                 "backup", "system", "Copia de seguridad", "Exportar, importar o restablecer la configuracion", Some("backup.svg"));
-            s.register_subpage(
-                "logs", "system", "Logs de Niri", "Registros del compositor y validacion", Some("logs.svg"));
-            s.register_subpage(
-                "window-rules", "appearance", "Reglas de ventana", "Opacidad, flotantes, esquinas, blur", Some("window_rules.svg"));
+            if is_niri {
+                s.register_subpage(
+                    "logs", "system", "Logs de Niri", "Registros del compositor y validacion", Some("logs.svg"));
+                s.register_subpage(
+                    "window-rules", "appearance", "Reglas de ventana", "Opacidad, flotantes, esquinas, blur", Some("window_rules.svg"));
+            }
         }
     }
 

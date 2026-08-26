@@ -93,6 +93,9 @@ qemu-system-x86_64 \
     -device usb-tablet \
     -device intel-hda \
     -device hda-duplex \
+    -device virtio-serial-pci \
+    -chardev qemu-vdagent,id=vdagent,name=vdagent,clipboard=on \
+    -device virtserialport,chardev=vdagent,name=com.redhat.spice.0 \
     -drive if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.4m.fd \
     -drive if=pflash,format=raw,file="$VARS" \
     -drive file="$DISK",format=qcow2,if=virtio \

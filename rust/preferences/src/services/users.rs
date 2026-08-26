@@ -172,8 +172,10 @@ impl UsersService {
         }
 
         let new_content = if value {
-            // Insertar `command = "/usr/bin/niri"` tras [default_session]
+            // Insertar `command = "/usr/bin/niri"` o `/usr/bin/startxfce4` tras [default_session]
             let mut lines: Vec<&str> = content.lines().collect();
+            let desktop = churros_services::version::edition();
+            let cmd = if desktop.contains("xfce") { "/usr/bin/startxfce4" } else { "/usr/bin/niri" };
             let has_session = lines.iter().any(|l| l.trim() == "[default_session]");
             if has_session {
                 let mut out: Vec<String> = Vec::with_capacity(lines.len() + 1);
@@ -181,13 +183,13 @@ impl UsersService {
                 for line in lines {
                     out.push(line.to_string());
                     if !inserted && line.trim() == "[default_session]" {
-                        out.push("command = \"/usr/bin/niri\"".to_string());
+                        out.push(format!("command = \"{}\"", cmd));
                         inserted = true;
                     }
                 }
                 out.join("\n")
             } else {
-                format!("{content}\n[default_session]\ncommand = \"/usr/bin/niri\"\n")
+                format!("{content}\n[default_session]\ncommand = \"{cmd}\"\n")
             }
         } else {
             // Quitar la línea `command = "..."` SOLO dentro de [default_session]

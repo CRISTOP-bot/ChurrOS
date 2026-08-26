@@ -26,6 +26,7 @@ if [ "$EDITION" != "niri" ] && [ "$EDITION" != "xfce" ]; then
 fi
 
 PACKAGES_BACKED_UP=0
+GREETD_BACKED_UP=0
 cleanup_temp() {
     echo "[cleanup] Removing temporary build files..."
     if [ "$HOST_REPO_SYMLINK" -eq 1 ]; then
@@ -34,6 +35,9 @@ cleanup_temp() {
     fi
     if [ "$PACKAGES_BACKED_UP" -eq 1 ] && [ -f archiso/packages.x86_64.orig ]; then
         mv archiso/packages.x86_64.orig archiso/packages.x86_64
+    fi
+    if [ "$GREETD_BACKED_UP" -eq 1 ] && [ -f archiso/airootfs/etc/greetd/config.toml.orig ]; then
+        mv archiso/airootfs/etc/greetd/config.toml.orig archiso/airootfs/etc/greetd/config.toml
     fi
     rm -f archiso/airootfs/etc/churros-edition 2>/dev/null || true
     rm -f archiso/airootfs/root/customize_airootfs.sh 2>/dev/null || true
@@ -77,6 +81,11 @@ echo "$EDITION" > archiso/airootfs/etc/churros-edition
 
 # Configurar greetd para la sesión correspondiente
 mkdir -p archiso/airootfs/etc/greetd
+if [ -f archiso/airootfs/etc/greetd/config.toml ]; then
+    cp archiso/airootfs/etc/greetd/config.toml archiso/airootfs/etc/greetd/config.toml.orig
+    GREETD_BACKED_UP=1
+fi
+
 if [ "$EDITION" = "xfce" ]; then
     cat > archiso/airootfs/etc/greetd/config.toml << 'EOF'
 [terminal]
@@ -176,14 +185,14 @@ echo "[5/5] Building ISO...";
 # El repo local [churros] usa Server = file:///root/packages. Durante pacstrap
 # file:// se resuelve contra el root del HOST (no el chroot), así que exponemos
 # el repo local en /root/packages del host para que el build lo encuentre.
-if [ -L /root/packages ] && [ "$(readlink /root/packages)" = "$PWD/archiso/packages" ]; then
+if sudo test -L /root/packages && [ "$(sudo readlink /root/packages)" = "$PWD/archiso/packages" ]; then
     echo "  /root/packages symlink already in place."
     HOST_REPO_SYMLINK=1
-elif [ -e /root/packages ]; then
+elif sudo test -e /root/packages || sudo test -L /root/packages; then
     echo "  WARNING: /root/packages exists but is not our symlink — leaving as is."
 else
     echo "  Exposing local repo at host /root/packages..."
-    sudo ln -s "$PWD/archiso/packages" /root/packages
+    sudo ln -sfn "$PWD/archiso/packages" /root/packages
     HOST_REPO_SYMLINK=1
 fi
 
