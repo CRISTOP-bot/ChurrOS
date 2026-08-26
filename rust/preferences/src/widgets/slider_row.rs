@@ -41,6 +41,7 @@ impl SliderRow {
         Self { row, scale }
     }
 
+    #[allow(dead_code)]
     pub fn widget(&self) -> &gtk::Button {
         self.row.widget()
     }
@@ -49,6 +50,7 @@ impl SliderRow {
         self.scale.value()
     }
 
+    #[allow(dead_code)]
     pub fn set_value(&self, value: f64) {
         self.scale.set_value(value);
     }

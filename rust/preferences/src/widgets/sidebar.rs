@@ -104,6 +104,7 @@ impl Sidebar {
         self.callbacks.borrow_mut().push(Box::new(cb));
     }
 
+    #[allow(dead_code)]
     fn emit_page_selected(&self, page: &str) {
         let callbacks = self.callbacks.borrow();
         for cb in callbacks.iter() {

@@ -34,7 +34,6 @@ build_aur() {
 }
 
 build_aur python-pywal
-build_aur waypaper
 build_aur yay
 
 echo
@@ -51,6 +50,6 @@ echo "======================================"
 echo "  AUR extras built."
 echo "======================================"
 ls -la "$PACKAGE_DIR"/python-pywal-*.pkg.tar.zst 2>/dev/null || echo "(pywal not built)"
-ls -la "$PACKAGE_DIR"/waypaper-*.pkg.tar.zst 2>/dev/null || echo "(waypaper not built)"
+ls -la "$PACKAGE_DIR"/yay-*.pkg.tar.zst 2>/dev/null || echo "(yay not built)"
 echo
 echo "  Run: ./churros build"

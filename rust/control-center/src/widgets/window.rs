@@ -3,7 +3,6 @@
 // ==========================================
 
 use std::rc::Rc;
-use std::sync::mpsc;
 use std::thread;
 
 use gtk::prelude::*;
