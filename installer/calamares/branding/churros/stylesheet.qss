@@ -419,26 +419,28 @@ QTreeView {
     alternate-background-color: #161618;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    padding: 6px;
+    padding: 8px;
     selection-background-color: rgba(249, 115, 22, 0.28);
     selection-color: #FFFFFF;
     outline: none;
     font-size: 13px;
     color: #F5F5F5;
+    show-decoration-selected: 1;
 }
 
 QTreeView::item {
-    padding: 9px 8px;
-    border-radius: 10px;
-    margin: 1px 4px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin: 2px 0px;
+    min-height: 28px;
 }
 
 QTreeView::item:hover {
-    background-color: rgba(249, 115, 22, 0.12);
+    background-color: rgba(249, 115, 22, 0.14);
 }
 
 QTreeView::item:selected {
-    background-color: rgba(249, 115, 22, 0.28);
+    background-color: rgba(249, 115, 22, 0.32);
     color: #FFFFFF;
 }
 
@@ -450,12 +452,14 @@ QTreeView::indicator {
     width: 18px;
     height: 18px;
     border-radius: 5px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    background: #0F0F10;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: #121214;
+    margin-right: 8px;
 }
 
 QTreeView::indicator:hover {
     border-color: #F97316;
+    background: rgba(249, 115, 22, 0.15);
 }
 
 QTreeView::indicator:checked {
@@ -464,13 +468,13 @@ QTreeView::indicator:checked {
 }
 
 QHeaderView::section {
-    background-color: #161618;
-    color: rgba(245, 245, 245, 0.55);
+    background-color: #141416;
+    color: #F5F5F5;
     border: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 8px 10px;
-    font-weight: 600;
-    font-size: 12px;
+    border-bottom: 2px solid rgba(249, 115, 22, 0.4);
+    padding: 8px 12px;
+    font-weight: 700;
+    font-size: 13px;
 }
 
 QDialog, QMessageBox {

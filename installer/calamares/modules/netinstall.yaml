@@ -1,27 +1,26 @@
 groups:
-  - name: "Controladores Gráficos: NVIDIA"
-    description: "Controladores privativos de NVIDIA para tarjetas gráficas dedicadas (requiere internet)"
+  - name: "NVIDIA"
+    description: "Controladores oficiales privativos para tarjetas gráficas NVIDIA (requiere internet)"
     selected: false
+    expanded: true
     packages:
       - name: nvidia
-        description: "Controlador privativo oficial de NVIDIA para el kernel Linux"
+        description: "Controlador privativo NVIDIA para kernel Linux"
         selected: false
       - name: nvidia-utils
-        description: "Bibliotecas gráficas y aceleración 3D por hardware de NVIDIA"
+        description: "Bibliotecas gráficas y aceleración 3D"
         selected: false
       - name: nvidia-settings
-        description: "Panel de control y configuración gráfica de NVIDIA"
+        description: "Panel de control y configuración gráfica"
         selected: false
       - name: nvidia-prime
-        description: "Utilidad para gráficos híbridos (portátiles con Intel/AMD + NVIDIA)"
+        description: "Gráficos híbridos para portátiles"
         selected: false
-      - name: opencl-nvidia
-        description: "Soporte para cómputo acelerado por OpenCL en GPU NVIDIA"
-        selected: false
-  - name: "Ofimática: LibreOffice"
+  - name: "LibreOffice"
     description: "Suite ofimática completa de código abierto (Writer, Calc, Impress)"
     selected: false
+    expanded: true
     packages:
       - name: libreoffice-fresh
-        description: "LibreOffice Fresh con procesador de textos, hojas de cálculo y presentaciones"
+        description: "Suite de oficina (procesador de textos, hojas de cálculo, presentaciones)"
         selected: false
