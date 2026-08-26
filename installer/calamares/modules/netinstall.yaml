@@ -1,91 +1,27 @@
 groups:
-  - name: Extras ChurrOS
-    description: Paquetes adicionales opcionales (repositorio local + extra)
+  - name: "Controladores Gráficos: NVIDIA"
+    description: "Controladores privativos de NVIDIA para tarjetas gráficas dedicadas (requiere internet)"
     selected: false
     packages:
-      - name: yay
-        description: AUR helper (instala paquetes AUR)
+      - name: nvidia
+        description: "Controlador privativo oficial de NVIDIA para el kernel Linux"
         selected: false
-      - name: waypaper
-        description: Selector gráfico de wallpapers con previsualización
+      - name: nvidia-utils
+        description: "Bibliotecas gráficas y aceleración 3D por hardware de NVIDIA"
         selected: false
-      - name: wlogout
-        description: Menú de salida para Wayland (Mod+Shift+Q)
+      - name: nvidia-settings
+        description: "Panel de control y configuración gráfica de NVIDIA"
+        selected: false
+      - name: nvidia-prime
+        description: "Utilidad para gráficos híbridos (portátiles con Intel/AMD + NVIDIA)"
+        selected: false
+      - name: opencl-nvidia
+        description: "Soporte para cómputo acelerado por OpenCL en GPU NVIDIA"
         selected: false
   - name: "Ofimática: LibreOffice"
-    description: Suite ofimática completa (Writer, Calc, Impress...) desde los repos oficiales
+    description: "Suite ofimática completa de código abierto (Writer, Calc, Impress)"
     selected: false
     packages:
       - name: libreoffice-fresh
-        description: LibreOffice (se instala durante la instalación con pacman, requiere internet)
+        description: "LibreOffice Fresh con procesador de textos, hojas de cálculo y presentaciones"
         selected: false
-  - name: Desarrollo
-    description: Herramientas de desarrollo desde los repos oficiales (requieren internet durante la instalación)
-    selected: false
-    subgroups:
-      - name: Git y herramientas CLI
-        description: Control de versiones y utilidades de línea de comandos
-        packages:
-          - name: git
-            description: Control de versiones distribuido
-            selected: false
-          - name: gh
-            description: GitHub CLI
-            selected: false
-          - name: jq
-            description: Procesador de JSON para terminal
-            selected: false
-          - name: ripgrep
-            description: Búsqueda de texto rápida (rg)
-            selected: false
-          - name: fd
-            description: Alternativa moderna a find
-            selected: false
-      - name: Editores de código
-        description: Editores para programar
-        packages:
-          - name: neovim
-            description: Editor Vim moderno (nvim)
-            selected: false
-          - name: helix
-            description: Editor modal moderno
-            selected: false
-          - name: kate
-            description: Editor gráfico de KDE
-            selected: false
-      - name: Lenguajes y toolchains
-        description: Compiladores, intérpretes y gestores de paquetes
-        packages:
-          - name: base-devel
-            description: gcc, make, autotools y utilidades de compilación
-            selected: false
-          - name: python-pip
-            description: Gestor de paquetes de Python
-            selected: false
-          - name: nodejs
-            description: JavaScript (Node.js)
-            selected: false
-          - name: npm
-            description: Gestor de paquetes de Node.js
-            selected: false
-          - name: cargo
-            description: Rust (compilador y gestor de crates)
-            selected: false
-          - name: go
-            description: Lenguaje Go
-            selected: false
-          - name: jdk-openjdk
-            description: Java (OpenJDK)
-            selected: false
-      - name: Contenedores
-        description: Virtualización de aplicaciones
-        packages:
-          - name: docker
-            description: Motor de contenedores
-            selected: false
-          - name: docker-compose
-            description: Orquestación de contenedores Docker
-            selected: false
-          - name: podman
-            description: Alternativa sin daemon a Docker
-            selected: false
