@@ -76,10 +76,10 @@ fi
 # Always attempt virtio-gpu-gl with GL; fall back to virtio-gpu (no GL) only if
 # the host lacks /dev/dri entirely — in that case niri will try llvmpipe.
 if [ -e /dev/dri ]; then
-    GPU_ARGS="-device virtio-vga-gl -display gtk,gl=on"
+    GPU_ARGS="-device virtio-vga-gl -display gtk,gl=on,show-cursor=on"
     echo "  GPU: virtio-vga-gl + virgl (3D)"
 else
-    GPU_ARGS="-device virtio-gpu -display gtk,gl=off"
+    GPU_ARGS="-device virtio-gpu -display gtk,gl=off,show-cursor=on"
     echo "  GPU: virtio-gpu (no 3D — niri may fall back to software rendering)"
 fi
 

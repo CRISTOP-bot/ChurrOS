@@ -62,7 +62,6 @@ fn activate(app: &adw::Application) {
     header_bar.set_show_end_title_buttons(true);
     header_bar.set_show_start_title_buttons(true);
     header_bar.add_css_class("flat");
-    window.set_titlebar(Some(&header_bar));
 
     let desktop = churros_services::version::edition();
     if desktop.contains("niri") {
@@ -91,7 +90,11 @@ fn activate(app: &adw::Application) {
     scroller.set_vexpand(true);
     scroller.add_css_class("content-scroller");
 
-    window.set_content(Some(&scroller));
+    let main_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    main_box.append(&header_bar);
+    main_box.append(&scroller);
+
+    window.set_content(Some(&main_box));
 
     window.present();
 }

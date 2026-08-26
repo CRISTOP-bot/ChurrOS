@@ -110,6 +110,7 @@ xorg-server
 xorg-xinit
 xorg-xrandr
 xorg-xset
+xorg-xsetroot
 xclip
 picom
 
