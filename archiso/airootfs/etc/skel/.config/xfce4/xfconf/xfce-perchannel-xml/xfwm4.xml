@@ -3,9 +3,16 @@
   <property name="general" type="empty">
     <property name="theme" type="string" value="Default-hdpi"/>
     <property name="title_font" type="string" value="DejaVu Sans Bold 10"/>
-    <property name="title_alignment" type="string" value="center"/>
-    <property name="button_layout" type="string" value="O|HMC"/>
+    <property name="title_alignment" type="string" value="left"/>
+    <property name="button_layout" type="string" value="|HMC"/>
     <property name="use_compositing" type="bool" value="true"/>
+    <property name="show_dock_shadow" type="bool" value="true"/>
+    <property name="show_frame_shadow" type="bool" value="true"/>
+    <property name="show_popup_shadow" type="bool" value="true"/>
+    <property name="shadow_opacity" type="int" value="60"/>
+    <property name="popup_opacity" type="int" value="96"/>
+    <property name="inactive_opacity" type="int" value="96"/>
+    <property name="frame_opacity" type="int" value="100"/>
     <property name="box_resize" type="bool" value="false"/>
     <property name="box_move" type="bool" value="false"/>
     <property name="double_click_action" type="string" value="maximize"/>
@@ -14,5 +21,6 @@
     <property name="snap_to_windows" type="bool" value="true"/>
     <property name="snap_width" type="int" value="10"/>
     <property name="workspace_count" type="int" value="4"/>
+    <property name="zoom_desktop" type="bool" value="true"/>
   </property>
 </channel>

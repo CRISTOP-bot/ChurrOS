@@ -255,26 +255,38 @@ El script es seguro para el Live porque el sistema corre en RAM: cualquier cambi
 
 ChurrOS XFCE Edition ofrece una experiencia de escritorio clásica, ligera y basada en ventanas flotantes tradicionales gestionadas por `xfwm4`.
 
-## Estructura de configuración (xfconf)
+## Estructura de configuración (xfconf y GTK)
 
 ```text
-.config/xfce4/xfconf/xfce-perchannel-xml/
-├── xfce4-desktop.xml     # Wallpaper y configuración del escritorio
-├── xfce4-panel.xml       # Panel superior con menú, tareas, reloj y plugins
-├── xfwm4.xml             # Gestor de ventanas: tema, botones y atajos
-└── xsettings.xml         # Tema GTK (Adwaita-dark), iconos (Papirus-Dark) y cursor (Adwaita)
+.config/
+├── gtk-3.0/
+│   └── gtk.css           # Tema oscuro con acento naranja (#F97316), panel y Whisker Menu
+├── gtk-4.0/
+│   └── gtk.css           # Tokens de color y acento ChurrOS para apps GTK 4
+├── xfce4/
+│   ├── panel/
+│   │   └── whiskermenu-1.rc  # Configuración del menú de inicio (icono ChurrOS, favoritos)
+│   ├── terminal/
+│   │   └── terminalrc        # Paleta de colores ChurrOS, fuente JetBrainsMono y transparencia
+│   └── xfconf/xfce-perchannel-xml/
+│       ├── xfce4-desktop.xml # Wallpaper (/usr/share/churros/wallpapers/default.png) e iconos
+│       ├── xfce4-panel.xml   # Panel superior: Whisker Menu, Tasklist, Systray, Pulseaudio, Reloj
+│       ├── xfwm4.xml         # Gestor de ventanas: sombras de composición y botones |HMC
+│       └── xsettings.xml     # Tema GTK (Adwaita-dark), iconos (Papirus-Dark) y cursor (Adwaita)
 ```
 
 ## Panel de ChurrOS en XFCE
 
-El panel superior está configurado por defecto con:
-1. **Menú de Aplicaciones**: Acceso categorizado a todas las aplicaciones.
-2. **Separador expandible**.
-3. **Lista de ventanas / tareas**: Agrupación elegante de ventanas activas.
-4. **Bandeja del sistema (Systray)**: Indicadores de red (`nm-applet`), Bluetooth y notificaciones.
-5. **Plugin de Pulseaudio**: Control deslizante de volumen de audio.
-6. **Reloj digital**: Fecha y hora en formato legible.
-7. **Botones de sesión**: Bloqueo, reinicio y apagado.
+El panel superior de 34px está estilizado con efecto cristal oscuro (`rgba(16, 16, 18, 0.94)`) y borde inferior naranja:
+1. **Botón de Inicio ChurrOS**: Con el logo oficial de ChurrOS (`churros-logo.svg`) y menú **Whisker Menu** con barra de búsqueda superior y accesos directos a apps principales.
+2. **Separador espaciador**.
+3. **Lista de ventanas / tareas**: Botones planos con indicador inferior de color naranja ChurrOS (`#F97316`) en la ventana activa.
+4. **Separador expandible**.
+5. **Bandeja del sistema (Systray)**: Indicadores de red (`nm-applet`), Bluetooth y notificaciones.
+6. **Plugin de Pulseaudio**: Control deslizante de volumen de audio.
+7. **Plugin de Energía / Batería**: Monitor de batería y perfiles de energía.
+8. **Reloj digital**: Formato legible `%I:%M %p`.
+9. **Botones de sesión / Power**: Bloqueo, reinicio y apagado.
 
 ## Autostart en XFCE
 
