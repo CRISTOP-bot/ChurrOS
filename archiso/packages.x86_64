@@ -140,7 +140,8 @@ gvfs
 gvfs-mtp
 
 greetd
-greetd-agreety
+greetd-regreet
+cage
 swaylock
 swayidle
 

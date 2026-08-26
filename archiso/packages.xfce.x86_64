@@ -163,7 +163,8 @@ gvfs-mtp
 
 # Display Manager
 greetd
-greetd-agreety
+greetd-regreet
+cage
 
 # Portals & Session
 xdg-desktop-portal
