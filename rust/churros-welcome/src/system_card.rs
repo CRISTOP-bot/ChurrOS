@@ -2,32 +2,38 @@ use gtk::prelude::*;
 
 use crate::system_info;
 
-// La SystemCard está definida pero NO se monta en el FlowBox, igual que en el
-// Python original (widgets/system_card.py existe pero cards.py nunca la añade;
-// docs/apps.md dice que debería ir primera — desajuste heredado).
-#[allow(dead_code)]
 pub fn build() -> gtk::Box {
-    let card = gtk::Box::new(gtk::Orientation::Vertical, 12);
+    let card = gtk::Box::new(gtk::Orientation::Vertical, 10);
 
     card.set_size_request(280, 340); // mismo tamaño que las action cards
     card.add_css_class("system-card");
 
-    card.set_margin_top(20);
-    card.set_margin_bottom(20);
-    card.set_margin_start(20);
-    card.set_margin_end(20);
+    card.set_margin_top(16);
+    card.set_margin_bottom(16);
+    card.set_margin_start(16);
+    card.set_margin_end(16);
 
     //
-    // Título
+    // Cabecera de la card (Icono + Título)
     //
 
-    let title = gtk::Label::new(Some("Sistema"));
+    let header_box = gtk::Box::new(gtk::Orientation::Horizontal, 10);
+    header_box.set_halign(gtk::Align::Start);
 
+    let icon = gtk::Image::from_icon_name("computer-symbolic");
+    icon.set_pixel_size(24);
+    icon.add_css_class("card-icon");
+
+    let title = gtk::Label::new(Some("Información"));
     title.add_css_class("card-title");
 
-    title.set_halign(gtk::Align::Start);
+    header_box.append(&icon);
+    header_box.append(&title);
+    card.append(&header_box);
 
-    card.append(&title);
+    let separator = gtk::Separator::new(gtk::Orientation::Horizontal);
+    separator.set_margin_bottom(6);
+    card.append(&separator);
 
     //
     // Información

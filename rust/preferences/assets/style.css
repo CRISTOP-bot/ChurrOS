@@ -68,6 +68,18 @@ window {
     background: var(--bg-window);
 }
 
+headerbar {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    min-height: 44px;
+    padding: 4px 8px;
+}
+
+headerbar windowhandle {
+    background: transparent;
+}
+
 /*
     Cuando la ventana esta maximizada o fullscreen, quitamos el
     border-radius: el fondo del monitor ya es visible detras, asi que

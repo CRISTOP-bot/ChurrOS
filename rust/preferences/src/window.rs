@@ -63,6 +63,20 @@ impl PreferencesWindow {
         let theme_window = window.clone();
         ThemeService::on_change(move |_dark| refresh_theme(&theme_window));
 
+        // HeaderBar con controles de ventana (cerrar, maximizar, minimizar)
+        let header_bar = adw::HeaderBar::new();
+        header_bar.set_show_end_title_buttons(true);
+        header_bar.set_show_start_title_buttons(true);
+        header_bar.add_css_class("flat");
+
+        let toggle_button = gtk::Button::from_icon_name("open-menu-symbolic");
+        toggle_button.add_css_class("flat");
+        toggle_button.set_tooltip_text(Some("Menú lateral"));
+        toggle_button.set_visible(false);
+        header_bar.pack_start(&toggle_button);
+
+        window.set_titlebar(Some(&header_bar));
+
         // Layout principal
         let root = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         window.set_child(Some(&root));
@@ -85,18 +99,8 @@ impl PreferencesWindow {
             sidebar.on_search(query);
         });
 
-        // Navegador con botón de toggle para modo estrecho
+        // Navegador principal
         let nav_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
-
-        let toggle_button = gtk::Button::from_icon_name("open-menu-symbolic");
-        toggle_button.add_css_class("flat");
-        toggle_button.set_halign(gtk::Align::End);
-        toggle_button.set_margin_start(12);
-        toggle_button.set_margin_end(12);
-        toggle_button.set_margin_top(12);
-        toggle_button.set_visible(false);
-
-        nav_box.append(&toggle_button);
 
         let navigator = gtk::Stack::new();
         navigator.set_hexpand(true);

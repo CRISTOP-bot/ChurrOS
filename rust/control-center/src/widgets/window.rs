@@ -94,7 +94,13 @@ impl ControlCenterWindow {
         root.append(&grid);
         root.append(audio.box_());
 
-        window.set_child(Some(&root));
+        let scroller = gtk::ScrolledWindow::new();
+        scroller.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
+        scroller.set_child(Some(&root));
+        scroller.set_hexpand(true);
+        scroller.set_vexpand(true);
+
+        window.set_child(Some(&scroller));
 
         let win = Rc::new(Self {
             window,
@@ -131,7 +137,7 @@ impl ControlCenterWindow {
         titles.append(&subtitle);
 
         let settings_btn = gtk::Button::from_icon_name("preferences-system");
-        settings_btn.set_tooltip_text(Some("Settings"));
+        settings_btn.set_tooltip_text(Some("Configuración"));
         settings_btn.add_css_class("settings-button");
 
         let win = window.clone();
@@ -140,10 +146,19 @@ impl ControlCenterWindow {
             win.close();
         });
 
+        let close_btn = gtk::Button::from_icon_name("window-close-symbolic");
+        close_btn.set_tooltip_text(Some("Cerrar"));
+        close_btn.add_css_class("close-button");
+        let win_close = window.clone();
+        close_btn.connect_clicked(move |_| {
+            win_close.close();
+        });
+
         header.append(&logo);
         header.append(&titles);
         header.append(&settings_btn);
         header.append(PowerButton::new(window).button());
+        header.append(&close_btn);
 
         header
     }

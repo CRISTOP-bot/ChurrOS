@@ -50,26 +50,35 @@ fn activate(app: &adw::Application) {
 
     let window = adw::ApplicationWindow::builder()
         .application(app)
-        .title("Welcome — ChurrOS")
+        .title("ChurrOS Welcome")
         .build();
 
-    window.set_default_size(700, 520);
-    window.set_size_request(640, 480);
-    window.set_decorated(false);
+    window.set_default_size(900, 680);
+    window.set_size_request(480, 400);
+    window.set_resizable(true);
+    window.set_decorated(true);
+
+    let header_bar = adw::HeaderBar::new();
+    header_bar.set_show_end_title_buttons(true);
+    header_bar.set_show_start_title_buttons(true);
+    header_bar.add_css_class("flat");
+    window.set_titlebar(Some(&header_bar));
 
     let desktop = churros_services::version::edition();
     if desktop.contains("niri") {
         window.maximize();
     }
 
-    let content = gtk::Box::new(gtk::Orientation::Vertical, 30);
-    content.set_margin_top(40);
-    content.set_margin_bottom(40);
-    content.set_margin_start(40);
-    content.set_margin_end(40);
+    let content = gtk::Box::new(gtk::Orientation::Vertical, 24);
+    content.set_margin_top(20);
+    content.set_margin_bottom(30);
+    content.set_margin_start(24);
+    content.set_margin_end(24);
 
     content.set_halign(gtk::Align::Center);
     content.set_valign(gtk::Align::Start);
+    content.set_hexpand(true);
+    content.set_vexpand(true);
 
     content.append(&header::build());
     content.append(&cards::build());
@@ -78,6 +87,8 @@ fn activate(app: &adw::Application) {
     let scroller = gtk::ScrolledWindow::new();
     scroller.set_policy(gtk::PolicyType::Automatic, gtk::PolicyType::Automatic);
     scroller.set_child(Some(&content));
+    scroller.set_hexpand(true);
+    scroller.set_vexpand(true);
     scroller.add_css_class("content-scroller");
 
     window.set_content(Some(&scroller));

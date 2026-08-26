@@ -29,13 +29,15 @@ pub fn build() -> gtk::FlowBox {
 
     flow.set_selection_mode(gtk::SelectionMode::None);
 
-    flow.set_max_children_per_line(3);
+    flow.set_max_children_per_line(4);
     flow.set_min_children_per_line(1);
 
     flow.set_row_spacing(20);
     flow.set_column_spacing(20);
 
     flow.set_halign(gtk::Align::Center);
+
+    flow.append(&crate::system_card::build());
 
     for (icon, title, description, callback) in CARDS {
         flow.append(&action_card::new(icon, title, description, callback));
