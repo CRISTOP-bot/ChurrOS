@@ -43,9 +43,9 @@ Características implementadas:
 - Ejecución automática en QEMU.
 - Personalización del sistema Live.
 - Documentación oficial.
-- **Escritorio completo** — Niri + Waybar + foot + Fuzzel + Mako.
-- **Apps oficiales en Rust** — `churros-welcome`, `churros-settings`, `churros-control-center` y `churros-popup` (gtk4-rs + libadwaita).
-- **Panel de preferencias** (`churros-settings`) — 30+ páginas GTK4.
+- **Ediciones disponibles** — Niri (Wayland con tiling dinámico) y XFCE (X11 clásico y ligero).
+- **Apps oficiales en Rust** — `churros-welcome`, `churros-settings`, `churros-control-center` y `churros-popup` (gtk4-rs + libadwaita) con soporte responsivo y decoraciones de ventana.
+- **Panel de preferencias** (`churros-settings`) — 30+ páginas GTK4 con filtrado condicional por edición.
 - **Popups integrados** — audio, bluetooth, batería, brillo, red, power.
 - **Instalador gráfico** — Calamares con branding ChurrOS.
 - **Tema GRUB** — menú centrado aplicado al sistema instalado.
@@ -92,7 +92,8 @@ cd ChurrOS
 Construir la ISO
 
 ```bash
-./churros build
+./churros build                # Edición Niri (por defecto)
+./churros build --edition xfce # Edición XFCE
 ```
 
 Ejecutar la ISO

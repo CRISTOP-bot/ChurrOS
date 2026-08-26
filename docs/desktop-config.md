@@ -248,6 +248,46 @@ El script es seguro para el Live porque el sistema corre en RAM: cualquier cambi
 
 ---
 
+# XFCE Edition (X11)
+
+**Path:** `archiso/airootfs/etc/skel/.config/xfce4/`
+**Session command:** `/usr/bin/startxfce4`
+
+ChurrOS XFCE Edition ofrece una experiencia de escritorio clásica, ligera y basada en ventanas flotantes tradicionales gestionadas por `xfwm4`.
+
+## Estructura de configuración (xfconf)
+
+```text
+.config/xfce4/xfconf/xfce-perchannel-xml/
+├── xfce4-desktop.xml     # Wallpaper y configuración del escritorio
+├── xfce4-panel.xml       # Panel superior con menú, tareas, reloj y plugins
+├── xfwm4.xml             # Gestor de ventanas: tema, botones y atajos
+└── xsettings.xml         # Tema GTK (Adwaita-dark), iconos (Papirus-Dark) y cursor (Adwaita)
+```
+
+## Panel de ChurrOS en XFCE
+
+El panel superior está configurado por defecto con:
+1. **Menú de Aplicaciones**: Acceso categorizado a todas las aplicaciones.
+2. **Separador expandible**.
+3. **Lista de ventanas / tareas**: Agrupación elegante de ventanas activas.
+4. **Bandeja del sistema (Systray)**: Indicadores de red (`nm-applet`), Bluetooth y notificaciones.
+5. **Plugin de Pulseaudio**: Control deslizante de volumen de audio.
+6. **Reloj digital**: Fecha y hora en formato legible.
+7. **Botones de sesión**: Bloqueo, reinicio y apagado.
+
+## Autostart en XFCE
+
+Los programas de inicio automático para la sesión de XFCE se definen en `archiso/airootfs/etc/skel/.config/autostart/`:
+- `churros-welcome.desktop`: Inicia automáticamente la pantalla de bienvenida al entrar al escritorio XFCE (`OnlyShowIn=XFCE;`).
+
+## Integración con utilidades de ChurrOS
+
+- **Fondo de pantalla:** `churros-apply-wallpaper` detecta XFCE y aplica el fondo automáticamente mediante `xfconf-query -c xfce4-desktop ...`.
+- **Apps Rust:** Las aplicaciones como `churros-settings` y `churros-welcome` detectan que la sesión es XFCE y adaptan sus subpáginas y estilos (ocultando subpáginas exclusivas de Wayland/Niri).
+
+---
+
 # Init Order
 
 Durante el arranque del Live, los servicios y la configuración se aplican en este orden:

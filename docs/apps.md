@@ -24,7 +24,7 @@ En desarrollo, los crates resuelven assets a `rust/<crate>/assets/` si no existe
 
 **Path:** `rust/churros-welcome/`
 **Binario:** `/usr/bin/churros-welcome`
-**Autostart:** `archiso/airootfs/etc/skel/.config/niri/config.kdl` (`spawn-at-startup "churros-welcome"`)
+**Autostart:** `archiso/airootfs/etc/skel/.config/niri/config.kdl` (Niri) y `.config/autostart/churros-welcome.desktop` (XFCE)
 **Assets:** `archiso/airootfs/usr/share/churros/churros-welcome/assets/`
 
 Pantalla de bienvenida al iniciar la sesión Live.
@@ -32,20 +32,22 @@ Pantalla de bienvenida al iniciar la sesión Live.
 ## Purpose
 
 - Dar la bienvenida al usuario.
-- Ofrecer accesos a instalación, GitHub y comunidad.
+- Mostrar resumen de información del hardware del sistema (CPU, RAM, Kernel, SO, Arquitectura, Hostname).
+- Ofrecer accesos rápidos a instalación con Calamares, GitHub y comunidad.
 
-`system_card.rs` y `system_info.rs` existen (leen `/proc` y `/etc/os-release`) pero la `SystemCard` **no se monta** en la ventana actual. El footer muestra `Linux • Niri • ChurrOS` más la versión de `churros_services::version::distro()` (archivo `VERSION` del repo, embebido al compilar).
+El footer muestra `Linux • <Entorno> • ChurrOS <Versión>` detectado dinámicamente con `churros_services::version::desktop_name()` y `churros_services::version::distro()`.
 
 ## Stack
 
 - GTK 4 + Libadwaita (gtk4-rs / libadwaita-rs)
-- Sin psutil: CPU, RAM, kernel y hostname salen de `/proc`
+- Sin psutil: CPU, RAM, kernel y hostname salen de `/proc` y `/etc/os-release`
 
 ## Window
 
-- Maximizada, sin decoración
-- Tamaño mínimo: 640×480
-- Layout vertical con scroll
+- Tamaño predeterminado: 900×680 (redimensionable, tamaño mínimo 480×400)
+- Barra de título `AdwHeaderBar` integrada con controles de ventana (cerrar, maximizar, minimizar)
+- Layout vertical responsivo con `ScrolledWindow` de desplazamiento automático
+- En Niri se maximiza automáticamente; en XFCE se abre en ventana centrada con decoraciones completas
 - CSS: `/usr/share/churros/styles/churros.css` + `assets/style.css`
 
 ## Structure
@@ -57,24 +59,25 @@ rust/churros-welcome/
 └── src/
     ├── main.rs
     ├── header.rs
-    ├── cards.rs            # FlowBox con 3 ActionCards
+    ├── cards.rs            # FlowBox responsivo (SystemCard + 3 ActionCards)
     ├── footer.rs
     ├── action_card.rs
-    ├── system_card.rs      # Definida, no montada
+    ├── system_card.rs      # Información de CPU, RAM, Kernel, SO, Arch, Hostname
     ├── system_info.rs
     ├── actions.rs          # URLs + calamares.desktop
     └── assets.rs
 ```
 
-## Action Cards
+## Cards en FlowBox
 
-| Icono | Título | Acción |
-|-------|--------|--------|
-| install.svg | Install ChurrOS | Lanza `calamares.desktop` |
-| github.svg | GitHub | Abre el repositorio |
-| community.svg | Comunidad | Abre el servidor de comunidad |
+| Tarjeta / Icono | Título | Descripción / Acción |
+|-----------------|--------|----------------------|
+| `computer-symbolic` | Información | Muestra CPU, RAM total, Kernel, SO, Arquitectura y Hostname |
+| `install.svg` | Install ChurrOS | Lanza el instalador `calamares.desktop` |
+| `github.svg` | GitHub | Abre el repositorio oficial |
+| `community.svg` | Comunidad | Abre el enlace a la comunidad de ChurrOS |
 
-Máximo 3 columnas; en pantallas estrechas se apilan.
+Hasta 4 columnas en pantallas anchas; se reorganiza automáticamente a 2 o 1 columna en ventanas reducidas.
 
 ## Desktop Entry
 
@@ -93,8 +96,8 @@ Centro de control con tarjetas que abren el popup correspondiente (`churros-popu
 
 ## Window
 
-- 430×650, no redimensionable, sin decoración
-- Header: logo, título, botón de settings (`churros-settings`) y botón de power
+- 430×650, redimensionable con scroll para resoluciones bajas
+- Header: logo, título, botón de settings (`churros-settings`), botón de power y botón de cierre
 - Grid 2×2 (red, bluetooth, brillo, batería) + tarjeta de audio a ancho completo
 - Refresh asíncrono cada 2 s (`churros_services` en un hilo)
 
