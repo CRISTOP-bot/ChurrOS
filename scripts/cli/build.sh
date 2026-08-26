@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-
+HOST_REPO_SYMLINK=0
 EDITION="niri"
 while [[ $# -gt 0 ]]; do
     case "$1" in

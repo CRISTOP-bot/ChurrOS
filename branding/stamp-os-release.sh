@@ -4,6 +4,8 @@
 # Usage: stamp-os-release.sh <os-release-path> <version>
 set -euo pipefail
 
+file=${1:-}
+ver=${2:-}
 edition=${3:-niri}
 
 if [ ! -f "$file" ]; then

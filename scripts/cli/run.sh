@@ -23,7 +23,7 @@ if [ -z "$ISO" ]; then
     echo "No ISO found."
     echo "Building..."
 
-    ./churros build
+    ./churros build "$@"
 
     ISO=$(find out -name "*.iso" | head -n1)
 fi
