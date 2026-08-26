@@ -280,10 +280,10 @@ impl PreferencesWindow {
         let history = Rc::clone(&self.history);
         let sidebar_revealer = self.sidebar_revealer.clone();
         let is_narrow = Rc::clone(&self.is_narrow);
-        let sidebar = Rc::clone(&self.sidebar);
-
-        sidebar.borrow().connect_page_selected(move |page| {
+        let sidebar_select = Rc::clone(&self.sidebar);
+        self.sidebar.borrow().connect_page_selected(move |page| {
             settings::set("preferences.last_page", serde_json::json!(page));
+            sidebar_select.borrow().select(page);
 
             // Guardar la página actual en la historia antes de navegar
             if let Some(current) = navigator.visible_child_name() {

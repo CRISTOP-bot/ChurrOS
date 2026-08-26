@@ -121,31 +121,58 @@ window.fullscreen {
     margin: 0 6px 14px 6px;
 }
 
-.sidebar-item {
-    border-radius: 11px;
-    min-height: 40px;
-    padding: 0 12px;
+.sidebar-item,
+button.sidebar-item {
+    border-radius: 12px;
+    min-height: 42px;
+    padding: 0 14px;
     background: transparent;
     color: var(--text-primary);
     background-image: none;
     box-shadow: none;
-    transition: 160ms cubic-bezier(.4,0,.2,1);
+    border: 1px solid transparent;
+    transition: all 160ms cubic-bezier(.4,0,.2,1);
 }
 
-.sidebar-item:hover {
-    background: var(--accent-bg-hover);
-    box-shadow: var(--glass-inset);
+.sidebar-item:hover,
+button.sidebar-item:hover {
+    background: rgba(249, 115, 22, 0.16) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(249, 115, 22, 0.35) !important;
 }
 
-.sidebar-item.active {
-    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-    color: var(--accent-text);
-    font-weight: 600;
-    box-shadow: var(--accent-glow), 0 4px 14px rgba(249,115,22,.30);
+.sidebar-item.active,
+button.sidebar-item.active,
+button.sidebar-item:checked,
+button.sidebar-item.selected {
+    background: linear-gradient(135deg, #FB923C, #F97316) !important;
+    background-color: #F97316 !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45), 0 0 20px rgba(249, 115, 22, 0.25) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
-.sidebar-item.active:hover {
-    background: linear-gradient(135deg, var(--accent-soft), var(--accent));
+.sidebar-item.active:hover,
+button.sidebar-item.active:hover,
+button.sidebar-item:checked:hover {
+    background: linear-gradient(135deg, #FDBA74, #FB923C) !important;
+    background-color: #FB923C !important;
+    color: #FFFFFF !important;
+}
+
+.sidebar-item.active label,
+button.sidebar-item.active label,
+button.sidebar-item:checked label {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+}
+
+.sidebar-item.active image,
+button.sidebar-item.active image,
+button.sidebar-item:checked image {
+    color: #FFFFFF !important;
+    -gtk-icon-filter: none;
 }
 
 .sidebar-item image {
