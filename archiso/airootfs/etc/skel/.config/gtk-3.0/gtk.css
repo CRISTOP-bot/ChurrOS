@@ -30,13 +30,14 @@
     color: #FFFFFF;
 }
 
-/* ── XFCE 4 Panel ────────────────────────────────────────── */
+/* ── XFCE 4 Panel (Bottom Windows-Style Taskbar) ─────────── */
 .xfce4-panel {
     background-color: rgba(16, 16, 18, 0.94);
     color: #E4E4E7;
     font-weight: 500;
-    border-bottom: 1px solid rgba(249, 115, 22, 0.25);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    border-top: 1px solid rgba(249, 115, 22, 0.25);
+    border-bottom: none;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.45);
 }
 
 .xfce4-panel button {
@@ -65,6 +66,7 @@
 /* ── Tasklist (Window Buttons) ───────────────────────────── */
 #tasklist-button {
     border-radius: 8px;
+    border-top: 2px solid transparent;
     border-bottom: 2px solid transparent;
     padding: 0 10px;
     margin: 2px 2px;
@@ -72,11 +74,11 @@
 
 #tasklist-button:hover {
     background: rgba(249, 115, 22, 0.12);
-    border-bottom: 2px solid rgba(249, 115, 22, 0.5);
+    border-top: 2px solid rgba(249, 115, 22, 0.5);
 }
 
 #tasklist-button:checked {
-    border-bottom: 2px solid #F97316;
+    border-top: 2px solid #F97316;
     background: rgba(249, 115, 22, 0.22);
     color: #FFFFFF;
 }
