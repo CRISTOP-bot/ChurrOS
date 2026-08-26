@@ -45,7 +45,7 @@ impl PywalService {
         if !path.is_empty() && Path::new(&path).is_file() {
             return Some(path);
         }
-        let default = "/usr/share/churros/wallpapers/default.jpeg";
+        let default = "/usr/share/churros/wallpapers/default.png";
         if Path::new(default).is_file() {
             return Some(default.to_string());
         }

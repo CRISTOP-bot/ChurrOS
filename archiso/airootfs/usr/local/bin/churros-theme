@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-BACKGROUND="${1:-/usr/share/churros/wallpapers/default.jpeg}"
+BACKGROUND="${1:-/usr/share/churros/wallpapers/default.png}"
 CACHE="$HOME/.cache/churros-theme"
 
 COLOR_FG="F8FAFC"

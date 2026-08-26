@@ -108,7 +108,7 @@ layout {
 ## Autostart
 
 ```kdl
-spawn-at-startup "swaybg" "-i" "/usr/share/churros/wallpapers/default.jpeg" "-m" "fill"
+spawn-at-startup "swaybg" "-i" "/usr/share/churros/wallpapers/default.png" "-m" "fill"
 spawn-at-startup "churros-portal-start"
 spawn-at-startup "waybar"
 spawn-at-startup "mako"
@@ -336,7 +336,7 @@ input {
 
 ## Cambiar el wallpaper
 
-Reemplaza `archiso/airootfs/usr/share/churros/wallpapers/default.jpeg` con tu imagen. `swaybg` la carga automáticamente al inicio.
+Reemplaza `archiso/airootfs/usr/share/churros/wallpapers/default.png` con tu imagen. `swaybg` la carga automáticamente al inicio.
 
 ## Cambiar los gaps
 

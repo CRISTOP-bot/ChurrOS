@@ -265,7 +265,7 @@ except Exception:
     fi
 fi
 
-DEFAULT="/usr/share/churros/wallpapers/default.jpeg"
+DEFAULT="/usr/share/churros/wallpapers/default.png"
 
 if [ -f "$DEFAULT" ]; then
     apply "$DEFAULT" || true

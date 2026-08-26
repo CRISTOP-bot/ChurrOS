@@ -352,7 +352,7 @@ Aplica el fondo de pantalla en compositores Wayland (Niri / Hyprland / Sway).
 
 - Detecta automáticamente sockets `WAYLAND_DISPLAY` y `XDG_RUNTIME_DIR` incluso en entornos live sin sesión explícita.
 - Soporta backends `swaybg` (modo estático predeterminado) y `awww` (animaciones/transiciones).
-- Si no recibe argumentos, lee la ruta guardada en `~/.config/churros/settings.json` o recurre a `/usr/share/churros/wallpapers/default.jpeg`.
+- Si no recibe argumentos, lee la ruta guardada en `~/.config/churros/settings.json` o recurre a `/usr/share/churros/wallpapers/default.png`.
 
 ## churros-pick-image
 
