@@ -64,12 +64,16 @@ window.light {
     existe): lo aplica niri (window-rule background-effect blur true
     para org.churros.preferences). Aquí solo va el alpha del fondo.
 */
-window {
-    background: var(--bg-window);
+window,
+window.background,
+window.preferences,
+.preferences {
+    background: var(--bg-window) !important;
+    background-color: var(--bg-window) !important;
 }
 
 headerbar {
-    background: transparent;
+    background: transparent !important;
     border: none;
     box-shadow: none;
     min-height: 44px;
@@ -77,7 +81,7 @@ headerbar {
 }
 
 headerbar windowhandle {
-    background: transparent;
+    background: transparent !important;
 }
 
 /*
@@ -88,12 +92,9 @@ headerbar windowhandle {
 */
 window.maximized,
 window.fullscreen {
-    background: var(--bg-window);
+    background: var(--bg-window) !important;
+    background-color: var(--bg-window) !important;
     border-radius: 0;
-}
-
-.preferences {
-    background: transparent;
 }
 
 /* ── Sidebar (glass panel) ─────────────────────────────── */

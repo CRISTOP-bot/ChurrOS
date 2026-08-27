@@ -93,33 +93,39 @@ window-rule {
 // blur true <-> blur false dentro de estos marcadores para
 // activar/desactivar el blur sin tocar el resto del config.
 // [CHURROS-GLASS-START]
-// Regla genérica: blur para TODAS las apps de ChurrOS
-// (org.churros.*). El match es regex: cubre popups, control-center,
-// preferences, welcome y futuras apps sin reglas extra.
 window-rule {
-    match app-id="org.churros"
+    match app-id="org.churros.popup"
     background-effect {
         blur true
     }
-}
-
-// clip-to-geometry + geometry-corner-radius hacen que el blur siga
-// las esquinas redondeadas del CSS de cada app.
-window-rule {
-    match app-id="org.churros.popup"
     geometry-corner-radius 20
     clip-to-geometry true
 }
 
 window-rule {
     match app-id="org.churros.controlcenter"
+    background-effect {
+        blur true
+    }
     geometry-corner-radius 22
     clip-to-geometry true
 }
 
 window-rule {
     match app-id="org.churros.preferences"
+    background-effect {
+        blur true
+    }
     geometry-corner-radius 16
+    clip-to-geometry true
+}
+
+window-rule {
+    match app-id="org.churros.welcome"
+    background-effect {
+        blur true
+    }
+    geometry-corner-radius 18
     clip-to-geometry true
 }
 // [CHURROS-GLASS-END]

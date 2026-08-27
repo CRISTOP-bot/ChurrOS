@@ -163,6 +163,10 @@ apply_swaybg() {
         return 0
     fi
 
+    echo "$LOG_PREFIX swaybg fallo al arrancar" >&2
+    return 1
+}
+
 apply_xfce() {
 
     local path="$1"
