@@ -289,6 +289,10 @@ impl CursorService {
         write_gtk_ini("gtk-cursor-theme-name", theme);
         write_gtk_ini("gtk-cursor-theme-size", &(size as i64).to_string());
         apply_live_cursor_theme(theme, size as i64);
+
+        let _ = Command::new("xfconf-query")
+            .args(["-c", "xsettings", "-p", "/Gtk/CursorThemeName", "-s", theme])
+            .output();
     }
 
     /// Temas disponibles: carpetas con subdirectorio "cursors" en CURSOR_DIRS (sorted set)
@@ -330,6 +334,10 @@ impl CursorService {
         let theme = Self::current();
         write_gtk_ini("gtk-cursor-theme-size", &size_i.to_string());
         apply_live_cursor_theme(&theme, size_i);
+
+        let _ = Command::new("xfconf-query")
+            .args(["-c", "xsettings", "-p", "/Gtk/CursorThemeSize", "-s", &size_i.to_string()])
+            .output();
 
         // Equivalente a: NiriConfig.set_cursor_size(size) dentro de try/except
         set_niri_cursor_size(size);

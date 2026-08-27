@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Picom Compositor
+Comment=Compositor con sombras, vsync y efectos visuales
+Exec=picom -b
+OnlyShowIn=XFCE;
+Terminal=false

@@ -152,6 +152,10 @@ impl IconsService {
 
         write_gtk_ini("gtk-icon-theme-name", theme);
         apply_live_icon_theme(theme);
+
+        let _ = Command::new("xfconf-query")
+            .args(["-c", "xsettings", "-p", "/Net/IconThemeName", "-s", theme])
+            .output();
     }
 
     /// Temas disponibles: carpetas con index.theme en ICON_DIRS (sorted set)

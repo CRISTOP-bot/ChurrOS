@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-keyboard-shortcuts" version="1.0">
+  <property name="commands" type="empty">
+    <property name="default" type="empty"/>
+    <property name="custom" type="empty">
+      <property name="Super_L" type="string" value="xfce4-popup-whiskermenu"/>
+      <property name="&lt;Super&gt;e" type="string" value="thunar"/>
+      <property name="&lt;Super&gt;t" type="string" value="xfce4-terminal"/>
+      <property name="&lt;Primary&gt;&lt;Alt&gt;t" type="string" value="xfce4-terminal"/>
+      <property name="&lt;Super&gt;i" type="string" value="churros-settings"/>
+      <property name="&lt;Super&gt;s" type="string" value="churros-settings"/>
+      <property name="&lt;Super&gt;a" type="string" value="churros-control-center"/>
+      <property name="&lt;Super&gt;c" type="string" value="churros-control-center"/>
+      <property name="&lt;Super&gt;l" type="string" value="xflock4"/>
+      <property name="&lt;Super&gt;&lt;Shift&gt;s" type="string" value="xfce4-screenshooter -r"/>
+      <property name="Print" type="string" value="xfce4-screenshooter -f"/>
+      <property name="&lt;Shift&gt;Print" type="string" value="xfce4-screenshooter -r"/>
+      <property name="&lt;Alt&gt;Print" type="string" value="xfce4-screenshooter -w"/>
+      <property name="XF86AudioRaiseVolume" type="string" value="pamixer -i 5"/>
+      <property name="XF86AudioLowerVolume" type="string" value="pamixer -d 5"/>
+      <property name="XF86AudioMute" type="string" value="pamixer -t"/>
+      <property name="XF86AudioMicMute" type="string" value="pamixer --default-source -t"/>
+      <property name="XF86MonBrightnessUp" type="string" value="brightnessctl set +5%"/>
+      <property name="XF86MonBrightnessDown" type="string" value="brightnessctl set 5%-"/>
+      <property name="XF86AudioPlay" type="string" value="playerctl play-pause"/>
+      <property name="XF86AudioNext" type="string" value="playerctl next"/>
+      <property name="XF86AudioPrev" type="string" value="playerctl previous"/>
+    </property>
+  </property>
+  <property name="xfwm4" type="empty">
+    <property name="default" type="empty"/>
+    <property name="custom" type="empty">
+      <property name="&lt;Alt&gt;F4" type="string" value="close_window_key"/>
+      <property name="&lt;Super&gt;q" type="string" value="close_window_key"/>
+      <property name="&lt;Alt&gt;Tab" type="string" value="cycle_windows_key"/>
+      <property name="&lt;Super&gt;Up" type="string" value="maximize_window_key"/>
+      <property name="&lt;Super&gt;Down" type="string" value="hide_window_key"/>
+      <property name="&lt;Super&gt;Left" type="string" value="tile_left_key"/>
+      <property name="&lt;Super&gt;Right" type="string" value="tile_right_key"/>
+    </property>
+  </property>
+</channel>
