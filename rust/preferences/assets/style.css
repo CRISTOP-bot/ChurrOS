@@ -68,12 +68,12 @@ window,
 window.background,
 window.preferences,
 .preferences {
-    background: var(--bg-window) !important;
-    background-color: var(--bg-window) !important;
+    background: var(--bg-window);
+    background-color: var(--bg-window);
 }
 
 headerbar {
-    background: transparent !important;
+    background: transparent;
     border: none;
     box-shadow: none;
     min-height: 44px;
@@ -81,7 +81,7 @@ headerbar {
 }
 
 headerbar windowhandle {
-    background: transparent !important;
+    background: transparent;
 }
 
 /*
@@ -92,8 +92,8 @@ headerbar windowhandle {
 */
 window.maximized,
 window.fullscreen {
-    background: var(--bg-window) !important;
-    background-color: var(--bg-window) !important;
+    background: var(--bg-window);
+    background-color: var(--bg-window);
     border-radius: 0;
 }
 
@@ -137,9 +137,9 @@ button.sidebar-item {
 
 .sidebar-item:hover,
 button.sidebar-item:hover {
-    background: rgba(249, 115, 22, 0.16) !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(249, 115, 22, 0.35) !important;
+    background: var(--accent-bg-hover);
+    color: #FFFFFF;
+    border: 1px solid var(--accent);
 }
 
 .sidebar-item.active,
@@ -149,36 +149,36 @@ button.sidebar-item.selected,
 .sidebar button.active,
 .sidebar button:checked,
 .sidebar-item:active {
-    background: linear-gradient(135deg, #FB923C, #F97316) !important;
-    background-color: #F97316 !important;
-    color: #FFFFFF !important;
-    font-weight: 700 !important;
-    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45), 0 0 20px rgba(249, 115, 22, 0.25) !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent));
+    background-color: var(--accent);
+    color: #FFFFFF;
+    font-weight: 700;
+    box-shadow: 0 4px 16px var(--accent), 0 0 20px var(--accent-glow);
+    border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .sidebar-item.active:hover,
 button.sidebar-item.active:hover,
 button.sidebar-item:checked:hover,
 .sidebar button.active:hover {
-    background: linear-gradient(135deg, #FDBA74, #FB923C) !important;
-    background-color: #FB923C !important;
-    color: #FFFFFF !important;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    background-color: var(--accent-soft);
+    color: #FFFFFF;
 }
 
 .sidebar-item.active label,
 button.sidebar-item.active label,
 button.sidebar-item:checked label,
 .sidebar button.active label {
-    color: #FFFFFF !important;
-    font-weight: 700 !important;
+    color: #FFFFFF;
+    font-weight: 700;
 }
 
 .sidebar-item.active image,
 button.sidebar-item.active image,
 button.sidebar-item:checked image,
 .sidebar button.active image {
-    color: #FFFFFF !important;
+    color: #FFFFFF;
     -gtk-icon-filter: none;
 }
 
@@ -207,8 +207,8 @@ searchentry {
 .preferences-search:focus,
 searchentry:focus {
     border: 1px solid var(--accent);
-    background: rgba(249,115,22,.06);
-    box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+    background: var(--accent-bg-hover);
+    box-shadow: 0 0 0 3px var(--accent);
 }
 
 .preferences-search image,
@@ -362,7 +362,7 @@ scale trough {
 scale highlight {
     background: linear-gradient(90deg, var(--accent), var(--accent-soft));
     border-radius: 8px;
-    box-shadow: 0 0 8px rgba(249,115,22,.30);
+    box-shadow: 0 0 8px var(--accent);
 }
 
 scale slider {
@@ -377,7 +377,7 @@ scale slider {
 }
 
 scale slider:hover {
-    box-shadow: 0 2px 12px rgba(249,115,22,.40), 0 0 0 4px rgba(249,115,22,.15);
+    box-shadow: 0 2px 12px var(--accent), 0 0 0 4px var(--accent);
 }
 
 /* ── DropDown ─────────────────────────────────────────── */
@@ -398,7 +398,7 @@ dropdown:hover,
 button.combo:hover {
     background: var(--accent-bg-hover);
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(249,115,22,.10);
+    box-shadow: 0 0 0 3px var(--accent);
 }
 
 popover contents list {
@@ -511,7 +511,7 @@ scrollbar slider:hover {
 
 .wallpaper-button:hover {
     border-color: var(--accent);
-    box-shadow: 0 6px 20px rgba(249,115,22,.25);
+    box-shadow: 0 6px 20px var(--accent);
     transform: translateY(-2px);
 }
 
@@ -528,7 +528,7 @@ scrollbar slider:hover {
 .wallpaper-selected {
     border: 3px solid var(--accent);
     border-radius: 14px;
-    box-shadow: var(--accent-glow), 0 4px 16px rgba(249,115,22,.35);
+    box-shadow: var(--accent-glow), 0 4px 16px var(--accent);
 }
 
 .wallpaper-preview {
@@ -582,7 +582,7 @@ scrollbar slider:hover {
 .back-button:hover {
     background: var(--accent-bg-hover);
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(249,115,22,.10);
+    box-shadow: 0 0 0 3px var(--accent);
 }
 
 /* ── Misc cleanup ─────────────────────────────────────── */
@@ -599,12 +599,12 @@ button.suggested-action {
     color: var(--accent-text);
     border-radius: 10px;
     border: 1px solid var(--accent);
-    box-shadow: var(--accent-glow), 0 4px 14px rgba(249,115,22,.25);
+    box-shadow: var(--accent-glow), 0 4px 14px var(--accent);
 }
 
 button.suggested-action:hover {
     background: linear-gradient(135deg, var(--accent-soft), var(--accent));
-    box-shadow: var(--accent-glow), 0 6px 18px rgba(249,115,22,.35);
+    box-shadow: var(--accent-glow), 0 6px 18px var(--accent);
 }
 
 button.destructive-action {
@@ -630,7 +630,7 @@ entry {
 
 entry:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+    box-shadow: 0 0 0 3px var(--accent);
 }
 
 /* ── Color picker ────────────────────────────────────── */
