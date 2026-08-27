@@ -46,7 +46,11 @@ fn load_css() {
     let css = assets::css_path();
     logging::log(&format!("css local: {} existe={}", css.display(), css.is_file()));
     let provider = gtk::CssProvider::new();
-    provider.load_from_path(css);
+    if css.is_file() {
+        provider.load_from_path(css);
+    } else {
+        provider.load_from_data(include_str!("../assets/style.css"));
+    }
     gtk::style_context_add_provider_for_display(
         &display,
         &provider,
@@ -57,32 +61,47 @@ fn load_css() {
 mod assets {
     use std::path::PathBuf;
 
-    // En runtime (ISO): /usr/share/churros/control-center/ con style.css,
-    // logo.svg e icons/ dentro de assets/. En desarrollo, assets locales.
-    const RUNTIME_ROOT: &str = "/usr/share/churros/control-center";
+    const RUNTIME_ROOTS: &[&str] = &[
+        "/usr/share/churros/churros-control-center/assets",
+        "/usr/share/churros/churros-control-center",
+        "/usr/share/churros/control-center/assets",
+        "/usr/share/churros/control-center",
+    ];
     const DEV_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/assets");
 
-    fn resolve(runtime: &str, dev: &str) -> PathBuf {
-        let path = PathBuf::from(runtime);
-        if path.is_file() {
-            path
-        } else {
-            PathBuf::from(DEV_ROOT).join(dev)
-        }
-    }
-
     pub fn css_path() -> PathBuf {
-        resolve(&format!("{RUNTIME_ROOT}/style.css"), "style.css")
+        for root in RUNTIME_ROOTS {
+            for name in ["style.css", "assets/style.css"] {
+                let p = PathBuf::from(root).join(name);
+                if p.is_file() {
+                    return p;
+                }
+            }
+        }
+        PathBuf::from(DEV_ROOT).join("style.css")
     }
 
     pub fn icon_path(name: &str) -> PathBuf {
-        resolve(
-            &format!("{RUNTIME_ROOT}/assets/icons/{name}"),
-            &format!("icons/{name}"),
-        )
+        for root in RUNTIME_ROOTS {
+            for sub in [format!("icons/{name}"), format!("assets/icons/{name}")] {
+                let p = PathBuf::from(root).join(&sub);
+                if p.is_file() {
+                    return p;
+                }
+            }
+        }
+        PathBuf::from(DEV_ROOT).join(format!("icons/{name}"))
     }
 
     pub fn logo_path() -> PathBuf {
-        resolve(&format!("{RUNTIME_ROOT}/assets/logo.svg"), "logo.svg")
+        for root in RUNTIME_ROOTS {
+            for name in ["logo.svg", "assets/logo.svg"] {
+                let p = PathBuf::from(root).join(name);
+                if p.is_file() {
+                    return p;
+                }
+            }
+        }
+        PathBuf::from(DEV_ROOT).join("logo.svg")
     }
 }

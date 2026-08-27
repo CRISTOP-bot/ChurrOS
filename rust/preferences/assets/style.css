@@ -144,7 +144,10 @@ button.sidebar-item:hover {
 .sidebar-item.active,
 button.sidebar-item.active,
 button.sidebar-item:checked,
-button.sidebar-item.selected {
+button.sidebar-item.selected,
+.sidebar button.active,
+.sidebar button:checked,
+.sidebar-item:active {
     background: linear-gradient(135deg, #FB923C, #F97316) !important;
     background-color: #F97316 !important;
     color: #FFFFFF !important;
@@ -155,7 +158,8 @@ button.sidebar-item.selected {
 
 .sidebar-item.active:hover,
 button.sidebar-item.active:hover,
-button.sidebar-item:checked:hover {
+button.sidebar-item:checked:hover,
+.sidebar button.active:hover {
     background: linear-gradient(135deg, #FDBA74, #FB923C) !important;
     background-color: #FB923C !important;
     color: #FFFFFF !important;
@@ -163,14 +167,16 @@ button.sidebar-item:checked:hover {
 
 .sidebar-item.active label,
 button.sidebar-item.active label,
-button.sidebar-item:checked label {
+button.sidebar-item:checked label,
+.sidebar button.active label {
     color: #FFFFFF !important;
     font-weight: 700 !important;
 }
 
 .sidebar-item.active image,
 button.sidebar-item.active image,
-button.sidebar-item:checked image {
+button.sidebar-item:checked image,
+.sidebar button.active image {
     color: #FFFFFF !important;
     -gtk-icon-filter: none;
 }

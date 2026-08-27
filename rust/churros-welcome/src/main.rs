@@ -30,16 +30,18 @@ fn load_css() {
 
     // CSS local de la app (pisa al compartido)
     let local = assets::css_path();
-    if local.exists() {
-        let provider = gtk::CssProvider::new();
+    let provider = gtk::CssProvider::new();
+    if local.is_file() {
         provider.load_from_path(&local);
-        if let Some(display) = gtk::gdk::Display::default() {
-            gtk::style_context_add_provider_for_display(
-                &display,
-                &provider,
-                gtk::STYLE_PROVIDER_PRIORITY_APPLICATION + 1,
-            );
-        }
+    } else {
+        provider.load_from_data(include_str!("../assets/style.css"));
+    }
+    if let Some(display) = gtk::gdk::Display::default() {
+        gtk::style_context_add_provider_for_display(
+            &display,
+            &provider,
+            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION + 1,
+        );
     }
 }
 
