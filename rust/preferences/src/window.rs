@@ -33,8 +33,8 @@ impl PreferencesWindow {
         let window = gtk::ApplicationWindow::builder()
             .application(app)
             .title("Configuración")
-            .default_width(1280)
-            .default_height(760)
+            .default_width(900)
+            .default_height(680)
             .build();
 
         window.add_css_class("preferences");
