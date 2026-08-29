@@ -16,20 +16,48 @@ BASE="${1:-https://download.churroslinux.org/churros/}"
 BASE="${BASE%/}/"
 
 VERSION_FILE=/etc/churros-version
+EDITION_FILE=/etc/churros-edition
+EDITION="niri"
+if [ -f "$EDITION_FILE" ]; then
+    EDITION="$(tr -d '[:space:]' < "$EDITION_FILE" | tr '[:upper:]' '[:lower:]')"
+elif [ -f /etc/os-release ]; then
+    var_id=$(grep -E '^VARIANT_ID=' /etc/os-release | cut -d= -f2 | tr -d '"' | tr -d '[:space:]' || true)
+    [ -n "$var_id" ] && EDITION="$var_id"
+fi
 
-echo "Comprobando utilidades de ChurrOS ($BASE)..."
+echo "Comprobando utilidades de ChurrOS ($BASE) [edición: $EDITION]..."
 
 MANIFEST="$(curl -fsSL --connect-timeout 10 "$BASE/updates.json" 2>/dev/null)" || {
     echo "ERROR: no se pudo obtener updates.json"
     exit 1
 }
 
-version="$(echo "$MANIFEST" | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
-file="$(echo "$MANIFEST" | sed -n 's/.*"file"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
-sha256="$(echo "$MANIFEST" | sed -n 's/.*"sha256"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+PARSED=$(python3 -c "
+import sys, json
+try:
+    manifest_raw = sys.stdin.read()
+    data = json.loads(manifest_raw)
+    version = data.get('version', '')
+    edition = '$EDITION'
+    editions = data.get('editions', {})
+    if isinstance(editions, dict) and edition in editions:
+        file = editions[edition].get('file', '')
+        sha = editions[edition].get('sha256', '')
+    elif isinstance(editions, dict) and 'niri' in editions:
+        file = editions['niri'].get('file', '')
+        sha = editions['niri'].get('sha256', '')
+    else:
+        file = data.get('file', '')
+        sha = data.get('sha256', '')
+    print(f'{version}|{file}|{sha}')
+except Exception:
+    sys.exit(1)
+" <<< "$MANIFEST" 2>/dev/null || true)
+
+IFS='|' read -r version file sha256 <<< "$PARSED"
 
 [ -n "$version" ] && [ -n "$file" ] && [ -n "$sha256" ] || {
-    echo "ERROR: updates.json mal formado"
+    echo "ERROR: updates.json mal formado o edición no encontrada"
     exit 1
 }
 

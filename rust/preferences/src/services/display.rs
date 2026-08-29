@@ -282,7 +282,7 @@ impl Default for DisplayService {
 
 fn first_backlight_device() -> Option<String> {
     let entries = fs::read_dir("/sys/class/backlight").ok()?;
-    for entry in entries.flatten() {
+    if let Some(entry) = entries.flatten().next() {
         return Some(entry.file_name().to_string_lossy().to_string());
     }
     None

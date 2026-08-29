@@ -104,6 +104,7 @@ impl Sidebar {
         self.callbacks.borrow_mut().push(Box::new(cb));
     }
 
+    #[allow(dead_code)]
     fn emit_page_selected(&self, page: &str) {
         let callbacks = self.callbacks.borrow();
         for cb in callbacks.iter() {
@@ -152,6 +153,15 @@ impl Sidebar {
         }
         if let Some(item) = self.buttons.get(page) {
             item.activate();
+            return;
+        }
+        let catalog = self.catalog.borrow();
+        if let Some(entry) = catalog.iter().find(|e| e.id == page) {
+            if let Some(parent) = &entry.parent {
+                if let Some(item) = self.buttons.get(parent) {
+                    item.activate();
+                }
+            }
         }
     }
 

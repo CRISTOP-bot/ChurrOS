@@ -13,8 +13,33 @@ window {
     min-height: 320px;
 }
 
+headerbar {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    min-height: 44px;
+}
+
+headerbar windowhandle {
+    background: transparent;
+}
+
+flowboxchild {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+flowboxchild:hover,
+flowboxchild:selected,
+flowboxchild:active,
+flowboxchild:focus {
+    background: transparent;
+    outline: none;
+}
+
 .content-scroller {
-    min-height: 100%;
+    background: transparent;
 }
 
 .logo {
@@ -46,11 +71,8 @@ window {
     background: rgba(255,255,255,.05);
     border-radius: 24px;
     border: 1px solid rgba(249,115,22,.14);
-    width: 280px;
     min-width: 280px;
-    max-width: 280px;
     min-height: 340px;
-    height: 340px;
     padding: 20px;
     transition: transform 200ms cubic-bezier(.4,0,.2,1),
                 background 200ms ease,

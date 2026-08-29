@@ -6,13 +6,20 @@
 # Idempotente: si ya estan corriendo, no los duplica.
 #
 
-set -e
-
 log() { printf '[churros-portal] %s\n' "$*" >&2; }
 
-# Actualizar entorno de activación D-Bus para que el portal tenga acceso
-# a WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS, etc.
-# Sin esto, xdg-desktop-portal no puede mostrar diálogos bajo Wayland.
+# Actualizar entorno de activación systemd y D-Bus para que el portal y todas las
+# aplicaciones tengan acceso a WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS, etc.
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user import-environment \
+        WAYLAND_DISPLAY \
+        DBUS_SESSION_BUS_ADDRESS \
+        XDG_SESSION_TYPE \
+        XDG_CURRENT_DESKTOP \
+        XDG_SESSION_DESKTOP \
+        DISPLAY 2>/dev/null || true
+fi
+
 if command -v dbus-update-activation-environment >/dev/null 2>&1; then
     dbus-update-activation-environment --systemd \
         WAYLAND_DISPLAY \
@@ -20,32 +27,20 @@ if command -v dbus-update-activation-environment >/dev/null 2>&1; then
         XDG_SESSION_TYPE \
         XDG_CURRENT_DESKTOP \
         XDG_SESSION_DESKTOP \
-        2>/dev/null || true
+        DISPLAY 2>/dev/null || true
 fi
 
 # Configurar thunar como file manager predeterminado
-# para cuando el usuario abre carpetas (click derecho -> abrir).
-# El portal FileChooser no se ve afectado por esto.
 if command -v thunar >/dev/null 2>&1; then
-
     if command -v xdg-mime >/dev/null 2>&1; then
-
         xdg-mime default thunar.desktop inode/directory >/dev/null 2>&1 || true
-
     fi
-
 fi
 
-# Crear config de xdg-desktop-portal si no existe
-# El portal-gtk necesita saber qué backend usar. Sin esta config,
-# el portal autodetecta por XDG_CURRENT_DESKTOP pero "niri" no es
-# reconocido, asi que el FileChooser nunca se abre.
+# Crear config de xdg-desktop-portal en ~/.config si no existe
 PORTAL_CONF_DIR="$HOME/.config/xdg-desktop-portal"
 mkdir -p "$PORTAL_CONF_DIR"
 
-# Forzar backend gtk para todas las interfaces del portal.
-# Esto hace que Gtk.FileDialog (GTK4) use el selector nativo
-# de portal-gtk (GTK3) que sí funciona bajo niri/wlroots.
 cat > "$PORTAL_CONF_DIR/portals.conf" << 'EOF'
 [preferred]
 default=gtk
@@ -53,43 +48,38 @@ org.freedesktop.impl.portal.FileChooser=gtk
 org.freedesktop.impl.portal.Secret=gtk
 org.freedesktop.impl.portal.AppChooser=gtk
 org.freedesktop.impl.portal.Notification=gtk
+org.freedesktop.impl.portal.Settings=gtk
+org.freedesktop.impl.portal.Inhibit=gtk
 EOF
 
 chown -R "${USER:-churros}:${USER:-churros}" "$PORTAL_CONF_DIR" 2>/dev/null || true
 
-# Iniciar portal general
-if ! pgrep -x xdg-desktop-portal >/dev/null 2>&1; then
-
-    if command -v xdg-desktop-portal >/dev/null 2>&1; then
-
-        log "iniciando xdg-desktop-portal"
-        setsid xdg-desktop-portal >/dev/null 2>&1 &
-
-        for _ in 1 2 3 4 5 6 7 8 9 10; do
-
-            if pgrep -x xdg-desktop-portal >/dev/null 2>&1; then
-                break
-            fi
-            sleep 0.1
-
-        done
-
-    fi
-
+# Intentar reiniciar via systemd user units
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user restart xdg-desktop-portal-gtk.service xdg-desktop-portal.service 2>/dev/null || true
 fi
 
-# Iniciar backend GTK (fallback para Secret, etc.)
+# Iniciar backend GTK si no esta corriendo (fallback manual)
 if ! pgrep -x xdg-desktop-portal-gtk >/dev/null 2>&1; then
+    for bin in /usr/lib/xdg-desktop-portal-gtk /usr/libexec/xdg-desktop-portal-gtk; do
+        if [ -x "$bin" ]; then
+            log "iniciando $bin"
+            setsid "$bin" >/dev/null 2>&1 &
+            sleep 0.2
+            break
+        fi
+    done
+fi
 
-    if command -v xdg-desktop-portal-gtk >/dev/null 2>&1; then
-
-        log "iniciando xdg-desktop-portal-gtk"
-        setsid xdg-desktop-portal-gtk >/dev/null 2>&1 &
-
-        sleep 0.3
-
-    fi
-
+# Iniciar portal general si no esta corriendo (fallback manual)
+if ! pgrep -x xdg-desktop-portal >/dev/null 2>&1; then
+    for bin in /usr/lib/xdg-desktop-portal /usr/libexec/xdg-desktop-portal; do
+        if [ -x "$bin" ]; then
+            log "iniciando $bin"
+            setsid "$bin" >/dev/null 2>&1 &
+            break
+        fi
+    done
 fi
 
 exit 0

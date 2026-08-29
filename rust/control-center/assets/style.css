@@ -70,9 +70,11 @@ window {
     color: rgba(255,255,255,.75);
 }
 
-/* ── POWER ────────────────────────────────────────────── */
+/* ── POWER & CONTROLS ─────────────────────────────────── */
 
-.power-button {
+.power-button,
+.close-button,
+.settings-button {
     background: transparent;
     border: none;
     min-width: 40px;
@@ -81,7 +83,9 @@ window {
     transition: 160ms ease;
 }
 
-.power-button:hover {
+.power-button:hover,
+.close-button:hover,
+.settings-button:hover {
     background: rgba(249,115,22,.14);
     box-shadow: 0 0 20px rgba(249,115,22,.25);
 }

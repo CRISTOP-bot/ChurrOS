@@ -9,14 +9,29 @@ cp -r /etc/skel/.config /home/churros/
 # Permisos
 chown -R churros:churros /home/churros/.config
 
-# Setear XDG_CURRENT_DESKTOP para que los servicios de preferences detecten Niri
+# Setear variables de sesion segun la edicion (Niri / XFCE)
+EDITION="niri"
+if [ -f /etc/churros-edition ]; then
+    EDITION="$(tr -d '[:space:]' < /etc/churros-edition | tr '[:upper:]' '[:lower:]')"
+fi
+
 SESSION_FILE="/home/churros/.config/environment.d/churros-session.conf"
 mkdir -p "/home/churros/.config/environment.d"
-cat > "$SESSION_FILE" << 'EOF'
+
+if [ "$EDITION" = "xfce" ]; then
+    cat > "$SESSION_FILE" << 'EOF'
+XDG_CURRENT_DESKTOP=XFCE
+XDG_SESSION_DESKTOP=xfce
+XDG_SESSION_TYPE=x11
+DESKTOP_SESSION=xfce
+EOF
+else
+    cat > "$SESSION_FILE" << 'EOF'
 XDG_CURRENT_DESKTOP=niri
 XDG_SESSION_DESKTOP=niri
 XDG_SESSION_TYPE=wayland
 EOF
+fi
 chown -R churros:churros "/home/churros/.config/environment.d"
 
 # Regenerar cache de iconos GTK para que encuentre los iconos Churros

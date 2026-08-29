@@ -55,6 +55,7 @@ impl SwitchRow {
         Self { row, switch }
     }
 
+    #[allow(dead_code)]
     pub fn widget(&self) -> &gtk::Button {
         self.row.widget()
     }

@@ -1,0 +1,23 @@
+# ==========================================
+# ChurrOS ReGreet Configuration
+# ==========================================
+
+[background]
+path = "/usr/share/churros/wallpapers/default.png"
+fit = "Cover"
+
+[env]
+
+[GTK]
+application_prefer_dark_theme = true
+cursor_theme_name = "Adwaita"
+font_name = "DejaVu Sans 11"
+icon_theme_name = "Papirus-Dark"
+theme_name = "Adwaita-dark"
+
+[commands]
+reboot = ["systemctl", "reboot"]
+poweroff = ["systemctl", "poweroff"]
+
+[appearance]
+greeting = "Bienvenido a ChurrOS"

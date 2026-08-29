@@ -12,7 +12,10 @@
 **Assets:** `/usr/share/churros/churros-settings/` en la ISO; `rust/preferences/assets/` en desarrollo
 **Log:** `/tmp/churros/churros-settings.log`
 
-Sidebar + stack de páginas (con subpáginas). Ventana por defecto 1280×760.
+- **Ventana:** 1200×740 (redimensionable, responsive).
+- **Barra de título:** `AdwHeaderBar` con botones estándar de ventana (cerrar, maximizar, minimizar) y botón hamburguesa integrado para colapsar/desplegar el menú lateral en pantallas estrechas.
+- **Soporte Multi-edición:** Detecta automáticamente el entorno en ejecución (`/etc/churros-edition`): en la edición XFCE oculta dinámicamente las páginas exclusivas de Niri/Wayland (*Waybar, Niri, Reglas de ventana, Foot, Fuzzel, Mako, Logs de Niri*).
+- **Sidebar + stack de páginas:** Navegación por catálogo con búsqueda global (`Ctrl+F`).
 
 ---
 

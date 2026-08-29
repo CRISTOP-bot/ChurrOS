@@ -373,11 +373,34 @@ ThemeService y AccentService tienen **hooks pywal** — cuando pywal está activ
 
 ---
 
-## 2026-07-16
+## 2026-08-25 — Multi-edición XFCE, App HeaderBars & Responsividad
 
-- Added `python-psutil` to `archiso/packages.x86_64` so `churros-welcome` can import `psutil` in the live image.
-- Updated `apps/churros-welcome/src/utils/system.py` and `archiso/airootfs/usr/share/churros/churros-welcome/src/utils/system.py` to import `psutil` safely and fall back to `/proc/meminfo` when `psutil` is missing.
-- Verified that Niri autostart already includes `spawn-at-startup "churros-welcome"` in `/etc/skel/.config/niri/config.kdl`.
-- Did not change autostart configuration itself; the fix was ensuring the welcome app can launch without `psutil` missing in the image.
-- Updated ChurrOS Welcome styling in `apps/churros-welcome/assets/style.css` and `archiso/airootfs/usr/share/churros/churros-welcome/assets/style.css` for a darker branded theme, softer shadows, and consistent spacing.
-- Updated Waybar styling in `archiso/airootfs/etc/skel/.config/waybar/style.css` to match ChurrOS branding with rounded panels, improved workspace button styles, and cleaner tray item appearance.
+### Soporte Multi-Edición (`niri` + `xfce`)
+- Añadida bandera `--edition <niri|xfce>` al comando `./churros build`.
+- Creado `archiso/packages.xfce.x86_64` con la suite completa de XFCE 4, panel ChurrOS, xfwm4, xsettings y utilidades X11.
+- Configuración de dotfiles en `archiso/airootfs/etc/skel/.config/xfce4/` para panel, gestor de ventanas y xsettings oscuros con Adwaita/Papirus.
+- `greetd` configurado dinámicamente para autologin a `/usr/bin/startxfce4` (XFCE) o `/usr/bin/niri` (Niri).
+- `churros-apply-wallpaper` adaptado para configurar el fondo tanto en `swaybg` como en `xfce4-desktop` vía `xfconf-query`.
+
+### Apps Rust: HeaderBars y Responsividad
+- **ChurrOS Welcome (`churros-welcome`)**:
+  - Integrada barra de título `AdwHeaderBar` con botones estándar de ventana (cerrar, maximizar, minimizar).
+  - Integrada la tarjeta de Información del Sistema (`system_card`) en el FlowBox principal, mostrando CPU, RAM, Kernel, SO, Arquitectura y Hostname directamente desde `/proc` y `/etc/os-release`.
+  - Configurado `FlowBox` responsivo (hasta 4 columnas, colapsable a 2 o 1) con desplazamiento automático en `ScrolledWindow`.
+  - Autostart compatible con XFCE (`.config/autostart/churros-welcome.desktop`).
+- **Configuración (`churros-settings`)**:
+  - Añadida barra de título `AdwHeaderBar` con controles de ventana.
+  - Integrado el botón hamburguesa en la barra de título para colapsar y expandir el menú lateral en pantallas estrechas.
+  - Filtrado condicional de páginas: en XFCE se ocultan automáticamente las subpáginas exclusivas de Niri/Waybar.
+  - Ajuste de línea automático (`wrap(true)`) en títulos y descripciones de filas.
+- **Control Center (`churros-control-center`)**:
+  - Añadido botón de cierre en cabecera y contenedor con scroll para pantallas de baja resolución.
+
+### Sistema de compilación y QEMU
+- **Build System (`build.sh`)**:
+  - Corregida verificación de enlace simbólico `/root/packages` con `sudo test -L` y `sudo ln -sfn` para evitar anidación de symlinks en compilaciones repetidas.
+  - Limpieza automática y restauración de archivos `.orig` en el trap de salida.
+- **QEMU (`run.sh`)**:
+  - Añadido `show-cursor=on` en `-display gtk,gl=on` para garantizar que el puntero del ratón siempre sea visible en la VM.
+  - Configurado canal serie `spice-vdagent` para sincronización bidireccional de portapapeles y ratón entre host y guest.
+

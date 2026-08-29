@@ -3,16 +3,17 @@
 ## Build Commands
 
 ```bash
-./churros build      # Build ISO (runs from repo root; needs sudo for mkarchiso)
-./churros run        # Build (if needed) and launch QEMU
-./churros run --nokvm  # Force software emulation (no /dev/kvm)
-./churros run --fresh  # Reset OVMF_VARS.fd so UEFI boots from CD-ROM instead of an existing install
-./churros clean      # Remove work/ and out/ (also runs sudo rm -rf)
-./churros check      # Static checks: bash, python, package list, niri autostart, Calamares branding, po files
-./churros apps       # Open distro apps on the host (GTK preview is dummy; Calamares uses a tmp overlay)
-./churros doctor     # Check for mkarchiso, qemu, xorriso, mksquashfs, mcopy, mkinitcpio
-./scripts/build-calamares.sh  # Build Calamares .pkg.tar.zst from AUR into archiso/packages/
-./scripts/build-aur.sh        # Build python-pywal + waypaper + yay AUR packages
+./churros build              # Build ISO (default: niri edition)
+./churros build --edition xfce # Build ISO with XFCE edition
+./churros run                # Build (if needed) and launch QEMU
+./churros run --nokvm        # Force software emulation (no /dev/kvm)
+./churros run --fresh        # Reset OVMF_VARS.fd so UEFI boots from CD-ROM instead of an existing install
+./churros clean              # Remove work/ and out/ (also runs sudo rm -rf)
+./churros check              # Static checks: bash, python, package lists, desktop files, Calamares branding, po files
+./churros apps               # Open distro apps on the host (GTK preview is dummy; Calamares uses a tmp overlay)
+./churros doctor             # Check for mkarchiso, qemu, xorriso, mksquashfs, mcopy, mkinitcpio
+./scripts/build-calamares.sh # Build Calamares .pkg.tar.zst from AUR into archiso/packages/
+./scripts/build-aur.sh       # Build python-pywal + waypaper + yay AUR packages
 ./scripts/build-grub-theme.sh # Regenerate GRUB theme fonts (.pf2) + assets in branding/grub-theme/
 ```
 

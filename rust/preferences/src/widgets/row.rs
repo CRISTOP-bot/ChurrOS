@@ -44,6 +44,8 @@ impl Row {
         let title_label = gtk::Label::builder()
             .label(title)
             .xalign(0.0)
+            .wrap(true)
+            .wrap_mode(gtk::pango::WrapMode::WordChar)
             .build();
         title_label.add_css_class("row-title");
         labels.append(&title_label);
@@ -53,6 +55,8 @@ impl Row {
             let label = gtk::Label::builder()
                 .label(sub)
                 .xalign(0.0)
+                .wrap(true)
+                .wrap_mode(gtk::pango::WrapMode::WordChar)
                 .build();
             label.add_css_class("row-subtitle");
             labels.append(&label);

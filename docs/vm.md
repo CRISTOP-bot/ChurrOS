@@ -49,16 +49,19 @@ El script `scripts/cli/run.sh` lanza QEMU con los siguientes parámetros:
 
 | Parámetro | Valor | Significado |
 |-----------|-------|-------------|
-| `-enable-kvm` | — | Aceleración por hardware (KVM) |
 | `-machine` | `q35,accel=kvm` | Chipset moderno con virtualización |
 | `-cpu` | `host` | Pasa todas las instrucciones del CPU al guest |
-| `-smp` | `4` | 4 cores |
+| `-smp` | `4` | 4 cores con KVM (2 cores sin KVM) |
 | `-m` | `4096` | 4 GB de RAM |
+| `-device virtio-vga-gl` | `-display gtk,gl=on,show-cursor=on` | Gráficos 3D acelerados por hardware con cursor visible |
+| `-device usb-tablet` | — | Puntero absoluto para ratón sin captura rígida |
+| `-device intel-hda -device hda-duplex` | — | Audio PipeWire en el guest conectado al host |
+| `-device virtio-serial-pci ...` | `qemu-vdagent,clipboard=on` | Canal de portapapeles y ratón bidireccional vía spice-vdagent |
 | `-drive if=pflash,...readonly=on,file=...` | `/usr/share/edk2/x64/OVMF_CODE.4m.fd` | Firmware UEFI (código) |
 | `-drive if=pflash,file=...` | `vm/OVMF_VARS.fd` | Variables UEFI (modificable) |
-| `-drive file=...format=qcow2,if=virtio` | `vm/ChurrOS.qcow2` | Disco persistente |
+| `-drive file=...format=qcow2,if=virtio` | `vm/ChurrOS.qcow2` | Disco persistente (64 GB) |
 | `-cdrom` | la última ISO en `out/` | CD Live |
-| `-boot` | `order=d` | Arranca desde disco |
+| `-boot` | `order=c` | Arranca desde disco (o CD si fresh) |
 
 ## UEFI
 
@@ -173,7 +176,6 @@ Para una alternativa con interfaz gráfica, puedes usar **virt-manager** con la 
 
 - Script `./churros vm create` para generar la VM desde cero con parámetros personalizados.
 - Snapshot automático antes de cada cambio importante.
-- Compartir portapapeles entre host y guest (requiere `spice-vdagent` y `-spice port=...`).
-- Red NAT para que la VM tenga acceso a internet.
-- Carpetas compartidas vía virtio-9p.
+- Red NAT para que la VM tenga acceso a internet en configuraciones aisladas.
+- Carpetas compartidas vía virtio-9p o virtiofs.
 - Script `./churros vm reset` para borrar solo la VM sin tocar `out/`.

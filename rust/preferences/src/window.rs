@@ -33,8 +33,8 @@ impl PreferencesWindow {
         let window = gtk::ApplicationWindow::builder()
             .application(app)
             .title("Configuración")
-            .default_width(1280)
-            .default_height(760)
+            .default_width(900)
+            .default_height(680)
             .build();
 
         window.add_css_class("preferences");
@@ -63,6 +63,20 @@ impl PreferencesWindow {
         let theme_window = window.clone();
         ThemeService::on_change(move |_dark| refresh_theme(&theme_window));
 
+        // HeaderBar con controles de ventana (cerrar, maximizar, minimizar)
+        let header_bar = adw::HeaderBar::new();
+        header_bar.set_show_end_title_buttons(true);
+        header_bar.set_show_start_title_buttons(true);
+        header_bar.add_css_class("flat");
+
+        let toggle_button = gtk::Button::from_icon_name("open-menu-symbolic");
+        toggle_button.add_css_class("flat");
+        toggle_button.set_tooltip_text(Some("Menú lateral"));
+        toggle_button.set_visible(false);
+        header_bar.pack_start(&toggle_button);
+
+        window.set_titlebar(Some(&header_bar));
+
         // Layout principal
         let root = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         window.set_child(Some(&root));
@@ -85,18 +99,8 @@ impl PreferencesWindow {
             sidebar.on_search(query);
         });
 
-        // Navegador con botón de toggle para modo estrecho
+        // Navegador principal
         let nav_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
-
-        let toggle_button = gtk::Button::from_icon_name("open-menu-symbolic");
-        toggle_button.add_css_class("flat");
-        toggle_button.set_halign(gtk::Align::End);
-        toggle_button.set_margin_start(12);
-        toggle_button.set_margin_end(12);
-        toggle_button.set_margin_top(12);
-        toggle_button.set_visible(false);
-
-        nav_box.append(&toggle_button);
 
         let navigator = gtk::Stack::new();
         navigator.set_hexpand(true);
@@ -173,21 +177,29 @@ impl PreferencesWindow {
         self.register_subpage("icons", "appearance", |n| pages::icons::build(n));
         self.register_subpage("cursor", "appearance", |n| pages::cursor::build(n));
         self.register_subpage("fonts", "appearance", |n| pages::fonts::build(n));
-        self.register_subpage("waybar", "appearance", |n| pages::waybar::build(n));
-        self.register_subpage("niri", "appearance", |n| pages::niri::build(n));
-        self.register_subpage("foot", "appearance", |n| pages::foot::build(n));
-        self.register_subpage("fuzzel", "appearance", |n| pages::fuzzel::build(n));
-        self.register_subpage("mako", "appearance", |n| pages::mako::build(n));
+        let is_niri = churros_services::version::edition().contains("niri");
+
+        if is_niri {
+            self.register_subpage("waybar", "appearance", |n| pages::waybar::build(n));
+            self.register_subpage("niri", "appearance", |n| pages::niri::build(n));
+            self.register_subpage("foot", "appearance", |n| pages::foot::build(n));
+            self.register_subpage("fuzzel", "appearance", |n| pages::fuzzel::build(n));
+            self.register_subpage("mako", "appearance", |n| pages::mako::build(n));
+        }
         self.register_subpage("wallpaper", "appearance", |n| pages::wallpaper::build(n));
         self.register_subpage("night-light", "appearance", |n| pages::night_light::build(n));
-        self.register_subpage("lock-screen", "appearance", |n| pages::lock_screen::build(n));
-        self.register_subpage("window-rules", "appearance", |n| pages::window_rules::build(n));
+        if is_niri {
+            self.register_subpage("lock-screen", "appearance", |n| pages::lock_screen::build(n));
+            self.register_subpage("window-rules", "appearance", |n| pages::window_rules::build(n));
+        }
         self.register_subpage("power-profile", "power", |n| pages::power_profile::build(n));
         self.register_subpage("battery", "power", |n| pages::battery::build(n));
         self.register_subpage("sleep", "power", |n| pages::sleep::build(n));
         self.register_subpage("display-timeout", "display", |n| pages::display_timeout::build(n));
         self.register_subpage("backup", "system", |n| pages::backup::build(n));
-        self.register_subpage("logs", "system", |n| pages::logs::build(n));
+        if is_niri {
+            self.register_subpage("logs", "system", |n| pages::logs::build(n));
+        }
 
         // Subpáginas registradas en el catálogo de búsqueda
         // (se añaden al stack según se porten)
@@ -201,22 +213,26 @@ impl PreferencesWindow {
                 "cursor", "appearance", "Cursor", "Tema y tamano del cursor", Some("cursor.svg"));
             s.register_subpage(
                 "fonts", "appearance", "Fuentes", "Familia y tamano de fuente", Some("font.svg"));
-            s.register_subpage(
-                "waybar", "appearance", "Waybar", "Barra: posicion, colores, modulos", Some("waybar.svg"));
-            s.register_subpage(
-                "niri", "appearance", "Niri", "Compositor: disposicion, bordes, blur", Some("niri.svg"));
-            s.register_subpage(
-                "foot", "appearance", "Foot", "Terminal: fuente, cursor, padding, bell", Some("terminal.svg"));
-            s.register_subpage(
-                "fuzzel", "appearance", "Fuzzel", "Launcher: fuente, layout, iconos", Some("applications.svg"));
-            s.register_subpage(
-                "mako", "appearance", "Mako", "Notificaciones: fuente, colores, posicion, DND", Some("mako.svg"));
+            if is_niri {
+                s.register_subpage(
+                    "waybar", "appearance", "Waybar", "Barra: posicion, colores, modulos", Some("waybar.svg"));
+                s.register_subpage(
+                    "niri", "appearance", "Niri", "Compositor: disposicion, bordes, blur", Some("niri.svg"));
+                s.register_subpage(
+                    "foot", "appearance", "Foot", "Terminal: fuente, cursor, padding, bell", Some("terminal.svg"));
+                s.register_subpage(
+                    "fuzzel", "appearance", "Fuzzel", "Launcher: fuente, layout, iconos", Some("applications.svg"));
+                s.register_subpage(
+                    "mako", "appearance", "Mako", "Notificaciones: fuente, colores, posicion, DND", Some("mako.svg"));
+            }
             s.register_subpage(
                 "wallpaper", "appearance", "Fondo", "Cambiar el fondo de pantalla", Some("wallpaper.svg"));
             s.register_subpage(
                 "night-light", "appearance", "Luz nocturna", "Temperatura de color y filtro de luz azul", Some("night_light.svg"));
-            s.register_subpage(
-                "lock-screen", "appearance", "Pantalla de bloqueo", "swaylock + swayidle: estilo y bloqueo automatico", Some("lock_screen.svg"));
+            if is_niri {
+                s.register_subpage(
+                    "lock-screen", "appearance", "Pantalla de bloqueo", "swaylock + swayidle: estilo y bloqueo automatico", Some("lock_screen.svg"));
+            }
             s.register_subpage(
                 "power-profile", "power", "Perfiles de energia", "Performance, balanced o power-saver", None);
             s.register_subpage(
@@ -227,10 +243,12 @@ impl PreferencesWindow {
                 "sleep", "power", "Suspension", "Tiempo antes de suspender el sistema", None);
             s.register_subpage(
                 "backup", "system", "Copia de seguridad", "Exportar, importar o restablecer la configuracion", Some("backup.svg"));
-            s.register_subpage(
-                "logs", "system", "Logs de Niri", "Registros del compositor y validacion", Some("logs.svg"));
-            s.register_subpage(
-                "window-rules", "appearance", "Reglas de ventana", "Opacidad, flotantes, esquinas, blur", Some("window_rules.svg"));
+            if is_niri {
+                s.register_subpage(
+                    "logs", "system", "Logs de Niri", "Registros del compositor y validacion", Some("logs.svg"));
+                s.register_subpage(
+                    "window-rules", "appearance", "Reglas de ventana", "Opacidad, flotantes, esquinas, blur", Some("window_rules.svg"));
+            }
         }
     }
 
@@ -262,10 +280,10 @@ impl PreferencesWindow {
         let history = Rc::clone(&self.history);
         let sidebar_revealer = self.sidebar_revealer.clone();
         let is_narrow = Rc::clone(&self.is_narrow);
-        let sidebar = Rc::clone(&self.sidebar);
-
-        sidebar.borrow().connect_page_selected(move |page| {
+        let sidebar_select = Rc::clone(&self.sidebar);
+        self.sidebar.borrow().connect_page_selected(move |page| {
             settings::set("preferences.last_page", serde_json::json!(page));
+            sidebar_select.borrow().select(page);
 
             // Guardar la página actual en la historia antes de navegar
             if let Some(current) = navigator.visible_child_name() {

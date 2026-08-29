@@ -46,6 +46,10 @@ file_permissions=(
   ["/usr/share/churros/scripts/make-boot-grub-readable"]="0:0:755"
   ["/usr/share/icons/hicolor/scalable/apps/churros-welcome.svg"]="0:0:644"
   ["/usr/share/icons/hicolor/scalable/apps/churros-settings.svg"]="0:0:644"
+  ["/usr/share/icons/hicolor/scalable/apps/churros-logo.svg"]="0:0:644"
   ["/usr/share/icons/hicolor/128x128/apps/churros-welcome.png"]="0:0:644"
   ["/usr/share/icons/hicolor/128x128/apps/churros-settings.png"]="0:0:644"
+  ["/usr/share/icons/hicolor/128x128/apps/churros-logo.png"]="0:0:644"
+  ["/usr/share/pixmaps/churros-logo.svg"]="0:0:644"
+  ["/usr/share/pixmaps/churros-logo.png"]="0:0:644"
 )

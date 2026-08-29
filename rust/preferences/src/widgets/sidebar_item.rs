@@ -42,9 +42,11 @@ impl SidebarItem {
 
     pub fn activate(&self) {
         self.button.add_css_class("active");
+        self.button.set_state_flags(gtk::StateFlags::CHECKED, false);
     }
 
     pub fn deactivate(&self) {
         self.button.remove_css_class("active");
+        self.button.unset_state_flags(gtk::StateFlags::CHECKED);
     }
 }

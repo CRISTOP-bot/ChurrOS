@@ -130,6 +130,7 @@ json-glib
 graphene
 # bazaar se resuelve desde el repo local patcheado ([churros] en pacman.conf)
 bazaar
+yay
 
 
 thunar
@@ -140,7 +141,8 @@ gvfs
 gvfs-mtp
 
 greetd
-greetd-agreety
+greetd-regreet
+cage
 swaylock
 swayidle
 
@@ -164,7 +166,6 @@ grim
 slurp
 wl-clipboard
 rust
-cargo
 
 ttf-dejavu
 noto-fonts
@@ -239,3 +240,4 @@ kcrash
 os-prober
 udisks2
 zenity
+qt6-translations

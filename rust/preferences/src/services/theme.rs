@@ -147,6 +147,18 @@ fn persist_desktop(dark: bool) {
         ])
         .output();
 
+    // Sincronizar tema con XFCE (xsettings)
+    let _ = Command::new("xfconf-query")
+        .args([
+            "-c",
+            "xsettings",
+            "-p",
+            "/Net/ThemeName",
+            "-s",
+            if dark { "Adwaita-dark" } else { "Adwaita" },
+        ])
+        .output();
+
     let env = build_env();
     let env_refs: Vec<(&str, &str)> = env
         .iter()

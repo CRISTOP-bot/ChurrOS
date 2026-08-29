@@ -399,20 +399,21 @@ fn build_after_import(content: &gtk::Box, navigator: &gtk::Stack) {
 fn select(wallpaper: &str, navigator: &gtk::Stack) {
     println!("[wallpaper-page] seleccion: {wallpaper}");
 
-    let success = WallpaperService::set(wallpaper);
-
-    println!("[wallpaper-page] set retorno: {success}");
-
-    if !success {
-        show_error(
-            navigator,
-            "No se pudo aplicar el fondo",
-            "Revisa /tmp/churros-settings.log, /tmp/awww-img.log y /tmp/swaybg.log",
-        );
-    }
-
+    let wp = wallpaper.to_string();
     let nav = navigator.clone();
-    glib::idle_add_local_once(move || {
-        nav.set_visible_child_name("appearance");
+
+    // Cambiar de página inmediatamente sin bloquear la UI
+    nav.set_visible_child_name("appearance");
+
+    let wp_clone = wp.clone();
+    std::thread::spawn(move || {
+        let success = WallpaperService::set(&wp_clone);
+        println!("[wallpaper-page] set retorno: {success}");
+
+        if !success {
+            glib::idle_add_once(move || {
+                eprintln!("[wallpaper-page] fallo al aplicar fondo {wp_clone}");
+            });
+        }
     });
 }

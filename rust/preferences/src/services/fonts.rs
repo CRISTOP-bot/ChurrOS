@@ -83,6 +83,27 @@ impl FontService {
                 &format!("{family} Mono 10"),
             ])
             .output();
+
+        let _ = Command::new("xfconf-query")
+            .args([
+                "-c",
+                "xsettings",
+                "-p",
+                "/Gtk/FontName",
+                "-s",
+                &format!("{family} 10"),
+            ])
+            .output();
+        let _ = Command::new("xfconf-query")
+            .args([
+                "-c",
+                "xsettings",
+                "-p",
+                "/Gtk/MonospaceFontName",
+                "-s",
+                &format!("{family} Mono 10"),
+            ])
+            .output();
     }
 
     /// Escala de fuentes desde settings.json ("fonts.scale", default 1.0)

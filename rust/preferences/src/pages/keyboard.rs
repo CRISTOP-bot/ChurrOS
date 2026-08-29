@@ -136,12 +136,31 @@ fn type_label(kind: &str) -> String {
 }
 
 pub fn build(navigator: gtk::Stack) -> Page {
+    let is_xfce = churros_services::version::edition().contains("xfce");
+
     let page = Page::new(
         Some(navigator),
         "Atajos de teclado",
-        Some("Modifica los atajos de teclado de Niri"),
+        Some(if is_xfce { "Gestionado por XFCE" } else { "Modifica los atajos de teclado de Niri" }),
         None,
     );
+
+    if is_xfce {
+        let mut group = Group::new("Herramientas externas");
+        let btn = crate::widgets::row::Row::new(
+            "Abrir Ajustes de Teclado",
+            Some("Lanza xfce4-keyboard-settings"),
+            Some("input-keyboard-symbolic"),
+            None,
+            None,
+            Some(Box::new(|_| {
+                let _ = std::process::Command::new("xfce4-keyboard-settings").spawn();
+            })),
+        );
+        group.add(&btn);
+        page.add(group.widget());
+        return page;
+    }
 
     // Las callbacks de los diálogos necesitan reconstruir la página al
     // guardar; se les pasa un Weak del Page (que se devuelve por valor).

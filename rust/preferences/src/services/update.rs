@@ -31,11 +31,30 @@ pub struct Snapshot {
     pub date: String,
 }
 
-/// Parsea el updates.json del servidor de releases.
+/// Parsea el updates.json del servidor de releases, seleccionando la edición correspondiente
+/// (niri o xfce) si está definida en el mapa "editions", o usando los campos globales como fallback.
 fn parse_updates_json(raw: &str) -> Option<ChurrosUpdate> {
     let v: serde_json::Value = serde_json::from_str(raw).ok()?;
+    let version = v.get("version")?.as_str()?.to_string();
+
+    let edition = churros_services::version::edition();
+    if let Some(editions) = v.get("editions").and_then(|e| e.as_object()) {
+        if let Some(ed_info) = editions.get(&edition).or_else(|| editions.get("niri")) {
+            if let (Some(file), Some(sha256)) = (
+                ed_info.get("file").and_then(|f| f.as_str()),
+                ed_info.get("sha256").and_then(|s| s.as_str()),
+            ) {
+                return Some(ChurrosUpdate {
+                    version,
+                    file: file.to_string(),
+                    sha256: sha256.to_string(),
+                });
+            }
+        }
+    }
+
     Some(ChurrosUpdate {
-        version: v.get("version")?.as_str()?.to_string(),
+        version,
         file: v.get("file")?.as_str()?.to_string(),
         sha256: v.get("sha256")?.as_str()?.to_string(),
     })

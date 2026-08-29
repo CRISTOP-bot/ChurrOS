@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ChurrOS Welcome
+Exec=churros-welcome
+Icon=org.churros.Welcome
+Terminal=false
+StartupNotify=false
+OnlyShowIn=XFCE;

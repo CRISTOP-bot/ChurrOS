@@ -14,12 +14,31 @@ use crate::widgets::slider_row::SliderRow;
 use crate::widgets::switch_row::SwitchRow;
 
 pub fn build(navigator: gtk::Stack) -> Page {
+    let is_xfce = churros_services::version::edition().contains("xfce");
+
     let page = Page::new(
         Some(navigator),
         "Pantalla",
-        Some("Configura tus monitores"),
+        Some(if is_xfce { "Gestionado por XFCE" } else { "Configura tus monitores" }),
         None,
     );
+
+    if is_xfce {
+        let mut group = Group::new("Herramientas externas");
+        let btn = crate::widgets::row::Row::new(
+            "Abrir Ajustes de Pantalla",
+            Some("Lanza xfce4-display-settings"),
+            Some("video-display-symbolic"),
+            None,
+            None,
+            Some(Box::new(|_| {
+                let _ = std::process::Command::new("xfce4-display-settings").spawn();
+            })),
+        );
+        group.add(&btn);
+        page.add(group.widget());
+        return page;
+    }
 
     let service = DisplayService::new();
     let monitor = service.current_monitor();

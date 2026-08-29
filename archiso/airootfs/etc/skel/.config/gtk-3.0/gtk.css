@@ -1,0 +1,163 @@
+/* =========================================================
+ * ChurrOS — XFCE Dark Glass & Orange Accent Theme (GTK 3)
+ * ========================================================= */
+
+@define-color accent_color #F97316;
+@define-color accent_bg_color #F97316;
+@define-color accent_fg_color #FFFFFF;
+@define-color destructive_color #EF4444;
+@define-color destructive_bg_color #EF4444;
+@define-color destructive_fg_color #FFFFFF;
+@define-color success_color #22C55E;
+@define-color warning_color #F59E0B;
+@define-color window_bg_color #141414;
+@define-color window_fg_color #FFFFFF;
+@define-color view_bg_color #18181B;
+@define-color view_fg_color #FFFFFF;
+@define-color headerbar_bg_color rgba(20, 20, 20, 0.95);
+@define-color headerbar_fg_color #FFFFFF;
+@define-color card_bg_color rgba(255, 255, 255, 0.05);
+@define-color card_fg_color #FFFFFF;
+@define-color dialog_bg_color #18181B;
+@define-color dialog_fg_color #FFFFFF;
+@define-color popover_bg_color #18181B;
+@define-color popover_fg_color #FFFFFF;
+
+/* ── Selection & Focus ───────────────────────────────────── */
+*:selected,
+*:selected:focus {
+    background-color: #F97316;
+    color: #FFFFFF;
+}
+
+/* ── XFCE 4 Panel (Bottom Windows-Style Taskbar) ─────────── */
+.xfce4-panel {
+    background-color: rgba(16, 16, 18, 0.94);
+    color: #E4E4E7;
+    font-weight: 500;
+    border-top: 1px solid rgba(249, 115, 22, 0.25);
+    border-bottom: none;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.45);
+}
+
+.xfce4-panel button {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    margin: 2px 3px;
+    padding: 2px 8px;
+    color: #E4E4E7;
+    transition: all 150ms ease;
+}
+
+.xfce4-panel button:hover {
+    background: rgba(249, 115, 22, 0.15);
+    color: #FFFFFF;
+    box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.35);
+}
+
+.xfce4-panel button:checked,
+.xfce4-panel button:active {
+    background: rgba(249, 115, 22, 0.22);
+    color: #FFFFFF;
+    box-shadow: inset 0 0 0 1px #F97316;
+}
+
+/* ── Tasklist (Window Buttons) ───────────────────────────── */
+#tasklist-button {
+    border-radius: 8px;
+    border-top: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    padding: 0 10px;
+    margin: 2px 2px;
+}
+
+#tasklist-button:hover {
+    background: rgba(249, 115, 22, 0.12);
+    border-top: 2px solid rgba(249, 115, 22, 0.5);
+}
+
+#tasklist-button:checked {
+    border-top: 2px solid #F97316;
+    background: rgba(249, 115, 22, 0.22);
+    color: #FFFFFF;
+}
+
+/* ── Whisker Menu ────────────────────────────────────────── */
+#whiskermenu-window {
+    background-color: rgba(18, 18, 20, 0.96);
+    border: 1px solid rgba(249, 115, 22, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(249, 115, 22, 0.15);
+    padding: 12px;
+    color: #FFFFFF;
+}
+
+#whiskermenu-window entry {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 10px;
+    padding: 8px 12px;
+    color: #FFFFFF;
+}
+
+#whiskermenu-window entry:focus {
+    border-color: #F97316;
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.4);
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+#whiskermenu-window button {
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #E4E4E7;
+    transition: all 120ms ease;
+}
+
+#whiskermenu-window button:hover {
+    background-color: rgba(249, 115, 22, 0.2);
+    color: #FFFFFF;
+}
+
+#whiskermenu-window treeview {
+    background-color: transparent;
+    color: #E4E4E7;
+}
+
+#whiskermenu-window treeview:selected {
+    background-color: #F97316;
+    color: #FFFFFF;
+    border-radius: 6px;
+}
+
+/* ── Tooltips ────────────────────────────────────────────── */
+tooltip {
+    background-color: rgba(18, 18, 20, 0.95);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 8px;
+    color: #FFFFFF;
+    padding: 6px 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Context Menus & Popovers ────────────────────────────── */
+menu,
+.popup {
+    background-color: rgba(18, 18, 20, 0.95);
+    border: 1px solid rgba(249, 115, 22, 0.25);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+menuitem {
+    border-radius: 6px;
+    padding: 5px 10px;
+    color: #E4E4E7;
+    transition: background-color 100ms ease;
+}
+
+menuitem:hover {
+    background-color: #F97316;
+    color: #FFFFFF;
+}

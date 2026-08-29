@@ -24,13 +24,20 @@ fn current_uid() -> String {
 }
 
 pub fn lock() {
-    spawn(&["loginctl", "lock-session"]);
+    let desktop = current_desktop();
+    if desktop.contains("xfce") {
+        spawn(&["xflock4"]);
+    } else {
+        spawn(&["loginctl", "lock-session"]);
+    }
 }
 
 pub fn logout() {
     let desktop = current_desktop();
     if desktop.contains("niri") {
         spawn(&["niri", "msg", "action", "quit"]);
+    } else if desktop.contains("xfce") {
+        spawn(&["xfce4-session-logout", "--logout", "--fast"]);
     } else if desktop.contains("hyprland") {
         spawn(&["hyprctl", "dispatch", "exit"]);
     } else if desktop.contains("sway") {

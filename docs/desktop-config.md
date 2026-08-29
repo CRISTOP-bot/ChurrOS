@@ -108,7 +108,7 @@ layout {
 ## Autostart
 
 ```kdl
-spawn-at-startup "swaybg" "-i" "/usr/share/churros/wallpapers/default.jpeg" "-m" "fill"
+spawn-at-startup "swaybg" "-i" "/usr/share/churros/wallpapers/default.png" "-m" "fill"
 spawn-at-startup "churros-portal-start"
 spawn-at-startup "waybar"
 spawn-at-startup "mako"
@@ -248,6 +248,58 @@ El script es seguro para el Live porque el sistema corre en RAM: cualquier cambi
 
 ---
 
+# XFCE Edition (X11)
+
+**Path:** `archiso/airootfs/etc/skel/.config/xfce4/`
+**Session command:** `/usr/bin/startxfce4`
+
+ChurrOS XFCE Edition ofrece una experiencia de escritorio clásica, ligera y basada en ventanas flotantes tradicionales gestionadas por `xfwm4`.
+
+## Estructura de configuración (xfconf y GTK)
+
+```text
+.config/
+├── gtk-3.0/
+│   └── gtk.css           # Tema oscuro con acento naranja (#F97316), panel y Whisker Menu
+├── gtk-4.0/
+│   └── gtk.css           # Tokens de color y acento ChurrOS para apps GTK 4
+├── xfce4/
+│   ├── panel/
+│   │   └── whiskermenu-1.rc  # Configuración del menú de inicio (icono ChurrOS, favoritos)
+│   ├── terminal/
+│   │   └── terminalrc        # Paleta de colores ChurrOS, fuente JetBrainsMono y transparencia
+│   └── xfconf/xfce-perchannel-xml/
+│       ├── xfce4-desktop.xml # Wallpaper (/usr/share/churros/wallpapers/default.png) e iconos
+│       ├── xfce4-panel.xml   # Panel superior: Whisker Menu, Tasklist, Systray, Pulseaudio, Reloj
+│       ├── xfwm4.xml         # Gestor de ventanas: sombras de composición y botones |HMC
+│       └── xsettings.xml     # Tema GTK (Adwaita-dark), iconos (Papirus-Dark) y cursor (Adwaita)
+```
+
+## Panel de ChurrOS en XFCE
+
+El panel superior de 34px está estilizado con efecto cristal oscuro (`rgba(16, 16, 18, 0.94)`) y borde inferior naranja:
+1. **Botón de Inicio ChurrOS**: Con el logo oficial de ChurrOS (`churros-logo.svg`) y menú **Whisker Menu** con barra de búsqueda superior y accesos directos a apps principales.
+2. **Separador espaciador**.
+3. **Lista de ventanas / tareas**: Botones planos con indicador inferior de color naranja ChurrOS (`#F97316`) en la ventana activa.
+4. **Separador expandible**.
+5. **Bandeja del sistema (Systray)**: Indicadores de red (`nm-applet`), Bluetooth y notificaciones.
+6. **Plugin de Pulseaudio**: Control deslizante de volumen de audio.
+7. **Plugin de Energía / Batería**: Monitor de batería y perfiles de energía.
+8. **Reloj digital**: Formato legible `%I:%M %p`.
+9. **Botones de sesión / Power**: Bloqueo, reinicio y apagado.
+
+## Autostart en XFCE
+
+Los programas de inicio automático para la sesión de XFCE se definen en `archiso/airootfs/etc/skel/.config/autostart/`:
+- `churros-welcome.desktop`: Inicia automáticamente la pantalla de bienvenida al entrar al escritorio XFCE (`OnlyShowIn=XFCE;`).
+
+## Integración con utilidades de ChurrOS
+
+- **Fondo de pantalla:** `churros-apply-wallpaper` detecta XFCE y aplica el fondo automáticamente mediante `xfconf-query -c xfce4-desktop ...`.
+- **Apps Rust:** Las aplicaciones como `churros-settings` y `churros-welcome` detectan que la sesión es XFCE y adaptan sus subpáginas y estilos (ocultando subpáginas exclusivas de Wayland/Niri).
+
+---
+
 # Init Order
 
 Durante el arranque del Live, los servicios y la configuración se aplican en este orden:
@@ -284,7 +336,7 @@ input {
 
 ## Cambiar el wallpaper
 
-Reemplaza `archiso/airootfs/usr/share/churros/wallpapers/default.jpeg` con tu imagen. `swaybg` la carga automáticamente al inicio.
+Reemplaza `archiso/airootfs/usr/share/churros/wallpapers/default.png` con tu imagen. `swaybg` la carga automáticamente al inicio.
 
 ## Cambiar los gaps
 

@@ -163,8 +163,32 @@ apply_swaybg() {
         return 0
     fi
 
-    echo "$LOG_PREFIX swaybg no arranco, ver /tmp/swaybg.log" >&2
+    echo "$LOG_PREFIX swaybg fallo al arrancar" >&2
     return 1
+}
+
+apply_xfce() {
+
+    local path="$1"
+
+    if ! command -v xfconf-query >/dev/null 2>&1; then
+        return 1
+    fi
+
+    echo "$LOG_PREFIX aplicando fondo en XFCE con xfconf-query: $path" >&2
+
+    local props
+    props=$(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep -E "last-image|image-path" || true)
+
+    if [ -n "$props" ]; then
+        while IFS= read -r prop; do
+            [ -n "$prop" ] && xfconf-query -c xfce4-desktop -p "$prop" -s "$path" 2>/dev/null || true
+        done <<< "$props"
+        return 0
+    fi
+
+    xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -s "$path" 2>/dev/null || true
+    return 0
 }
 
 apply() {
@@ -174,6 +198,13 @@ apply() {
     if [ -z "$path" ] || [ ! -f "$path" ]; then
         echo "$LOG_PREFIX archivo no existe: $path" >&2
         return 1
+    fi
+
+    # Si estamos en sesión XFCE o xfconf-query está activo
+    if [ "${XDG_CURRENT_DESKTOP:-}" = "XFCE" ] || pgrep -x xfce4-session >/dev/null 2>&1; then
+        if apply_xfce "$path"; then
+            return 0
+        fi
     fi
 
     if command -v swaybg >/dev/null 2>&1; then
@@ -190,6 +221,13 @@ apply() {
 
         if apply_awww "$path"; then
             _niri_refresh
+            return 0
+        fi
+    fi
+
+    # Fallback para XFCE si los anteriores no aplicaron
+    if command -v xfconf-query >/dev/null 2>&1; then
+        if apply_xfce "$path"; then
             return 0
         fi
     fi
@@ -231,7 +269,7 @@ except Exception:
     fi
 fi
 
-DEFAULT="/usr/share/churros/wallpapers/default.jpeg"
+DEFAULT="/usr/share/churros/wallpapers/default.png"
 
 if [ -f "$DEFAULT" ]; then
     apply "$DEFAULT" || true

@@ -124,8 +124,7 @@ impl UsersService {
     }
 
     /// ¿Hay autologin configurado en greetd? Solo cuenta la sección
-    /// `[default_session]` (un `command` en `[terminal]`/`[initial_session]`
-    /// no es autologin).
+    /// `[default_session]` si ejecuta la sesión de usuario (no un greeter como regreet).
     pub fn auto_login() -> bool {
         let Ok(content) = fs::read_to_string(GREETD_PATH) else {
             return false;
@@ -137,6 +136,14 @@ impl UsersService {
                 continue;
             }
             if in_default && line_is_command(line) {
+                let lower = line.to_lowercase();
+                if lower.contains("regreet")
+                    || lower.contains("agreety")
+                    || lower.contains("tuigreet")
+                    || lower.contains("gtkgreet")
+                {
+                    return false;
+                }
                 return true;
             }
         }
@@ -144,74 +151,35 @@ impl UsersService {
     }
 
     /// Activa/desactiva el autologin editando /etc/greetd/config.toml
-    /// (equivalente a set_auto_login; escritura atómica tmp + rename).
+    /// (si está desactivado, inicia ReGreet; si está activado, inicia niri o startxfce4).
     pub fn set_auto_login(value: bool) -> bool {
         let Ok(content) = fs::read_to_string(GREETD_PATH) else {
             return false;
         };
 
-        // ¿Hay un `command` dentro de [default_session]?
-        let mut has_command = false;
-        let mut in_default = false;
-        for line in content.lines() {
-            if let Some(sec) = section_name(line) {
-                in_default = sec == "default_session";
-                continue;
-            }
-            if in_default && line_has_command_eq(line) {
-                has_command = true;
-                break;
-            }
-        }
-
-        if value && has_command {
-            return true;
-        }
-        if !value && !has_command {
+        let current = Self::auto_login();
+        if value == current {
             return true;
         }
 
-        let new_content = if value {
-            // Insertar `command = "/usr/bin/niri"` tras [default_session]
-            let mut lines: Vec<&str> = content.lines().collect();
-            let has_session = lines.iter().any(|l| l.trim() == "[default_session]");
-            if has_session {
-                let mut out: Vec<String> = Vec::with_capacity(lines.len() + 1);
-                let mut inserted = false;
-                for line in lines {
-                    out.push(line.to_string());
-                    if !inserted && line.trim() == "[default_session]" {
-                        out.push("command = \"/usr/bin/niri\"".to_string());
-                        inserted = true;
-                    }
-                }
-                out.join("\n")
-            } else {
-                format!("{content}\n[default_session]\ncommand = \"/usr/bin/niri\"\n")
-            }
+        let user = Self::username();
+        let desktop = churros_services::version::edition();
+        let session_cmd = if desktop.contains("xfce") {
+            "/usr/bin/startxfce4"
         } else {
-            // Quitar la línea `command = "..."` SOLO dentro de [default_session]
-            let mut out: Vec<String> = Vec::with_capacity(content.lines().count());
-            let mut in_default = false;
-            let mut removed = false;
-            for line in content.lines() {
-                if let Some(sec) = section_name(line) {
-                    in_default = sec == "default_session";
-                    out.push(line.to_string());
-                    continue;
-                }
-                if in_default && !removed && line_is_command(line) {
-                    removed = true;
-                    continue;
-                }
-                out.push(line.to_string());
-            }
-            out.join("\n")
+            "/usr/bin/niri"
         };
 
-        if new_content == content {
-            return true;
-        }
+        let new_content = if value {
+            // Autologin activado: ejecutar niri/startxfce4 directamente con el usuario actual
+            format!(
+                "[terminal]\nvt = 1\n\n[default_session]\ncommand = \"{}\"\nuser = \"{}\"\n",
+                session_cmd, user
+            )
+        } else {
+            // Autologin desactivado: ejecutar ReGreet con el usuario greeter
+            "[terminal]\nvt = 1\n\n[default_session]\ncommand = \"cage -s -- regreet\"\nuser = \"greeter\"\n".to_string()
+        };
 
         // /etc/greetd no es escribible por el usuario: escribir a un temporal
         // propio y copiarlo con privilegios (churros-pkexec: pkexec/sudo -n).

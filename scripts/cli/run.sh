@@ -43,7 +43,7 @@ if [ -z "$ISO" ]; then
     case "$answer" in
         [yY]|[yY][eE][sS])
             echo "Building..."
-            ./churros build
+            ./churros build "$@"
 
             ISO=$(find out -name "*.iso" -print -quit)
 
@@ -110,10 +110,10 @@ fi
 # Always attempt virtio-gpu-gl with GL; fall back to virtio-gpu (no GL) only if
 # the host lacks /dev/dri entirely — in that case niri will try llvmpipe.
 if [ -e /dev/dri ]; then
-    GPU_ARGS="-device virtio-vga-gl -display gtk,gl=on"
+    GPU_ARGS="-device virtio-vga-gl -display gtk,gl=on,show-cursor=on"
     echo "  GPU: virtio-vga-gl + virgl (3D)"
 else
-    GPU_ARGS="-device virtio-gpu -display gtk,gl=off"
+    GPU_ARGS="-device virtio-gpu -display gtk,gl=off,show-cursor=on"
     echo "  GPU: virtio-gpu (no 3D — niri may fall back to software rendering)"
 fi
 
@@ -127,6 +127,9 @@ qemu-system-x86_64 \
     -device usb-tablet \
     -device intel-hda \
     -device hda-duplex \
+    -device virtio-serial-pci \
+    -chardev qemu-vdagent,id=vdagent,name=vdagent,clipboard=on \
+    -device virtserialport,chardev=vdagent,name=com.redhat.spice.0 \
     -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE" \
     -drive if=pflash,format=raw,file="$VARS" \
     -drive file="$DISK",format=qcow2,if=virtio \

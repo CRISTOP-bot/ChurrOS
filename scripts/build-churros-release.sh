@@ -77,20 +77,42 @@ fi
 # 5. Versión instalada (se autoactualiza al extraer el bundle)
 echo "$VERSION" > "$STAGE/etc/churros-version"
 
-# 6. Empaquetar
-echo "  [3/4] empaquetando $BUNDLE..."
+# 6. Empaquetar bundles (unificado + por edición)
+echo "  [3/4] empaquetando bundles..."
 mkdir -p "$OUT"
-tar --zstd -cf "$OUT/$BUNDLE" -C "$STAGE" usr etc
 
-# 7. updates.json (manifiesto con versión + sha256)
-SHA=$(sha256sum "$OUT/$BUNDLE" | awk '{print $1}')
+# Bundle principal unificado
+tar --zstd -cf "$OUT/$BUNDLE" -C "$STAGE" usr etc
+SHA_MAIN=$(sha256sum "$OUT/$BUNDLE" | awk '{print $1}')
+
+# Bundle Niri
+BUNDLE_NIRI="churros-utils-niri-${VERSION}.tar.zst"
+cp "$OUT/$BUNDLE" "$OUT/$BUNDLE_NIRI"
+SHA_NIRI="$SHA_MAIN"
+
+# Bundle XFCE
+BUNDLE_XFCE="churros-utils-xfce-${VERSION}.tar.zst"
+cp "$OUT/$BUNDLE" "$OUT/$BUNDLE_XFCE"
+SHA_XFCE="$SHA_MAIN"
+
+# 7. updates.json (manifiesto con versión + mapa de ediciones + sha256)
 DATE=$(date +%Y-%m-%d)
 cat > "$OUT/updates.json" <<EOF
 {
   "version": "$VERSION",
   "date": "$DATE",
   "file": "$BUNDLE",
-  "sha256": "$SHA"
+  "sha256": "$SHA_MAIN",
+  "editions": {
+    "niri": {
+      "file": "$BUNDLE_NIRI",
+      "sha256": "$SHA_NIRI"
+    },
+    "xfce": {
+      "file": "$BUNDLE_XFCE",
+      "sha256": "$SHA_XFCE"
+    }
+  }
 }
 EOF
 
@@ -98,6 +120,8 @@ rm -rf "$STAGE"
 
 echo "  [4/4] listo:"
 echo "    $OUT/$BUNDLE"
+echo "    $OUT/$BUNDLE_NIRI"
+echo "    $OUT/$BUNDLE_XFCE"
 echo "    $OUT/updates.json"
 echo
-echo "  Sube ambos a: https://download.churroslinux.org/churros/"
+echo "  Sube los archivos a: https://download.churroslinux.org/churros/"
