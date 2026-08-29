@@ -33,12 +33,31 @@ fn set_gsettings(schema: &str, key: &str, value: &str) {
 }
 
 pub fn build(navigator: gtk::Stack) -> Page {
+    let is_xfce = churros_services::version::edition().contains("xfce");
+
     let page = Page::new(
         Some(navigator),
         "Entrada",
-        Some("Teclado, raton y panel tactil"),
+        Some(if is_xfce { "Gestionado por XFCE" } else { "Teclado, raton y panel tactil" }),
         None,
     );
+
+    if is_xfce {
+        let mut group = Group::new("Herramientas externas");
+        let btn = crate::widgets::row::Row::new(
+            "Abrir Ajustes de Ratón y Panel Táctil",
+            Some("Lanza xfce4-mouse-settings"),
+            Some("input-mouse-symbolic"),
+            None,
+            None,
+            Some(Box::new(|_| {
+                let _ = std::process::Command::new("xfce4-mouse-settings").spawn();
+            })),
+        );
+        group.add(&btn);
+        page.add(group.widget());
+        return page;
+    }
 
     // ============ Teclado ============
     let mut keyboard = Group::new("Teclado");
