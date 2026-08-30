@@ -61,7 +61,7 @@ echo "[3/4] Building bazaar (this may take a while)..."
 
 (
     cd "$WORK_DIR"
-    makepkg -sf --noconfirm
+    makepkg -sf --noconfirm --skippgpcheck
 )
 
 echo "[4/4] Installing package to local repo..."

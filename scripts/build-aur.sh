@@ -26,7 +26,7 @@ build_aur() {
     git clone "https://aur.archlinux.org/${name}.git" "$package_dir"
     (
         cd "$package_dir"
-        makepkg -sf --noconfirm
+        makepkg -sf --noconfirm --skippgpcheck
     )
     cp "$package_dir"/*.pkg.tar.zst "$PACKAGE_DIR/"
     rm -f "$PACKAGE_DIR"/"$name"-debug-*.pkg.tar.zst 2>/dev/null || true

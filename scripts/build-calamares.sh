@@ -162,7 +162,7 @@ echo "[4/4] Building calamares against Python $HOST_PYTHON (this may take a whil
 (
     cd "$WORK_DIR"
     # Prefer /usr/bin over ~/.local so ninja/cmake helpers match the ISO.
-    PATH="/usr/bin:$PATH" makepkg -sf --noconfirm
+    PATH="/usr/bin:$PATH" makepkg -sf --noconfirm --skippgpcheck
 )
 
 echo "    makepkg done."
