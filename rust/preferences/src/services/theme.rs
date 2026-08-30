@@ -165,15 +165,14 @@ fn persist_desktop(dark: bool) {
         .map(|(k, v)| (k.as_str(), v.as_str()))
         .collect();
     // Waybar no usa el tema GTK: recargarla aquí solo resetea la barra.
-    // Si pywal está activo, regenerate_if_enabled ya escribe colors-waybar.css.
+    // foot: SIGUSR1 = colors-dark, SIGUSR2 = colors-light (foot(1)).
+    // No regenerar pywal: la paleta sale del wallpaper, no del modo
+    // claro/oscuro. wal + accent.css en medio del cambio de color-scheme
+    // recarga CSS en caliente y GTK4 cierra las apps (#61).
     let _ = Command::new("pkill")
         .args([if dark { "-SIGUSR1" } else { "-SIGUSR2" }, "foot"])
         .envs(env_refs.iter().map(|(k, v)| (*k, *v)))
         .output();
-
-    if crate::services::pywal::PywalService::enabled() {
-        let _ = crate::services::pywal::PywalService::regenerate_if_enabled();
-    }
 }
 
 pub struct ThemeService;
