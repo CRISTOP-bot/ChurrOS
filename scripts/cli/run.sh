@@ -6,10 +6,40 @@ VM_DIR="vm"
 DISK="$VM_DIR/ChurrOS.qcow2"
 VARS="$VM_DIR/OVMF_VARS.fd"
 
-# Search OVMF firmware files in /usr
-# modify this if you have them in a different location that isn't /usr
-OVMF_CODE=$(find /usr -type f -name 'OVMF_CODE_4M.fd' -print -quit 2>/dev/null)
-OVMF_VARS=$(find /usr -type f -name 'OVMF_VARS_4M.fd' -print -quit 2>/dev/null)
+# Search OVMF firmware files in standard locations
+OVMF_CODE=""
+for path in \
+    /usr/share/edk2/x64/OVMF_CODE.4m.fd \
+    /usr/share/edk2-ovmf/x64/OVMF_CODE.4m.fd \
+    /usr/share/edk2/x64/OVMF_CODE.fd \
+    /usr/share/OVMF/OVMF_CODE.fd \
+    /usr/share/ovmf/x64/OVMF_CODE.4m.fd \
+    /usr/share/ovmf/OVMF_CODE.fd; do
+    if [ -f "$path" ]; then
+        OVMF_CODE="$path"
+        break
+    fi
+done
+if [ -z "$OVMF_CODE" ]; then
+    OVMF_CODE=$(find /usr/share/edk2 /usr/share/ovmf /usr/share/OVMF /usr/share/qemu -type f \( -iname 'OVMF_CODE*.4m.fd' -o -iname 'OVMF_CODE*.fd' \) ! -name '*secboot*' -print -quit 2>/dev/null || true)
+fi
+
+OVMF_VARS=""
+for path in \
+    /usr/share/edk2/x64/OVMF_VARS.4m.fd \
+    /usr/share/edk2-ovmf/x64/OVMF_VARS.4m.fd \
+    /usr/share/edk2/x64/OVMF_VARS.fd \
+    /usr/share/OVMF/OVMF_VARS.fd \
+    /usr/share/ovmf/x64/OVMF_VARS.4m.fd \
+    /usr/share/ovmf/OVMF_VARS.fd; do
+    if [ -f "$path" ]; then
+        OVMF_VARS="$path"
+        break
+    fi
+done
+if [ -z "$OVMF_VARS" ]; then
+    OVMF_VARS=$(find /usr/share/edk2 /usr/share/ovmf /usr/share/OVMF /usr/share/qemu -type f \( -iname 'OVMF_VARS*.4m.fd' -o -iname 'OVMF_VARS*.fd' \) -print -quit 2>/dev/null || true)
+fi
 
 ISO=$(find out -name "*.iso" 2>/dev/null | head -n1)
 

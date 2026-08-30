@@ -177,7 +177,12 @@ bash scripts/build-rust.sh;
 
 echo "[4/5] Cleaning previous build...";
 
-sudo rm -rf work out
+if mountpoint -q work 2>/dev/null; then
+    sudo find work -mindepth 1 -delete 2>/dev/null || sudo rm -rf work/* 2>/dev/null || true
+else
+    sudo rm -rf work
+fi
+sudo rm -rf out
 mkdir -p out
 
 echo "[5/5] Building ISO...";
@@ -205,7 +210,11 @@ sudo chown -R "$USER:$USER" work out 2>/dev/null || true
 
 echo "[5/5] Cleaning build artifacts..."
 
-rm -rf work 2>/dev/null || true
+if mountpoint -q work 2>/dev/null; then
+    sudo find work -mindepth 1 -delete 2>/dev/null || sudo rm -rf work/* 2>/dev/null || true
+else
+    rm -rf work 2>/dev/null || true
+fi
 
 echo
 echo "======================================"
