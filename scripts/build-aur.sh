@@ -3,8 +3,19 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-WORK_DIR="$PROJECT_DIR/work/aur-build"
 PACKAGE_DIR="$PROJECT_DIR/archiso/packages"
+
+choose_work_dir() {
+    local parent="$PROJECT_DIR/work"
+    if [ -e "$parent" ] && [ ! -w "$parent" ]; then
+        WORK_DIR="$(mktemp -d /tmp/churros-aur-build.XXXXXX)"
+        return
+    fi
+    mkdir -p "$parent"
+    WORK_DIR="$parent/aur-build"
+}
+
+choose_work_dir
 
 echo "======================================"
 echo "  Building AUR extras for ChurrOS"
