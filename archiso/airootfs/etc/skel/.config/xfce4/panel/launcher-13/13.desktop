@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Bazaar
+Comment=Centro de aplicaciones de ChurrOS
+Exec=bazaar
+Icon=io.github.kolunmi.Bazaar
+Path=
+Terminal=false
+StartupNotify=true
+Categories=System;PackageManager;GTK;
