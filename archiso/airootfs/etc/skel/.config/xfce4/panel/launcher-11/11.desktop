@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Gestor de archivos
+Comment=Explora tus carpetas y archivos
+Exec=thunar %F
+Icon=org.xfce.thunar
+Path=
+Terminal=false
+StartupNotify=true
+Categories=System;FileManager;Utility;Core;GTK;

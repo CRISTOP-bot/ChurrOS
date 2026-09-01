@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Configuracion
+Comment=Configura ChurrOS
+Exec=churros-settings
+Icon=churros-settings
+Path=
+Terminal=false
+StartupNotify=true
+Categories=Settings;GTK;

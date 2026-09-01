@@ -4,7 +4,6 @@ arch-install-scripts
 archinstall
 base
 bcachefs-tools
-broadcom-wl
 btrfs-progs
 cryptsetup
 dhcpcd
@@ -104,7 +103,6 @@ zsh
 # GPU / Xorg / Mesa
 mesa
 mesa-utils
-libva-mesa-driver
 vulkan-virtio
 xorg-server
 xorg-xinit

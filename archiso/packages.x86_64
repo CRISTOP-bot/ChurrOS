@@ -4,7 +4,6 @@ arch-install-scripts
 archinstall
 base
 bcachefs-tools
-broadcom-wl
 btrfs-progs
 cryptsetup
 dhcpcd
@@ -104,7 +103,6 @@ zsh
 # GPU / Mesa (required for niri + Wayland)
 mesa
 mesa-utils
-libva-mesa-driver
 vulkan-virtio
 
 niri
